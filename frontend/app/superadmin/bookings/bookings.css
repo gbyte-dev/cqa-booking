@@ -1,0 +1,1695 @@
+/* =========================================================
+   SUPER ADMIN BOOKINGS
+   File:
+   frontend/app/superadmin/bookings/bookings.css
+
+   Common Header / Sidebar / Footer CSS
+   is file mein nahi hai.
+   Wo superadmin.css se load hoga.
+========================================================= */
+
+
+/* =========================================================
+   BOOKINGS PAGE
+========================================================= */
+
+.bookings-page {
+  min-height: 100vh;
+  background: var(--sa-bg);
+  color: var(--sa-text);
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+
+/* =========================================================
+   BOOKINGS LAYOUT
+========================================================= */
+
+.bookings-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+/*
+  Sidebar 260px hai.
+
+  Header + content + footer ke liye
+  main wrapper sidebar ke right se start hoga.
+*/
+
+.bookings-main-wrapper {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+
+  margin-left: 260px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--sa-bg);
+
+  transition:
+    margin-left 0.2s ease,
+    background 0.2s ease;
+}
+
+
+/* =========================================================
+   BOOKINGS CONTENT
+========================================================= */
+
+.bookings-content {
+  flex: 1;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 30px;
+
+  overflow-x: hidden;
+
+  background: var(--sa-bg);
+
+  color: var(--sa-text);
+}
+
+
+/* =========================================================
+   STATS GRID
+========================================================= */
+
+.stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+
+  gap: 18px;
+
+  margin-bottom: 24px;
+}
+
+
+/* =========================================================
+   STAT CARD
+========================================================= */
+
+.stat-card {
+  min-width: 0;
+
+  padding: 21px;
+
+  background: var(--sa-surface);
+
+  border: 1px solid var(--sa-border-light);
+
+  border-radius: var(--sa-radius-lg);
+
+  box-shadow: var(--sa-shadow-sm);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: var(--sa-shadow-md);
+}
+
+
+/* =========================================================
+   STAT TOP
+========================================================= */
+
+.stat-top {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-bottom: 15px;
+}
+
+
+/* =========================================================
+   STAT LABEL
+========================================================= */
+
+.stat-label {
+  color: var(--sa-text-secondary);
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.6px;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   STAT VALUE
+========================================================= */
+
+.stat-value {
+  margin-bottom: 13px;
+
+  color: var(--sa-text);
+
+  font-size: 28px;
+
+  line-height: 1.1;
+
+  font-weight: 750;
+
+  letter-spacing: -0.6px;
+
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   STAT FOOTER
+========================================================= */
+
+.stat-footer {
+  color: var(--sa-text-muted);
+
+  font-size: 11px;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   FILTERS SECTION
+========================================================= */
+
+.filters-section {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 15px;
+
+  margin-bottom: 24px;
+}
+
+
+/* =========================================================
+   FILTER GROUP
+========================================================= */
+
+.filter-group {
+  flex: 1;
+
+  min-width: 200px;
+}
+
+
+/* =========================================================
+   SEARCH INPUT
+========================================================= */
+
+.search-input,
+.status-filter {
+  width: 100%;
+
+  min-height: 42px;
+
+  padding: 10px 14px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--sa-border);
+
+  border-radius: var(--sa-radius-md);
+
+  background: var(--sa-surface);
+
+  color: var(--sa-text);
+
+  font-size: 13px;
+
+  font-family: inherit;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: var(--sa-text-muted);
+}
+
+.search-input:focus,
+.status-filter:focus {
+  outline: none;
+
+  border-color: var(--sa-primary);
+
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+
+/* =========================================================
+   STATUS FILTER
+========================================================= */
+
+.status-filter {
+  cursor: pointer;
+}
+
+.status-filter option {
+  background: var(--sa-surface);
+
+  color: var(--sa-text);
+}
+
+
+/* =========================================================
+   PANEL
+========================================================= */
+
+.panel {
+  min-width: 0;
+
+  background: var(--sa-surface);
+
+  border: 1px solid var(--sa-border-light);
+
+  border-radius: var(--sa-radius-lg);
+
+  box-shadow: var(--sa-shadow-sm);
+
+  overflow: hidden;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+/* =========================================================
+   PANEL HEADER
+========================================================= */
+
+.panel-header {
+  min-height: 64px;
+
+  box-sizing: border-box;
+
+  padding: 0 22px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  border-bottom: 1px solid var(--sa-border);
+
+  background: var(--sa-surface);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.panel-header h3 {
+  margin: 0;
+
+  color: var(--sa-text);
+
+  font-size: 15px;
+
+  line-height: 1.3;
+
+  font-weight: 700;
+}
+
+.panel-header span {
+  color: var(--sa-text-muted);
+
+  font-size: 11px;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   TABLE CONTAINER
+========================================================= */
+
+.table-container {
+  width: 100%;
+
+  overflow-x: auto;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 7px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: var(--sa-surface-2);
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--sa-border);
+
+  border-radius: 10px;
+}
+
+
+/* =========================================================
+   BOOKINGS TABLE
+========================================================= */
+
+.bookings-table {
+  width: 100%;
+
+  min-width: 1000px;
+
+  border-collapse: collapse;
+
+  border-spacing: 0;
+
+  background: var(--sa-surface);
+}
+
+.bookings-table thead tr {
+  background: var(--sa-surface-2);
+
+  border-bottom: 1px solid var(--sa-border);
+}
+
+.bookings-table th {
+  padding: 13px 18px;
+
+  color: var(--sa-text-secondary);
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.5px;
+
+  text-align: left;
+
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+.bookings-table td {
+  padding: 15px 18px;
+
+  color: var(--sa-text-secondary);
+
+  font-size: 12px;
+
+  border-bottom: 1px solid var(--sa-border-light);
+
+  vertical-align: middle;
+}
+
+.bookings-table tbody tr {
+  transition:
+    background 0.15s ease;
+}
+
+.bookings-table tbody tr:hover {
+  background: var(--sa-surface-hover);
+}
+
+.bookings-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   CUSTOMER CELL
+========================================================= */
+
+.customer-cell {
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  min-width: 200px;
+}
+
+
+/* =========================================================
+   CUSTOMER AVATAR
+========================================================= */
+
+.customer-avatar {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  color: #ffffff;
+
+  font-size: 13px;
+
+  font-weight: 750;
+
+  border: 1px solid var(--sa-border-light);
+}
+
+
+/* =========================================================
+   CUSTOMER EMAIL
+========================================================= */
+
+.customer-email {
+  max-width: 200px;
+
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: var(--sa-text-muted);
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   VENUE CITY
+========================================================= */
+
+.venue-city {
+  max-width: 150px;
+
+  margin-top: 3px;
+
+  overflow: hidden;
+
+  color: var(--sa-text-muted);
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   GUESTS BADGE
+========================================================= */
+
+.guests-badge {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 28px;
+  height: 28px;
+
+  padding: 0 8px;
+
+  border-radius: 50px;
+
+  background: var(--sa-primary-light);
+
+  color: var(--sa-primary);
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
+.status-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 5px 9px;
+
+  border-radius: 50px;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.status-badge.confirmed {
+  background: var(--sa-success-bg);
+
+  color: var(--sa-success);
+}
+
+.status-badge.pending {
+  background: var(--sa-warning-bg);
+
+  color: var(--sa-warning);
+}
+
+.status-badge.cancelled {
+  background: var(--sa-danger-bg);
+
+  color: var(--sa-danger);
+}
+
+.status-badge.completed {
+  background: var(--sa-success-bg);
+
+  color: var(--sa-success);
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.action-buttons {
+  display: flex;
+
+  gap: 8px;
+
+  flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   ACTION BUTTON
+========================================================= */
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+
+  min-height: 36px;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: var(--sa-radius-sm);
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    all 0.2s ease;
+}
+
+.action-btn.view-btn {
+  background: var(--sa-primary-light);
+
+  color: var(--sa-primary);
+}
+
+.action-btn.confirm-btn {
+  background: var(--sa-success-bg);
+
+  color: var(--sa-success);
+}
+
+.action-btn.complete-btn {
+  background: var(--sa-success-bg);
+
+  color: var(--sa-success);
+}
+
+.action-btn.cancel-btn {
+  background: var(--sa-danger-bg);
+
+  color: var(--sa-danger);
+}
+
+.action-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+
+  box-shadow: var(--sa-shadow-sm);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-state {
+  min-height: 220px;
+
+  padding: 40px 20px;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  color: var(--sa-text-muted);
+}
+
+.empty-icon {
+  width: 54px;
+  height: 54px;
+
+  margin-bottom: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--sa-surface-2);
+
+  color: var(--sa-text-muted);
+
+  border: 1px solid var(--sa-border);
+
+  font-size: 20px;
+}
+
+.empty-state p {
+  margin: 0;
+
+  color: var(--sa-text-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   LOADING SCREEN
+========================================================= */
+
+.loading-state {
+  min-height: 100vh;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: var(--sa-bg);
+
+  color: var(--sa-text-secondary);
+
+  gap: 15px;
+
+  flex-direction: column;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+
+  border: 4px solid var(--sa-border);
+
+  border-top-color: var(--sa-primary);
+
+  border-radius: 50%;
+
+  animation: booking-spin 0.8s linear infinite;
+}
+
+@keyframes booking-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
+.modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.55);
+
+  backdrop-filter: blur(3px);
+
+  animation: modal-overlay-in 0.2s ease;
+}
+
+@keyframes modal-overlay-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal {
+  width: 100%;
+
+  max-width: 600px;
+
+  max-height: 90vh;
+
+  padding: 0;
+
+  box-sizing: border-box;
+
+  background: var(--sa-surface);
+
+  border: 1px solid var(--sa-border);
+
+  border-radius: var(--sa-radius-lg);
+
+  box-shadow: var(--sa-shadow-lg);
+
+  overflow-y: auto;
+
+  color: var(--sa-text);
+
+  animation: booking-modal-in 0.25s ease;
+}
+
+.details-modal {
+  max-width: 700px;
+}
+
+.cancel-modal {
+  max-width: 500px;
+}
+
+@keyframes booking-modal-in {
+  from {
+    opacity: 0;
+
+    transform: translateY(-12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.modal-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  min-height: 64px;
+
+  padding: 0 25px;
+
+  border-bottom: 1px solid var(--sa-border);
+
+  background: var(--sa-surface);
+
+  flex-shrink: 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+
+  color: var(--sa-text);
+
+  font-size: 18px;
+
+  font-weight: 750;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.close-btn {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  background: none;
+
+  color: var(--sa-text-muted);
+
+  font-size: 24px;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease;
+}
+
+.close-btn:hover {
+  color: var(--sa-text);
+}
+
+
+/* =========================================================
+   BOOKING DETAILS
+========================================================= */
+
+.booking-details {
+  padding: 25px;
+
+  overflow-y: auto;
+}
+
+
+/* =========================================================
+   DETAILS SECTION
+========================================================= */
+
+.details-section {
+  margin-bottom: 25px;
+}
+
+.details-section:last-child {
+  margin-bottom: 0;
+}
+
+.details-section h3 {
+  margin: 0 0 15px;
+
+  color: var(--sa-text);
+
+  font-size: 14px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   DETAIL ROW
+========================================================= */
+
+.detail-row {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid var(--sa-border-light);
+
+  font-size: 14px;
+
+  gap: 15px;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row .label {
+  font-weight: 700;
+
+  color: var(--sa-text-secondary);
+
+  flex-shrink: 0;
+}
+
+.detail-row .value {
+  color: var(--sa-text);
+
+  text-align: right;
+
+  flex: 1;
+
+  word-break: break-word;
+}
+
+.detail-row .value.status-badge {
+  text-align: right;
+}
+
+
+/* =========================================================
+   CANCEL CONTENT
+========================================================= */
+
+.cancel-content {
+  padding: 25px;
+
+  overflow-y: auto;
+}
+
+.cancel-content p {
+  margin: 0 0 15px;
+
+  color: var(--sa-text-secondary);
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+.cancel-content p:last-of-type {
+  margin-bottom: 0;
+}
+
+.cancel-content strong {
+  color: var(--sa-text);
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   BOOKING INFO
+========================================================= */
+
+.booking-info {
+  background: var(--sa-surface-2);
+
+  padding: 12px;
+
+  border-radius: var(--sa-radius-sm);
+
+  font-size: 13px;
+
+  color: var(--sa-text);
+
+  line-height: 1.6;
+
+  margin-bottom: 15px !important;
+}
+
+
+/* =========================================================
+   FORM GROUP
+========================================================= */
+
+.form-group {
+  margin-top: 20px;
+
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-weight: 700;
+
+  color: var(--sa-text);
+
+  font-size: 13px;
+}
+
+.form-group textarea {
+  width: 100%;
+
+  min-height: 100px;
+
+  padding: 12px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--sa-border);
+
+  border-radius: var(--sa-radius-sm);
+
+  background: var(--sa-surface);
+
+  color: var(--sa-text);
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  resize: vertical;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-group textarea::placeholder {
+  color: var(--sa-text-muted);
+}
+
+.form-group textarea:focus {
+  outline: none;
+
+  border-color: var(--sa-primary);
+
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group textarea:disabled {
+  background: var(--sa-surface-2);
+
+  color: var(--sa-text-muted);
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
+
+.modal-actions {
+  display: flex;
+
+  gap: 12px;
+
+  padding: 25px;
+
+  border-top: 1px solid var(--sa-border);
+
+  background: var(--sa-surface);
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   ACTION BUTTON STYLES
+========================================================= */
+
+.btn-cancel,
+.btn-submit,
+.btn-cancel-confirm {
+  flex: 1;
+
+  min-height: 42px;
+
+  padding: 0 15px;
+
+  border: none;
+
+  border-radius: var(--sa-radius-sm);
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    all 0.2s ease;
+
+  white-space: nowrap;
+}
+
+.btn-cancel {
+  background: var(--sa-surface-2);
+
+  color: var(--sa-text);
+
+  border: 1px solid var(--sa-border);
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: var(--sa-surface-hover);
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  color: #ffffff;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  box-shadow: var(--sa-shadow-md);
+}
+
+.btn-cancel-confirm {
+  background: var(--sa-danger);
+
+  color: #ffffff;
+}
+
+.btn-cancel-confirm:hover:not(:disabled) {
+  background: #c82333;
+
+  transform: translateY(-1px);
+}
+
+.btn-cancel:disabled,
+.btn-submit:disabled,
+.btn-cancel-confirm:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1200px) {
+
+  .bookings-content {
+    padding: 25px;
+  }
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+/* =========================================================
+   SMALL TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .bookings-main-wrapper {
+    margin-left: 0;
+  }
+
+  .bookings-content {
+    padding: 22px;
+  }
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .filters-section {
+    gap: 12px;
+  }
+
+  .filter-group {
+    min-width: 160px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .bookings-main-wrapper {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+  .bookings-content {
+    padding: 18px 15px;
+  }
+
+
+  /* Stats */
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 23px;
+  }
+
+
+  /* Filters */
+
+  .filters-section {
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .filter-group {
+    min-width: auto;
+  }
+
+  .search-input,
+  .status-filter {
+    min-height: 40px;
+
+    font-size: 13px;
+  }
+
+
+  /* Panel */
+
+  .panel-header {
+    min-height: 58px;
+
+    padding: 0 16px;
+  }
+
+  .panel-header h3 {
+    font-size: 14px;
+  }
+
+  .panel-header span {
+    font-size: 10px;
+  }
+
+
+  /* Table */
+
+  .bookings-table {
+    min-width: 850px;
+
+    font-size: 11px;
+  }
+
+  .bookings-table th {
+    padding: 11px 14px;
+
+    font-size: 9px;
+  }
+
+  .bookings-table td {
+    padding: 12px 14px;
+
+    font-size: 11px;
+  }
+
+  .customer-cell {
+    min-width: 160px;
+
+    gap: 8px;
+  }
+
+  .customer-avatar {
+    width: 34px;
+    height: 34px;
+
+    font-size: 11px;
+  }
+
+  .customer-email {
+    max-width: 140px;
+
+    font-size: 9px;
+  }
+
+  .venue-city {
+    max-width: 120px;
+
+    font-size: 9px;
+  }
+
+  .action-buttons {
+    gap: 6px;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+
+    font-size: 14px;
+  }
+
+
+  /* Modal */
+
+  .modal-overlay {
+    padding: 15px;
+  }
+
+  .modal {
+    max-width: 100%;
+
+    border-radius: var(--sa-radius-lg);
+  }
+
+  .modal-header {
+    padding: 0 20px;
+
+    min-height: 58px;
+  }
+
+  .modal-header h2 {
+    font-size: 16px;
+  }
+
+  .booking-details,
+  .cancel-content {
+    padding: 20px;
+  }
+
+  .detail-row {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    padding: 10px 0;
+  }
+
+  .detail-row .label {
+    color: var(--sa-text-secondary);
+
+    font-size: 12px;
+  }
+
+  .detail-row .value {
+    text-align: left;
+
+    font-size: 13px;
+  }
+
+  .modal-actions {
+    padding: 20px;
+
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .btn-cancel,
+  .btn-submit,
+  .btn-cancel-confirm {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+  .bookings-content {
+    padding: 15px 12px;
+  }
+
+
+  /* Stats */
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+
+    margin-bottom: 15px;
+  }
+
+  .stat-card {
+    padding: 17px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .stat-value {
+    font-size: 21px;
+
+    margin-bottom: 10px;
+  }
+
+  .stat-footer {
+    font-size: 10px;
+  }
+
+
+  /* Filters */
+
+  .filter-group {
+    width: 100%;
+  }
+
+
+  /* Table */
+
+  .bookings-table {
+    min-width: 750px;
+  }
+
+  .bookings-table th {
+    font-size: 8px;
+
+    padding: 10px 10px;
+  }
+
+  .bookings-table td {
+    padding: 10px;
+
+    font-size: 10px;
+  }
+
+  .customer-cell {
+    min-width: 140px;
+
+    gap: 6px;
+  }
+
+  .customer-avatar {
+    width: 32px;
+    height: 32px;
+
+    font-size: 10px;
+  }
+
+  .customer-email {
+    display: none;
+  }
+
+  .venue-city {
+    display: none;
+  }
+
+  .action-btn {
+    width: 30px;
+    height: 30px;
+
+    font-size: 13px;
+  }
+
+
+  /* Modal */
+
+  .modal-header {
+    padding: 0 17px;
+
+    min-height: 54px;
+  }
+
+  .modal-header h2 {
+    font-size: 15px;
+  }
+
+  .close-btn {
+    width: 32px;
+    height: 32px;
+
+    font-size: 20px;
+  }
+
+  .booking-details,
+  .cancel-content {
+    padding: 17px;
+  }
+
+  .details-section {
+    margin-bottom: 18px;
+  }
+
+  .details-section h3 {
+    font-size: 13px;
+
+    margin-bottom: 12px;
+  }
+
+  .detail-row {
+    padding: 8px 0;
+
+    font-size: 12px;
+
+    gap: 0;
+  }
+
+  .detail-row .label {
+    font-size: 11px;
+  }
+
+  .detail-row .value {
+    font-size: 12px;
+  }
+
+  .booking-info {
+    padding: 10px;
+
+    font-size: 12px;
+  }
+
+  .form-group {
+    margin-top: 15px;
+
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    font-size: 12px;
+
+    margin-bottom: 6px;
+  }
+
+  .form-group textarea {
+    min-height: 90px;
+
+    padding: 10px;
+
+    font-size: 12px;
+  }
+
+  .modal-actions {
+    padding: 17px;
+
+    gap: 8px;
+  }
+
+  .btn-cancel,
+  .btn-submit,
+  .btn-cancel-confirm {
+    min-height: 40px;
+
+    padding: 0 12px;
+
+    font-size: 11px;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .stat-card,
+  .action-btn,
+  .btn-cancel,
+  .btn-submit,
+  .btn-cancel-confirm,
+  .search-input,
+  .status-filter,
+  .modal-overlay,
+  .modal {
+    transition: none;
+  }
+
+  .loading-spinner {
+    animation: none;
+  }
+
+  .stat-card:hover,
+  .action-btn:hover {
+    transform: none;
+  }
+}

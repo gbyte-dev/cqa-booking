@@ -1,0 +1,2168 @@
+/* =========================================================
+   CQA BOOKING - TENANT BOOKINGS PAGE
+   Fully Responsive
+   Desktop / Laptop / Tablet / Mobile
+========================================================= */
+
+
+/* =========================================================
+   1. PAGE
+========================================================= */
+
+.bookings-page {
+  width: 100%;
+  min-height: 100vh;
+
+  background: var(--tenant-bg);
+  color: var(--tenant-text);
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================================
+   2. LAYOUT
+========================================================= */
+
+.bookings-layout {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+
+  background: var(--tenant-bg);
+}
+
+
+.bookings-main-wrapper {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+
+  margin-left: var(--tenant-sidebar-width);
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--tenant-bg);
+
+  transition:
+    margin-left var(--tenant-transition),
+    background var(--tenant-transition);
+}
+
+
+.bookings-content {
+  width: 100%;
+  max-width: 1800px;
+
+  margin: 0 auto;
+
+  padding: 28px 30px;
+
+  flex: 1;
+}
+
+
+/* =========================================================
+   3. STATS
+========================================================= */
+
+.stats-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+
+.stat-card {
+  min-width: 0;
+
+  padding: 20px;
+
+  background: var(--tenant-surface);
+
+  border:
+    1px solid var(--tenant-border-light);
+
+  border-radius:
+    var(--tenant-radius-lg);
+
+  box-shadow:
+    var(--tenant-shadow-sm);
+
+  transition:
+    transform var(--tenant-transition),
+    box-shadow var(--tenant-transition),
+    background var(--tenant-transition),
+    border-color var(--tenant-transition);
+}
+
+
+.stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    var(--tenant-shadow-md);
+}
+
+
+.stat-label {
+  margin-bottom: 8px;
+
+  color: var(--tenant-text-secondary);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  line-height: 1.4;
+}
+
+
+.stat-value {
+  margin-bottom: 7px;
+
+  color: var(--tenant-text);
+
+  font-size: 27px;
+  line-height: 1.2;
+
+  font-weight: 750;
+}
+
+
+.stat-footer {
+  color: var(--tenant-text-muted);
+
+  font-size: 11px;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   4. FILTER SECTION
+========================================================= */
+
+.filters-section {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  margin-bottom: 20px;
+  padding: 15px;
+
+  background: var(--tenant-surface);
+
+  border:
+    1px solid var(--tenant-border-light);
+
+  border-radius:
+    var(--tenant-radius-lg);
+
+  box-shadow:
+    var(--tenant-shadow-sm);
+
+  transition:
+    background var(--tenant-transition),
+    border-color var(--tenant-transition);
+}
+
+
+.filter-group {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+.filter-group:first-child {
+  flex: 1;
+}
+
+
+.filter-group:last-child {
+  flex: 0 0 auto;
+}
+
+
+/* =========================================================
+   5. SEARCH / FILTER INPUT
+========================================================= */
+
+.filters-section .search-input,
+.filters-section .status-filter {
+  height: 42px;
+
+  border:
+    1px solid var(--tenant-border);
+
+  border-radius:
+    var(--tenant-radius-sm);
+
+  outline: none;
+
+  background:
+    var(--tenant-surface);
+
+  color:
+    var(--tenant-text);
+
+  font-family: inherit;
+  font-size: 13px;
+
+  transition:
+    border-color var(--tenant-transition),
+    box-shadow var(--tenant-transition),
+    background var(--tenant-transition);
+}
+
+
+.filters-section .search-input {
+  width: 100%;
+
+  padding:
+    0 13px;
+}
+
+
+.filters-section .status-filter {
+  width: 190px;
+
+  padding:
+    0 11px;
+
+  cursor: pointer;
+}
+
+
+.filters-section .search-input::placeholder {
+  color:
+    var(--tenant-text-muted);
+}
+
+
+.filters-section .search-input:focus,
+.filters-section .status-filter:focus {
+  border-color:
+    var(--tenant-primary);
+
+  box-shadow:
+    0 0 0 3px
+    var(--tenant-primary-light);
+}
+
+
+/* =========================================================
+   6. COMMON PANEL
+========================================================= */
+
+.panel {
+  width: 100%;
+
+  background:
+    var(--tenant-surface);
+
+  border:
+    1px solid var(--tenant-border-light);
+
+  border-radius:
+    var(--tenant-radius-lg);
+
+  box-shadow:
+    var(--tenant-shadow-sm);
+
+  overflow: hidden;
+
+  transition:
+    background var(--tenant-transition),
+    border-color var(--tenant-transition),
+    box-shadow var(--tenant-transition);
+}
+
+
+.panel-header {
+  min-height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding: 16px 20px;
+
+  border-bottom:
+    1px solid var(--tenant-border);
+}
+
+
+.panel-header h3 {
+  margin: 0;
+
+  color:
+    var(--tenant-text);
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+
+.panel-header span {
+  color:
+    var(--tenant-text-secondary);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   7. TABLE
+========================================================= */
+
+.table-container {
+  width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: thin;
+}
+
+
+.table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+
+.table-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+.table-container::-webkit-scrollbar-thumb {
+  background:
+    var(--tenant-border);
+
+  border-radius: 20px;
+}
+
+
+.bookings-table {
+  width: 100%;
+
+  min-width: 1050px;
+
+  border-collapse: collapse;
+
+  table-layout: auto;
+}
+
+
+/* =========================================================
+   8. TABLE HEADER
+========================================================= */
+
+.bookings-table th {
+  padding: 13px 15px;
+
+  background:
+    var(--tenant-surface-2);
+
+  color:
+    var(--tenant-text-secondary);
+
+  border-bottom:
+    1px solid var(--tenant-border);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.05em;
+
+  text-align: left;
+
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   9. TABLE BODY
+========================================================= */
+
+.bookings-table td {
+  padding: 14px 15px;
+
+  background:
+    var(--tenant-surface);
+
+  color:
+    var(--tenant-text);
+
+  border-bottom:
+    1px solid var(--tenant-border-light);
+
+  font-size: 13px;
+
+  vertical-align: middle;
+}
+
+
+.bookings-table tbody tr {
+  transition:
+    background var(--tenant-transition);
+}
+
+
+.bookings-table tbody tr:hover td {
+  background:
+    var(--tenant-surface-hover);
+}
+
+
+.bookings-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   10. CUSTOMER
+========================================================= */
+
+.customer-cell {
+  min-width: 190px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+.customer-avatar {
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--tenant-primary),
+      #764ba2
+    );
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+}
+
+
+.customer-cell strong {
+  display: block;
+
+  max-width: 190px;
+
+  margin-bottom: 3px;
+
+  color:
+    var(--tenant-text);
+
+  font-size: 13px;
+  font-weight: 650;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.customer-email {
+  display: block;
+
+  max-width: 190px;
+
+  color:
+    var(--tenant-text-secondary);
+
+  font-size: 11px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   11. VENUE
+========================================================= */
+
+.venue-city {
+  margin-top: 3px;
+
+  color:
+    var(--tenant-text-secondary);
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   12. GUEST BADGE
+========================================================= */
+
+.guests-badge {
+  min-width: 32px;
+  height: 28px;
+
+  padding: 0 9px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+
+  background:
+    var(--tenant-primary-light);
+
+  color:
+    var(--tenant-primary);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   13. STATUS
+========================================================= */
+
+.status-badge {
+  min-height: 27px;
+
+  padding: 4px 10px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+.status-badge.pending {
+  background:
+    var(--tenant-warning-bg);
+
+  color:
+    var(--tenant-warning);
+}
+
+
+.status-badge.confirmed {
+  background:
+    var(--tenant-success-bg);
+
+  color:
+    var(--tenant-success);
+}
+
+
+.status-badge.checked-in {
+  background:
+    var(--tenant-info-bg);
+
+  color:
+    var(--tenant-info);
+}
+
+
+.status-badge.completed {
+  background:
+    var(--tenant-success-bg);
+
+  color:
+    var(--tenant-success);
+}
+
+
+.status-badge.cancelled {
+  background:
+    var(--tenant-danger-bg);
+
+  color:
+    var(--tenant-danger);
+}
+
+
+/* =========================================================
+   14. ACTION BUTTONS
+========================================================= */
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  white-space: nowrap;
+}
+
+
+.action-btn {
+  width: 33px;
+  height: 33px;
+
+  flex: 0 0 33px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border:
+    1px solid var(--tenant-border);
+
+  border-radius: 8px;
+
+  background:
+    var(--tenant-surface);
+
+  color:
+    var(--tenant-text-secondary);
+
+  font-size: 13px;
+
+  cursor: pointer;
+
+  transition:
+    transform var(--tenant-transition),
+    background var(--tenant-transition),
+    border-color var(--tenant-transition),
+    color var(--tenant-transition);
+}
+
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+
+.action-btn:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+.view-btn:hover {
+  background:
+    var(--tenant-info-bg);
+
+  border-color:
+    var(--tenant-info);
+
+  color:
+    var(--tenant-info);
+}
+
+
+.confirm-btn:hover,
+.complete-btn:hover {
+  background:
+    var(--tenant-success-bg);
+
+  border-color:
+    var(--tenant-success);
+
+  color:
+    var(--tenant-success);
+}
+
+
+.cancel-btn:hover {
+  background:
+    var(--tenant-danger-bg);
+
+  border-color:
+    var(--tenant-danger);
+
+  color:
+    var(--tenant-danger);
+}
+
+
+/* =========================================================
+   15. EMPTY STATE
+========================================================= */
+
+.empty-state {
+  min-height: 250px;
+
+  padding: 60px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-direction: column;
+
+  text-align: center;
+}
+
+
+.empty-icon {
+  margin-bottom: 12px;
+
+  color:
+    var(--tenant-text-muted);
+
+  font-size: 40px;
+
+  opacity: 0.7;
+}
+
+
+.empty-state p {
+  margin: 0;
+
+  color:
+    var(--tenant-text-secondary);
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   16. LOADING
+========================================================= */
+
+.loading-state {
+  width: 100%;
+  min-height: 60vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-direction: column;
+
+  gap: 13px;
+
+  color:
+    var(--tenant-text-secondary);
+
+  font-size: 13px;
+}
+
+
+.loading-spinner {
+  width: 38px;
+  height: 38px;
+
+  border:
+    3px solid var(--tenant-border);
+
+  border-top-color:
+    var(--tenant-primary);
+
+  border-radius: 50%;
+
+  animation:
+    tenantBookingsSpin 0.8s linear infinite;
+}
+
+
+@keyframes tenantBookingsSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   17. MODAL OVERLAY
+========================================================= */
+
+.modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 9999;
+
+  padding: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    rgba(15, 23, 42, 0.58);
+
+  backdrop-filter:
+    blur(4px);
+
+  -webkit-backdrop-filter:
+    blur(4px);
+}
+
+
+/* =========================================================
+   18. MODAL
+========================================================= */
+
+.modal {
+  width: 100%;
+  max-width: 650px;
+
+  max-height:
+    calc(100vh - 40px);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  background:
+    var(--tenant-surface);
+
+  color:
+    var(--tenant-text);
+
+  border:
+    1px solid var(--tenant-border);
+
+  border-radius:
+    16px;
+
+  box-shadow:
+    var(--tenant-shadow-lg);
+
+  animation:
+    bookingModalIn 0.18s ease;
+}
+
+
+.details-modal {
+  max-width: 720px;
+}
+
+
+.cancel-modal {
+  max-width: 520px;
+}
+
+
+@keyframes bookingModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   19. MODAL HEADER
+========================================================= */
+
+.modal-header {
+  min-height: 60px;
+
+  padding: 14px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 2;
+
+  background:
+    var(--tenant-surface);
+
+  border-bottom:
+    1px solid var(--tenant-border);
+}
+
+
+.modal-header h2 {
+  min-width: 0;
+
+  margin: 0;
+
+  color:
+    var(--tenant-text);
+
+  font-size: 17px;
+  font-weight: 700;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.close-btn {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border:
+    1px solid var(--tenant-border);
+
+  border-radius: 8px;
+
+  background:
+    transparent;
+
+  color:
+    var(--tenant-text-secondary);
+
+  cursor: pointer;
+
+  font-size: 16px;
+
+  transition:
+    all var(--tenant-transition);
+}
+
+
+.close-btn:hover {
+  background:
+    var(--tenant-surface-hover);
+
+  color:
+    var(--tenant-text);
+
+  border-color:
+    var(--tenant-primary);
+}
+
+
+/* =========================================================
+   20. BOOKING DETAILS
+========================================================= */
+
+.booking-details {
+  padding: 20px;
+}
+
+
+.details-section {
+  padding: 17px 0;
+
+  border-bottom:
+    1px solid var(--tenant-border);
+}
+
+
+.details-section:first-child {
+  padding-top: 0;
+}
+
+
+.details-section:last-child {
+  padding-bottom: 0;
+
+  border-bottom: none;
+}
+
+
+.details-section h3 {
+  margin: 0 0 13px;
+
+  color:
+    var(--tenant-text);
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  padding: 7px 0;
+}
+
+
+.detail-row .label {
+  width: 145px;
+  flex: 0 0 145px;
+
+  color:
+    var(--tenant-text-secondary);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+.detail-row .value {
+  flex: 1;
+  min-width: 0;
+
+  color:
+    var(--tenant-text);
+
+  font-size: 13px;
+
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   21. CANCEL CONTENT
+========================================================= */
+
+.cancel-content {
+  padding: 20px;
+}
+
+
+.cancel-content p {
+  margin: 0 0 14px;
+
+  color:
+    var(--tenant-text);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+.booking-info {
+  padding: 12px 14px;
+
+  background:
+    var(--tenant-surface-2);
+
+  border:
+    1px solid var(--tenant-border);
+
+  border-radius: 9px;
+}
+
+
+.form-group {
+  margin-top: 19px;
+}
+
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color:
+    var(--tenant-text);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+.form-group textarea {
+  width: 100%;
+
+  min-height: 100px;
+
+  padding: 11px 12px;
+
+  resize: vertical;
+
+  border:
+    1px solid var(--tenant-border);
+
+  border-radius: 9px;
+
+  outline: none;
+
+  background:
+    var(--tenant-surface);
+
+  color:
+    var(--tenant-text);
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  transition:
+    border-color var(--tenant-transition),
+    box-shadow var(--tenant-transition);
+}
+
+
+.form-group textarea::placeholder {
+  color:
+    var(--tenant-text-muted);
+}
+
+
+.form-group textarea:focus {
+  border-color:
+    var(--tenant-primary);
+
+  box-shadow:
+    0 0 0 3px
+    var(--tenant-primary-light);
+}
+
+
+/* =========================================================
+   22. MODAL ACTIONS
+========================================================= */
+
+.modal-actions {
+  margin-top: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 9px;
+}
+
+
+.btn-cancel,
+.btn-cancel-confirm {
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  border-radius: 8px;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    all var(--tenant-transition);
+}
+
+
+.btn-cancel {
+  background:
+    var(--tenant-surface);
+
+  color:
+    var(--tenant-text);
+
+  border:
+    1px solid var(--tenant-border);
+}
+
+
+.btn-cancel:hover {
+  background:
+    var(--tenant-surface-hover);
+}
+
+
+.btn-cancel-confirm {
+  background:
+    var(--tenant-danger);
+
+  color: #ffffff;
+
+  border:
+    1px solid var(--tenant-danger);
+}
+
+
+.btn-cancel-confirm:hover {
+  filter: brightness(0.9);
+
+  transform: translateY(-1px);
+}
+
+
+.btn-cancel:disabled,
+.btn-cancel-confirm:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =========================================================
+   23. DARK THEME COMPATIBILITY
+========================================================= */
+
+[data-theme="dark"] .bookings-page,
+.dark .bookings-page {
+  background:
+    var(--tenant-bg);
+
+  color:
+    var(--tenant-text);
+}
+
+
+[data-theme="dark"] .stat-card,
+.dark .stat-card,
+[data-theme="dark"] .panel,
+.dark .panel,
+[data-theme="dark"] .filters-section,
+.dark .filters-section,
+[data-theme="dark"] .modal,
+.dark .modal {
+  box-shadow:
+    var(--tenant-shadow-sm);
+}
+
+
+[data-theme="dark"] .customer-avatar,
+.dark .customer-avatar {
+  background:
+    linear-gradient(
+      135deg,
+      var(--tenant-primary),
+      #764ba2
+    );
+}
+
+
+[data-theme="dark"] .btn-cancel,
+.dark .btn-cancel {
+  background:
+    var(--tenant-surface);
+
+  color:
+    var(--tenant-text);
+}
+
+
+/* =========================================================
+   24. LARGE DESKTOP
+   >= 1400px
+========================================================= */
+
+@media (min-width: 1400px) {
+
+  .bookings-content {
+    padding:
+      30px 34px;
+  }
+
+  .stats-grid {
+    gap: 18px;
+  }
+
+  .stat-card {
+    padding: 22px;
+  }
+
+}
+
+
+/* =========================================================
+   25. LAPTOP
+   1101px - 1399px
+========================================================= */
+
+@media (max-width: 1399px) {
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+
+/* =========================================================
+   26. TABLET LANDSCAPE
+   901px - 1100px
+========================================================= */
+
+@media (max-width: 1100px) {
+
+  .bookings-main-wrapper {
+    margin-left:
+      var(--tenant-sidebar-width);
+  }
+
+
+  .bookings-content {
+    padding:
+      24px 22px;
+  }
+
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 14px;
+  }
+
+
+  .stat-card {
+    padding: 18px;
+  }
+
+
+  .stat-value {
+    font-size: 25px;
+  }
+
+
+  .filters-section {
+    gap: 12px;
+  }
+
+
+  .filters-section .status-filter {
+    width: 170px;
+  }
+
+}
+
+
+/* =========================================================
+   27. TABLET
+   769px - 900px
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .bookings-main-wrapper {
+    margin-left:
+      220px;
+  }
+
+
+  .bookings-content {
+    padding:
+      22px 18px;
+  }
+
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 13px;
+
+    margin-bottom: 18px;
+  }
+
+
+  .stat-card {
+    padding: 17px;
+  }
+
+
+  .filters-section {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    padding: 13px;
+  }
+
+
+  .filter-group,
+  .filter-group:first-child,
+  .filter-group:last-child {
+    width: 100%;
+
+    flex: none;
+  }
+
+
+  .filters-section .status-filter {
+    width: 100%;
+  }
+
+
+  .panel-header {
+    padding:
+      15px 17px;
+  }
+
+
+  .bookings-table {
+    min-width: 1000px;
+  }
+
+
+  .modal {
+    max-width:
+      calc(100vw - 40px);
+  }
+
+}
+
+
+/* =========================================================
+   28. MOBILE
+   <= 768px
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .bookings-page {
+    min-height: 100vh;
+  }
+
+
+  .bookings-layout {
+    display: block;
+  }
+
+
+  /*
+     IMPORTANT:
+     TenantGlobal sidebar becomes overlay on mobile.
+     Therefore remove desktop sidebar margin.
+  */
+
+  .bookings-main-wrapper {
+    width: 100%;
+
+    margin-left: 0;
+
+    min-height: 100vh;
+  }
+
+
+  .bookings-content {
+    width: 100%;
+
+    padding:
+      20px 16px;
+  }
+
+
+  /* Stats */
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
+
+    margin-bottom: 16px;
+  }
+
+
+  .stat-card {
+    padding: 15px;
+
+    border-radius:
+      12px;
+  }
+
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+
+  .stat-value {
+    font-size: 23px;
+  }
+
+
+  .stat-footer {
+    font-size: 10px;
+  }
+
+
+  /* Filters */
+
+  .filters-section {
+    margin-bottom: 15px;
+
+    padding: 12px;
+
+    gap: 9px;
+
+    border-radius:
+      12px;
+  }
+
+
+  .filters-section .search-input,
+  .filters-section .status-filter {
+    height: 42px;
+
+    font-size: 13px;
+  }
+
+
+  /* Panel */
+
+  .panel {
+    border-radius:
+      12px;
+  }
+
+
+  .panel-header {
+    min-height: 58px;
+
+    padding:
+      13px 14px;
+  }
+
+
+  .panel-header h3 {
+    font-size: 14px;
+  }
+
+
+  .panel-header span {
+    font-size: 11px;
+  }
+
+
+  /* Table */
+
+  .table-container {
+    width: 100%;
+
+    overflow-x: auto;
+  }
+
+
+  .bookings-table {
+    min-width: 950px;
+  }
+
+
+  .bookings-table th {
+    padding:
+      12px 13px;
+
+    font-size: 10px;
+  }
+
+
+  .bookings-table td {
+    padding:
+      13px;
+
+    font-size: 12px;
+  }
+
+
+  /* Modal */
+
+  .modal-overlay {
+    padding:
+      10px;
+
+    align-items:
+      flex-end;
+  }
+
+
+  .modal {
+    width: 100%;
+
+    max-width: 100%;
+
+    max-height:
+      calc(100vh - 20px);
+
+    border-radius:
+      16px 16px 0 0;
+  }
+
+
+  .modal-header {
+    padding:
+      14px 15px;
+  }
+
+
+  .modal-header h2 {
+    font-size: 16px;
+  }
+
+
+  .booking-details,
+  .cancel-content {
+    padding:
+      15px;
+  }
+
+
+  .detail-row {
+    gap: 4px;
+  }
+
+
+  .detail-row .label {
+    width: auto;
+
+    flex: none;
+
+    font-size: 11px;
+  }
+
+
+  .detail-row .value {
+    font-size: 13px;
+  }
+
+
+  .modal-actions {
+    flex-direction: column-reverse;
+
+    align-items: stretch;
+  }
+
+
+  .btn-cancel,
+  .btn-cancel-confirm {
+    width: 100%;
+  }
+
+}
+
+
+/* =========================================================
+   29. MOBILE PORTRAIT
+   <= 600px
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .bookings-content {
+    padding:
+      17px 12px;
+  }
+
+
+  /* Stats become single column */
+
+  .stats-grid {
+    grid-template-columns:
+      1fr;
+
+    gap: 10px;
+  }
+
+
+  .stat-card {
+    padding:
+      14px;
+  }
+
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+
+  /* Filters */
+
+  .filters-section {
+    padding:
+      10px;
+
+    border-radius:
+      11px;
+  }
+
+
+  /* Customer */
+
+  .customer-cell {
+    min-width: 175px;
+  }
+
+
+  .customer-avatar {
+    width: 35px;
+    height: 35px;
+
+    flex-basis: 35px;
+  }
+
+
+  .customer-cell strong {
+    max-width: 160px;
+
+    font-size: 12px;
+  }
+
+
+  .customer-email {
+    max-width: 160px;
+
+    font-size: 10px;
+  }
+
+
+  /* Panel */
+
+  .panel-header {
+    flex-wrap: wrap;
+
+    align-items: flex-start;
+
+    gap: 6px;
+  }
+
+
+  /* Modal */
+
+  .modal-overlay {
+    padding:
+      8px;
+  }
+
+
+  .modal {
+    max-height:
+      calc(100vh - 16px);
+  }
+
+
+  .details-modal,
+  .cancel-modal {
+    max-width: 100%;
+  }
+
+}
+
+
+/* =========================================================
+   30. SMALL MOBILE
+   <= 480px
+========================================================= */
+
+@media (max-width: 480px) {
+
+  .bookings-content {
+    padding:
+      14px 10px;
+  }
+
+
+  .stats-grid {
+    gap: 9px;
+
+    margin-bottom: 13px;
+  }
+
+
+  .stat-card {
+    padding:
+      13px;
+
+    border-radius:
+      11px;
+  }
+
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+
+  .stat-footer {
+    font-size: 9px;
+  }
+
+
+  .filters-section {
+    margin-bottom: 12px;
+  }
+
+
+  .filters-section .search-input,
+  .filters-section .status-filter {
+    height: 40px;
+
+    font-size: 12px;
+  }
+
+
+  .panel {
+    border-radius:
+      11px;
+  }
+
+
+  .panel-header {
+    padding:
+      12px;
+  }
+
+
+  .panel-header h3 {
+    font-size: 13px;
+  }
+
+
+  .panel-header span {
+    font-size: 10px;
+  }
+
+
+  .bookings-table {
+    min-width: 900px;
+  }
+
+
+  .bookings-table th {
+    padding:
+      11px 12px;
+
+    font-size: 9px;
+  }
+
+
+  .bookings-table td {
+    padding:
+      12px;
+
+    font-size: 11px;
+  }
+
+
+  .action-btn {
+    width: 31px;
+    height: 31px;
+
+    flex-basis: 31px;
+
+    font-size: 12px;
+  }
+
+
+  .empty-state {
+    min-height: 210px;
+
+    padding:
+      45px 15px;
+  }
+
+
+  .empty-icon {
+    font-size: 34px;
+  }
+
+
+  /* Modal */
+
+  .modal-overlay {
+    padding: 0;
+  }
+
+
+  .modal {
+    max-height:
+      100vh;
+
+    border:
+      none;
+
+    border-radius:
+      15px 15px 0 0;
+  }
+
+
+  .modal-header {
+    min-height: 56px;
+
+    padding:
+      12px;
+  }
+
+
+  .modal-header h2 {
+    font-size: 15px;
+  }
+
+
+  .close-btn {
+    width: 32px;
+    height: 32px;
+
+    flex-basis: 32px;
+  }
+
+
+  .booking-details,
+  .cancel-content {
+    padding:
+      13px;
+  }
+
+
+  .details-section {
+    padding:
+      14px 0;
+  }
+
+
+  .details-section h3 {
+    font-size: 13px;
+  }
+
+
+  .detail-row .label {
+    font-size: 10px;
+  }
+
+
+  .detail-row .value {
+    font-size: 12px;
+  }
+
+
+  .form-group textarea {
+    min-height: 90px;
+
+    font-size: 12px;
+  }
+
+}
+
+
+/* =========================================================
+   31. VERY SMALL MOBILE
+   <= 360px
+========================================================= */
+
+@media (max-width: 360px) {
+
+  .bookings-content {
+    padding:
+      12px 8px;
+  }
+
+
+  .stat-card {
+    padding:
+      12px;
+  }
+
+
+  .stat-value {
+    font-size: 21px;
+  }
+
+
+  .filters-section {
+    padding:
+      9px;
+  }
+
+
+  .panel-header {
+    padding:
+      11px;
+  }
+
+
+  .bookings-table {
+    min-width: 870px;
+  }
+
+
+  .customer-cell {
+    min-width: 160px;
+  }
+
+
+  .customer-avatar {
+    width: 33px;
+    height: 33px;
+
+    flex-basis: 33px;
+
+    font-size: 11px;
+  }
+
+
+  .customer-cell strong {
+    max-width: 145px;
+  }
+
+
+  .customer-email {
+    max-width: 145px;
+  }
+
+
+  .action-buttons {
+    gap: 4px;
+  }
+
+
+  .action-btn {
+    width: 30px;
+    height: 30px;
+
+    flex-basis: 30px;
+  }
+
+
+  .modal-header {
+    padding:
+      11px;
+  }
+
+
+  .booking-details,
+  .cancel-content {
+    padding:
+      12px;
+  }
+
+}
+
+
+/* =========================================================
+   32. LANDSCAPE MOBILE
+========================================================= */
+
+@media (max-width: 768px) and (orientation: landscape) {
+
+  .bookings-content {
+    padding:
+      15px;
+  }
+
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+
+  .modal {
+    max-height:
+      calc(100vh - 10px);
+  }
+
+}
+
+
+/* =========================================================
+   33. TOUCH DEVICES
+========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+
+  .stat-card:hover {
+    transform: none;
+
+    box-shadow:
+      var(--tenant-shadow-sm);
+  }
+
+
+  .action-btn:hover {
+    transform: none;
+  }
+
+
+  .bookings-table tbody tr:hover td {
+    background:
+      var(--tenant-surface);
+  }
+
+}
+
+
+/* =========================================================
+   34. REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .bookings-page *,
+  .bookings-page *::before,
+  .bookings-page *::after {
+    animation-duration:
+      0.01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      0.01ms !important;
+
+    scroll-behavior:
+      auto !important;
+  }
+
+}
