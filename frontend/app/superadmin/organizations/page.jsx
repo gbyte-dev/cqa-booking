@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import { storage } from '@/lib/storage';
 import {
   getAllOrganizations,
@@ -21,7 +18,6 @@ export default function OrganizationsPage() {
   const [user, setUser] = useState(null);
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState('add');
   const [selectedOrg, setSelectedOrg] = useState(null);
@@ -226,20 +222,8 @@ export default function OrganizationsPage() {
 
   // Main Render
   return (
-    <div className="organizations-page">
-      <div className="organizations-layout">
-        <SuperAdminSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-
-        <div className="organizations-main-wrapper">
-          <Header
-            title="Organizations"
-            onMenuClick={() => setSidebarOpen(true)}
-          />
-
-          <main className="organizations-content">
+    <>
+      <main className="organizations-content">
             <div className="page-header">
               <div>
                 <h2>Manage Organizations</h2>
@@ -372,11 +356,7 @@ export default function OrganizationsPage() {
                 </div>
               )}
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       {/* FORM MODAL */}
       {showForm && (
@@ -482,6 +462,6 @@ export default function OrganizationsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
