@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Header from '@/components/TenantHeader';
 import Footer from '@/components/Footer';
 import TenantSidebar from '@/components/TenantSidebar';
@@ -13,7 +14,7 @@ export default function TenantDashboard() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const token = storage.getToken();
   const currentUser = storage.getUser();
@@ -28,7 +29,6 @@ export default function TenantDashboard() {
   }, []);
 
   const loadDashboard = async () => {
-    setLoading(false);
   };
 
   if (loading) {
@@ -118,7 +118,7 @@ export default function TenantDashboard() {
               <div className="panel">
                 <div className="panel-header">
                   <h3>📅 Upcoming Bookings</h3>
-                  <a href="/tenant/bookings" className="view-all">View All</a>
+                  <Link href="/tenant/bookings" className="view-all">View All</Link>
                 </div>
 
                 <div className="bookings-list">

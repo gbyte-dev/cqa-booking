@@ -25,7 +25,7 @@ export default function SuperAdminDashboard() {
   const [organizations, setOrganizations] = useState([]);
   const [stats, setStats] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedOrg, setSelectedOrg] = useState(null);
@@ -50,8 +50,6 @@ export default function SuperAdminDashboard() {
   }, []);
 
   const loadDashboard = async () => {
-    setLoading(true);
-
     try {
       const [statsResponse, organizationsResponse] =
         await Promise.all([

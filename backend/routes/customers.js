@@ -58,6 +58,12 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/:id/loyalty', authMiddleware, async (req, res) => {
+  const customer = await Customer.findOne({ where: { id: req.params.id, organizationId: req.user.organizationId }, attributes: ['id', 'totalBookings', 'loyaltyPoints', 'customerType'] });
+  if (!customer) return res.status(404).json({ success: false, error: 'Customer not found' });
+  res.json({ success: true, data: { customerId: customer.id, points: customer.loyaltyPoints, totalBookings: customer.totalBookings, segment: customer.totalBookings >= 5 ? 'repeat' : 'new' } });
+});
+
 // ===== GET SINGLE CUSTOMER PROFILE =====
 router.get('/:id', authMiddleware, async (req, res) => {
   try {

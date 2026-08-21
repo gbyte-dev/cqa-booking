@@ -75,6 +75,12 @@ const Customer = sequelize.define('Customer', {
     defaultValue: 0.00,
     field: 'total_spent'
   },
+  loyaltyPoints: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    field: 'loyalty_points'
+  },
   averageSpending: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,

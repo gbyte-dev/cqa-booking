@@ -1,9 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 require('dotenv').config();
 
 const { sequelize, testConnection } = require('./config/database');
 const { setupAssociations } = require('./models/associations');
+const { migrateCore } = require('./scripts/migrate-core');
 
 // ===== ROUTES IMPORTS =====
 const authRoutes = require('./routes/auth');
@@ -15,8 +19,15 @@ const superAdminRoutes = require('./routes/superadmin');
 const organizationsRoutes = require('./routes/organizations');
 const usersRoutes = require('./routes/users');
 const customersRoutes = require('./routes/customers');
+const paymentsRoutes = require('./routes/payments');
+const promotionsRoutes = require('./routes/promotions');
+const notificationsRoutes = require('./routes/notifications');
+const reportsRoutes = require('./routes/reports');
+const publicBookingRoutes = require('./routes/public-bookings');
 
 const app = express();
+
+setupAssociations();
 
 // ===== MIDDLEWARE =====
 const corsOptions = {
@@ -27,6 +38,14 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(helmet());
+app.use(morgan('combined'));
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false
+}));
 // app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -40,6 +59,8 @@ const startServer = async () => {
       process.exit(1);
     }
     console.log('✅ MySQL Database connected successfully!');
+    await migrateCore();
+    console.log('✅ Core schema migration completed');
   } catch (error) {
     console.error('❌ Database error:', error);
     process.exit(1);
@@ -78,6 +99,12 @@ console.log('✅ Tenant bookings routes registered');
 
 app.use('/api/v1/customers', customersRoutes); 
 console.log('✅ Customers routes registered');
+
+app.use('/api/v1/payments', paymentsRoutes);
+app.use('/api/v1/promotions', promotionsRoutes);
+app.use('/api/v1/notifications', notificationsRoutes);
+app.use('/api/v1/reports', reportsRoutes);
+app.use('/api/v1/public', publicBookingRoutes);
 
 // SUPERADMIN ROUTES
 app.use('/api/v1/superadmin/bookings', superadminBookingRoutes);

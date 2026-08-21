@@ -57,6 +57,17 @@ router.post('/', authMiddleware, async (req, res) => {
 // ===== GET TABLES BY VENUE =====
 router.get('/venue/:venueId', authMiddleware, async (req, res) => {
   try {
+    const venue = await Venue.findOne({
+      where: { id: req.params.venueId, organizationId: req.user.organizationId }
+    });
+
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        error: 'Venue not found'
+      });
+    }
+
     const tables = await Table.findAll({
       where: { venueId: req.params.venueId }
     });
@@ -77,7 +88,15 @@ router.get('/venue/:venueId', authMiddleware, async (req, res) => {
 // ===== UPDATE TABLE =====
 router.patch('/:id', authMiddleware, async (req, res) => {
   try {
-    const table = await Table.findByPk(req.params.id);
+    const table = await Table.findOne({
+      where: { id: req.params.id },
+      include: [{
+        model: Venue,
+        as: 'Venue',
+        where: { organizationId: req.user.organizationId },
+        attributes: ['id']
+      }]
+    });
 
     if (!table) {
       return res.status(404).json({
@@ -104,7 +123,15 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 // ===== DELETE TABLE =====
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const table = await Table.findByPk(req.params.id);
+    const table = await Table.findOne({
+      where: { id: req.params.id },
+      include: [{
+        model: Venue,
+        as: 'Venue',
+        where: { organizationId: req.user.organizationId },
+        attributes: ['id']
+      }]
+    });
 
     if (!table) {
       return res.status(404).json({

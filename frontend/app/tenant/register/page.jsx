@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { authAPI } from '@/lib/api';
 import { storage } from '@/lib/storage';
 
@@ -384,13 +385,13 @@ export default function RegisterPage() {
 
               <span>
                 I agree to the{' '}
-                <a href="/terms">
+                <Link href="/terms">
                   Terms of Service
-                </a>{' '}
+                </Link>{' '}
                 and{' '}
-                <a href="/privacy">
+                <Link href="/privacy">
                   Privacy Policy
-                </a>
+                </Link>
               </span>
 
             </label>
@@ -431,9 +432,9 @@ export default function RegisterPage() {
           <div className="login-link">
             <span>Already have an account?</span>
 
-            <a href="/tenant/login">
+            <Link href="/tenant/login">
               Sign in
-            </a>
+            </Link>
           </div>
 
         </div>

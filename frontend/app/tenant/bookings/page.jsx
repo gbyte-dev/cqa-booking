@@ -29,7 +29,7 @@ export default function TenantBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -77,8 +77,6 @@ export default function TenantBookingsPage() {
   // =====================================================
 
   const loadData = async (authToken) => {
-
-    setLoading(true);
 
     try {
 

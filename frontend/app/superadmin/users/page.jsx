@@ -20,7 +20,7 @@ export default function UsersPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -43,7 +43,6 @@ export default function UsersPage() {
 
   // Load customers
   const loadCustomers = async () => {
-    setLoading(true);
     try {
       const response = await getAllCustomers(token);
       if (response.success) {

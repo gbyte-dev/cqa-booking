@@ -22,7 +22,7 @@ export default function SubscriptionsPage() {
   const [user, setUser] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedSubscription, setSelectedSubscription] = useState(null);
@@ -53,7 +53,6 @@ export default function SubscriptionsPage() {
 
   // Load subscriptions and stats
   const loadData = async () => {
-    setLoading(true);
     try {
       const [subResponse, statsResponse] = await Promise.all([
         getAllSubscriptions(token),

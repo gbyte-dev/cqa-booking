@@ -18,7 +18,7 @@ export default function TenantVenuesPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [venues, setVenues] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [showForm, setShowForm] = useState(false);
@@ -58,7 +58,6 @@ export default function TenantVenuesPage() {
   }, []);
 
   const loadVenues = async () => {
-    setLoading(true);
     try {
       const response = await getTenantVenues(token);
       if (response.success) {

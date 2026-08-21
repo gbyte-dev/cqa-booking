@@ -20,7 +20,7 @@ export default function OrganizationsPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [organizations, setOrganizations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState('add');
@@ -51,7 +51,6 @@ export default function OrganizationsPage() {
 
   // Load organizations
   const loadOrganizations = async () => {
-    setLoading(true);
     try {
       const response = await getAllOrganizations(token);
       if (response.success) {

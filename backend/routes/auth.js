@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const Organization = require('../models/Organization');
 const User = require('../models/User');
@@ -132,6 +133,25 @@ router.post('/login', async (req, res) => {
       error: error.message
     });
   }
+});
+
+router.post('/forgot-password', async (req, res) => {
+  const user = await User.findOne({ where: { email: req.body.email } });
+  const response = { success: true, message: 'If the account exists, password reset instructions have been generated' };
+  if (!user) return res.json(response);
+  const token = crypto.randomBytes(32).toString('hex');
+  await user.update({ passwordResetToken: token, passwordResetExpires: new Date(Date.now() + 60 * 60 * 1000) });
+  if (process.env.NODE_ENV !== 'production') response.developmentToken = token;
+  res.json(response);
+});
+
+router.post('/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password || password.length < 8) return res.status(400).json({ success: false, error: 'Token and password of at least 8 characters are required' });
+  const user = await User.findOne({ where: { passwordResetToken: token } });
+  if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) return res.status(400).json({ success: false, error: 'Reset token is invalid or expired' });
+  await user.update({ passwordHash: await bcrypt.hash(password, 12), passwordResetToken: null, passwordResetExpires: null });
+  res.json({ success: true, message: 'Password reset successfully' });
 });
 
 module.exports = router;

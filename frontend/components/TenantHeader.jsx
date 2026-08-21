@@ -11,17 +11,16 @@ export default function TenantHeader({
   const router = useRouter();
   const [showProfile, setShowProfile] = useState(false);
   const [theme, setTheme] = useState('light');
+  const [user, setUser] = useState(null);
+  const [organization, setOrganization] = useState(null);
+  const [mounted, setMounted] = useState(false);
 
-  const user = storage.getUser();
-  const organization = storage.getOrganization?.();
-  
-  /* =========================================================
-     THEME
-  ========================================================= */
-
+  // ✅ ONLY: Set user/organization/theme after mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('tenant-theme');
+    setUser(storage.getUser());
+    setOrganization(storage.getOrganization?.());
 
+    const savedTheme = localStorage.getItem('tenant-theme');
     if (savedTheme === 'dark' || savedTheme === 'light') {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
@@ -29,19 +28,15 @@ export default function TenantHeader({
       setTheme('light');
       document.documentElement.setAttribute('data-theme', 'light');
     }
+
+    setMounted(true);
   }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
-
     setTheme(newTheme);
-
     localStorage.setItem('tenant-theme', newTheme);
-
-    document.documentElement.setAttribute(
-      'data-theme',
-      newTheme
-    );
+    document.documentElement.setAttribute('data-theme', newTheme);
   };
 
   const handleLogout = () => {
@@ -67,7 +62,7 @@ export default function TenantHeader({
 
           <div>
             <h1>{title}</h1>
-            <span>{organization?.name || 'Organization'}</span>
+            <span>{mounted ? (organization?.name || 'Organization') : 'Organization'}</span>
           </div>
         </div>
       </div>
@@ -98,12 +93,12 @@ export default function TenantHeader({
             onClick={() => setShowProfile(!showProfile)}
           >
             <div className="profile-avatar">
-              {user?.firstName?.charAt(0)?.toUpperCase() || 'T'}
+              {mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'}
             </div>
 
             <div className="profile-info">
               <strong>
-                {user?.firstName || 'Tenant'}
+                {mounted ? (user?.firstName || 'Tenant') : 'Tenant'}
               </strong>
               <span>Manager</span>
             </div>
@@ -115,16 +110,16 @@ export default function TenantHeader({
             <div className="profile-dropdown">
               <div className="dropdown-user">
                 <div className="profile-avatar large">
-                  {user?.firstName?.charAt(0)?.toUpperCase() || 'T'}
+                  {mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'}
                 </div>
 
                 <div>
                   <strong>
-                    {user?.firstName} {user?.lastName}
+                    {mounted ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim() : 'User'}
                   </strong>
-                  <span>{user?.email}</span>
+                  <span>{mounted ? user?.email : 'email@example.com'}</span>
                   <span className="org-badge">
-                    {organization?.name}
+                    {mounted ? organization?.name : 'Organization'}
                   </span>
                 </div>
               </div>

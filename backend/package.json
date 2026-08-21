@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test",
+    "migrate": "node scripts/migrate-core.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,7 @@
     "morgan": "^1.11.0",
     "mysql2": "^3.23.3",
     "sequelize": "^6.37.8",
+    "stripe": "^22.5.0",
     "uuid": "^14.0.1"
   },
   "devDependencies": {

@@ -20,7 +20,7 @@ export default function BookingsPage() {
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -47,7 +47,6 @@ export default function BookingsPage() {
 
   // Load bookings and stats
   const loadData = async () => {
-    setLoading(true);
     try {
       const [bookingsResponse, statsResponse] = await Promise.all([
         getAllBookings(token),

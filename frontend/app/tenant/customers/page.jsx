@@ -21,7 +21,7 @@ export default function TenantCustomersPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -49,7 +49,6 @@ export default function TenantCustomersPage() {
   }, []);
 
   const loadCustomers = async () => {
-    setLoading(true);
     try {
       const response = await getTenantCustomers(token);
       if (response.success) {
