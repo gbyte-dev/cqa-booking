@@ -1,0 +1,10 @@
+# Playwright MCP testing screenshots/snapshots — local only, not part of the project
+.playwright-mcp/
+
+# Empty/stray root lockfile (no root package.json exists — backend/ and frontend/ have their own)
+package-lock.json
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+not-push-on-github.txt

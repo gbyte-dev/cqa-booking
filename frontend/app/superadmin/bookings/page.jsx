@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import { storage } from '@/lib/storage';
 import {
   getAllBookings,
@@ -21,7 +18,6 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -176,20 +172,8 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="bookings-page">
-      <div className="bookings-layout">
-        <SuperAdminSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-
-        <div className="bookings-main-wrapper">
-          <Header
-            title="Bookings"
-            onMenuClick={() => setSidebarOpen(true)}
-          />
-
-          <main className="bookings-content">
+    <>
+      <main className="bookings-content">
             {/* Stats Cards */}
             {stats && (
               <div className="stats-grid">
@@ -374,11 +358,7 @@ export default function BookingsPage() {
                 </div>
               )}
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       {/* DETAILS MODAL */}
       {showDetails && selectedBooking && (
@@ -534,6 +514,6 @@ export default function BookingsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

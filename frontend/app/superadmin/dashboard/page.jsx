@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
+//import Header from '@/components/Header';
+//import Footer from '@/components/Footer';
+//import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 
 import { storage } from '@/lib/storage';
 
@@ -26,7 +26,7 @@ export default function SuperAdminDashboard() {
   const [stats, setStats] = useState(null);
 
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  //const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [actionType, setActionType] = useState(null);
@@ -166,27 +166,10 @@ export default function SuperAdminDashboard() {
   }
 
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-layout">
+    <>
+      <main className="dashboard-content">
 
-        {/* SIDEBAR */}
-        <SuperAdminSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-
-        {/* MAIN */}
-        <div className="dashboard-main-wrapper">
-
-          {/* HEADER */}
-          <Header
-            title="Super Admin"
-            onMenuClick={() =>
-              setSidebarOpen(true)
-            }
-          />
-
-          <main className="dashboard-content">
+ 
 
             {/* PAGE HEADER */}
             <div className="page-heading">
@@ -693,12 +676,7 @@ export default function SuperAdminDashboard() {
 
             </section>
 
-          </main>
-
-          <Footer />
-
-        </div>
-      </div>
+      </main>
 
       {/* ACTION MODAL */}
       {selectedOrg && actionType && (
@@ -760,7 +738,6 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
       )}
-
-    </div>
+    </>
   );
 }

@@ -30,6 +30,9 @@ router.get('/', authMiddleware, async (req, res) => {
         'lastBookingDate',
         'preferredContactMethod',
         'marketingConsent',
+        'status',
+        'isVip',
+        'tags',
         'created_at',
         'updated_at'
       ]
@@ -215,7 +218,10 @@ router.patch('/:id', authMiddleware, async (req, res) => {
       'customerType',
       'preferredContactMethod',
       'marketingConsent',
-      'notes'
+      'notes',
+      'isVip',
+      'tags',
+      'anniversaryDate'
     ];
 
     const updateData = {};
@@ -267,11 +273,12 @@ router.post('/:id/suspend', authMiddleware, async (req, res) => {
 
     const { reason } = req.body;
 
-    // Update notes with suspension info
+    // Update status and append reason to notes as an audit line
     const suspensionNote = reason || 'Customer suspended';
-    const updatedNotes = `[SUSPENDED] ${suspensionNote}\n${customer.notes || ''}`;
+    const updatedNotes = `[suspend reason] ${suspensionNote}\n${customer.notes || ''}`;
 
     await customer.update({
+      status: 'suspended',
       notes: updatedNotes
     });
 
@@ -313,11 +320,8 @@ router.post('/:id/activate', authMiddleware, async (req, res) => {
       });
     }
 
-    // Remove suspension from notes
-    const updatedNotes = customer.notes?.replace(/\[SUSPENDED\].*?\n/, '') || '';
-
     await customer.update({
-      notes: updatedNotes
+      status: 'active'
     });
 
     console.log('✅ Customer activated');

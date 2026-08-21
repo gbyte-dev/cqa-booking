@@ -32,11 +32,15 @@ export default function TenantCustomersPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
+
   const token = storage.getToken();
   const currentUser = storage.getUser();
 
   // Helper function to check if customer is suspended
-  const isSuspended = (customer) => customer.notes?.includes('[SUSPENDED]');
+  const isSuspended = (customer) => customer.status === 'suspended';
   const getCustomerStatus = (customer) => isSuspended(customer) ? 'suspended' : 'active';
 
   useEffect(() => {
@@ -65,6 +69,64 @@ export default function TenantCustomersPage() {
   const handleViewProfile = async (customer) => {
     setSelectedCustomer(customer);
     setShowProfile(true);
+    setEditMode(false);
+  };
+
+  const startEdit = () => {
+    setEditForm({
+      firstName: selectedCustomer.firstName || '',
+      lastName: selectedCustomer.lastName || '',
+      email: selectedCustomer.email || '',
+      phone: selectedCustomer.phone || '',
+      dateOfBirth: selectedCustomer.dateOfBirth
+        ? selectedCustomer.dateOfBirth.substring(0, 10)
+        : '',
+      gender: selectedCustomer.gender || '',
+      customerType: selectedCustomer.customerType || 'regular',
+      preferredContactMethod: selectedCustomer.preferredContactMethod || '',
+      marketingConsent: !!selectedCustomer.marketingConsent,
+      notes: selectedCustomer.notes || '',
+      isVip: !!selectedCustomer.isVip,
+      tags: Array.isArray(selectedCustomer.tags) ? selectedCustomer.tags.join(', ') : '',
+      anniversaryDate: selectedCustomer.anniversaryDate
+        ? selectedCustomer.anniversaryDate.substring(0, 10)
+        : ''
+    });
+    setEditMode(true);
+  };
+
+  const cancelEdit = () => {
+    setEditMode(false);
+    setEditForm(null);
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveEdit = async () => {
+    setEditSaving(true);
+    try {
+      const payload = {
+        ...editForm,
+        tags: editForm.tags
+          .split(',')
+          .map(t => t.trim())
+          .filter(Boolean)
+      };
+
+      const response = await updateTenantCustomerProfile(selectedCustomer.id, payload, token);
+      if (response.success) {
+        setSelectedCustomer(response.data);
+        setEditMode(false);
+        setEditForm(null);
+        await loadCustomers();
+      }
+    } catch (error) {
+      alert('❌ Error: ' + error.message);
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const handleViewBookings = async (customer) => {
@@ -249,7 +311,17 @@ export default function TenantCustomersPage() {
                               <div>
                                 <strong>
                                   {customer.firstName} {customer.lastName}
+                                  {customer.isVip && (
+                                    <span className="vip-badge"> ⭐ VIP</span>
+                                  )}
                                 </strong>
+                                {Array.isArray(customer.tags) && customer.tags.length > 0 && (
+                                  <div className="tags-row">
+                                    {customer.tags.map((tag, i) => (
+                                      <span className="tag-pill" key={i}>{tag}</span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -354,74 +426,235 @@ export default function TenantCustomersPage() {
                 </div>
                 <div className="profile-name">
                   {selectedCustomer.firstName} {selectedCustomer.lastName}
+                  {selectedCustomer.isVip && (
+                    <span className="vip-badge"> ⭐ VIP</span>
+                  )}
                 </div>
                 <div className="profile-status">
-                  {/* ✅ Updated status badge logic */}
                   <span className={`badge ${getCustomerStatus(selectedCustomer)}`}>
                     {isSuspended(selectedCustomer) ? '⛔ Suspended' : '✅ Active'}
                   </span>
                 </div>
-              </div>
-
-              <div className="profile-details">
-                <div className="detail-row">
-                  <span className="label">Email:</span>
-                  <span className="value">{selectedCustomer.email || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">Phone:</span>
-                  <span className="value">{selectedCustomer.phone || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">Gender:</span>
-                  <span className="value">{selectedCustomer.gender || 'N/A'}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">Customer Type:</span>
-                  <span className="value">{selectedCustomer.customerType || 'Regular'}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">Total Bookings:</span>
-                  <span className="value">{selectedCustomer.totalBookings || 0}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">Total Spent:</span>
-                  <span className="value">₹{selectedCustomer.totalSpent || 0}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="label">Joined:</span>
-                  <span className="value">
-                    {selectedCustomer.created_at 
-                      ? new Date(selectedCustomer.created_at).toLocaleDateString() 
-                      : 'N/A'
-                    }
-                  </span>
-                </div>
-                {selectedCustomer.notes && (
-                  <div className="detail-row">
-                    <span className="label">Notes:</span>
-                    <span className="value">{selectedCustomer.notes}</span>
+                {Array.isArray(selectedCustomer.tags) && selectedCustomer.tags.length > 0 && (
+                  <div className="tags-row">
+                    {selectedCustomer.tags.map((tag, i) => (
+                      <span className="tag-pill" key={i}>{tag}</span>
+                    ))}
                   </div>
                 )}
               </div>
 
-              <div className="profile-actions">
-                <button
-                  className="btn-primary"
-                  onClick={() => {
-                    setShowProfile(false);
-                    handleViewBookings(selectedCustomer);
-                  }}
-                >
-                  📋 View Bookings
-                </button>
-                <button
-                  className="btn-secondary"
-                  onClick={() => setShowProfile(false)}
-                >
-                  Close
-                </button>
-              </div>
+              {!editMode ? (
+                <>
+                  <div className="profile-details">
+                    <div className="detail-row">
+                      <span className="label">Email:</span>
+                      <span className="value">{selectedCustomer.email || 'N/A'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Phone:</span>
+                      <span className="value">{selectedCustomer.phone || 'N/A'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Gender:</span>
+                      <span className="value">{selectedCustomer.gender || 'N/A'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Customer Type:</span>
+                      <span className="value">{selectedCustomer.customerType || 'Regular'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Anniversary:</span>
+                      <span className="value">
+                        {selectedCustomer.anniversaryDate
+                          ? new Date(selectedCustomer.anniversaryDate).toLocaleDateString()
+                          : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Total Bookings:</span>
+                      <span className="value">{selectedCustomer.totalBookings || 0}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Total Spent:</span>
+                      <span className="value">₹{selectedCustomer.totalSpent || 0}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Joined:</span>
+                      <span className="value">
+                        {selectedCustomer.created_at
+                          ? new Date(selectedCustomer.created_at).toLocaleDateString()
+                          : 'N/A'
+                        }
+                      </span>
+                    </div>
+                    {selectedCustomer.notes && (
+                      <div className="detail-row">
+                        <span className="label">Notes:</span>
+                        <span className="value">{selectedCustomer.notes}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="profile-actions">
+                    <button className="btn-primary" onClick={startEdit}>
+                      ✏️ Edit Profile
+                    </button>
+                    <button
+                      className="btn-primary"
+                      onClick={() => {
+                        setShowProfile(false);
+                        handleViewBookings(selectedCustomer);
+                      }}
+                    >
+                      📋 View Bookings
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setShowProfile(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="profile-details edit-form">
+                    <div className="detail-row">
+                      <span className="label">First Name:</span>
+                      <input
+                        type="text"
+                        value={editForm.firstName}
+                        onChange={(e) => handleEditChange('firstName', e.target.value)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Last Name:</span>
+                      <input
+                        type="text"
+                        value={editForm.lastName}
+                        onChange={(e) => handleEditChange('lastName', e.target.value)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Email:</span>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => handleEditChange('email', e.target.value)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Phone:</span>
+                      <input
+                        type="text"
+                        value={editForm.phone}
+                        onChange={(e) => handleEditChange('phone', e.target.value)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Date of Birth:</span>
+                      <input
+                        type="date"
+                        value={editForm.dateOfBirth}
+                        onChange={(e) => handleEditChange('dateOfBirth', e.target.value)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Anniversary:</span>
+                      <input
+                        type="date"
+                        value={editForm.anniversaryDate}
+                        onChange={(e) => handleEditChange('anniversaryDate', e.target.value)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Gender:</span>
+                      <select
+                        value={editForm.gender}
+                        onChange={(e) => handleEditChange('gender', e.target.value)}
+                      >
+                        <option value="">N/A</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Customer Type:</span>
+                      <select
+                        value={editForm.customerType}
+                        onChange={(e) => handleEditChange('customerType', e.target.value)}
+                      >
+                        <option value="regular">Regular</option>
+                        <option value="new">New</option>
+                        <option value="frequent">Frequent</option>
+                      </select>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Preferred Contact:</span>
+                      <select
+                        value={editForm.preferredContactMethod}
+                        onChange={(e) => handleEditChange('preferredContactMethod', e.target.value)}
+                      >
+                        <option value="">N/A</option>
+                        <option value="email">Email</option>
+                        <option value="phone">Phone</option>
+                        <option value="sms">SMS</option>
+                      </select>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Marketing Consent:</span>
+                      <input
+                        type="checkbox"
+                        checked={editForm.marketingConsent}
+                        onChange={(e) => handleEditChange('marketingConsent', e.target.checked)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">VIP Customer:</span>
+                      <input
+                        type="checkbox"
+                        checked={editForm.isVip}
+                        onChange={(e) => handleEditChange('isVip', e.target.checked)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Tags (comma separated):</span>
+                      <input
+                        type="text"
+                        value={editForm.tags}
+                        placeholder="e.g. regular, allergic"
+                        onChange={(e) => handleEditChange('tags', e.target.value)}
+                      />
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Notes:</span>
+                      <textarea
+                        value={editForm.notes}
+                        onChange={(e) => handleEditChange('notes', e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="profile-actions">
+                    <button
+                      className="btn-primary"
+                      onClick={saveEdit}
+                      disabled={editSaving}
+                    >
+                      {editSaving ? 'Saving...' : '💾 Save'}
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={cancelEdit}
+                      disabled={editSaving}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

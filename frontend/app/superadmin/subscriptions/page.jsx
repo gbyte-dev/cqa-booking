@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import { storage } from '@/lib/storage';
 import {
   getAllSubscriptions,
@@ -23,7 +20,6 @@ export default function SubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedSubscription, setSelectedSubscription] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -203,20 +199,8 @@ export default function SubscriptionsPage() {
   }
 
   return (
-    <div className="subscriptions-page">
-      <div className="subscriptions-layout">
-        <SuperAdminSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-
-        <div className="subscriptions-main-wrapper">
-          <Header
-            title="Subscriptions"
-            onMenuClick={() => setSidebarOpen(true)}
-          />
-
-          <main className="subscriptions-content">
+    <>
+      <main className="subscriptions-content">
             {/* Stats Cards */}
             {stats && (
               <div className="stats-grid">
@@ -368,11 +352,7 @@ export default function SubscriptionsPage() {
                 </div>
               )}
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       {/* DETAILS MODAL */}
       {showDetails && selectedSubscription && (
@@ -573,6 +553,6 @@ export default function SubscriptionsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

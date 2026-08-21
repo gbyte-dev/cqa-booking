@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import { storage } from '@/lib/storage';
 import {
   getAllCustomers,
@@ -21,7 +18,6 @@ export default function UsersPage() {
   const [user, setUser] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [bookingStats, setBookingStats] = useState(null);
@@ -163,20 +159,8 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="users-page">
-      <div className="users-layout">
-        <SuperAdminSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-
-        <div className="users-main-wrapper">
-          <Header
-            title="Customers"
-            onMenuClick={() => setSidebarOpen(true)}
-          />
-
-          <main className="users-content">
+    <>
+      <main className="users-content">
             <div className="page-header">
               <div>
                 <h2>Manage Customers</h2>
@@ -283,11 +267,7 @@ export default function UsersPage() {
                 </div>
               )}
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       {/* BOOKINGS MODAL */}
       {showBookings && selectedCustomer && (
@@ -382,6 +362,6 @@ export default function UsersPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

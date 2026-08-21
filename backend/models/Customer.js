@@ -104,6 +104,34 @@ const Customer = sequelize.define('Customer', {
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+
+  // STATUS & CRM
+  status: {
+    type: DataTypes.ENUM('active', 'suspended'),
+    allowNull: true,
+    defaultValue: 'active'
+  },
+  isVip: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: false,
+    field: 'is_vip'
+  },
+  tags: {
+    type: DataTypes.JSON,
+    allowNull: true
+  },
+  anniversaryDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'anniversary_date'
+  },
+  loyaltyPoints: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    field: 'loyalty_points'
   }
 
 }, {
