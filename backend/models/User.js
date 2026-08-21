@@ -40,6 +40,16 @@ const User = sequelize.define('User', {
   isSuperAdmin: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  passwordResetToken: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'password_reset_token'
+  },
+  passwordResetExpires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'password_reset_expires'
   }
 }, {
   tableName: 'users',

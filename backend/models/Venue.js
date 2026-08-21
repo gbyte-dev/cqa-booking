@@ -140,6 +140,24 @@ const Venue = sequelize.define('Venue', {
     type: DataTypes.STRING(50),
     allowNull: false,
     defaultValue: 'UTC'
+  },
+  cancellationWindowHours: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 24,
+    field: 'cancellation_window_hours'
+  },
+  cancellationRefundPercent: {
+    type: DataTypes.DECIMAL(5, 2),
+    allowNull: false,
+    defaultValue: 100,
+    field: 'cancellation_refund_percent'
+  },
+  depositPercent: {
+    type: DataTypes.DECIMAL(5, 2),
+    allowNull: false,
+    defaultValue: 0,
+    field: 'deposit_percent'
   }
 
 }, {

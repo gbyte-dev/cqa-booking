@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { authAPI } from '@/lib/api';
 import { storage } from '@/lib/storage';
 
@@ -126,9 +127,9 @@ export default function LoginPage() {
                   Password
                 </label>
 
-                <a href="/tenant/forgot-password">
+                <Link href="/tenant/forgot-password">
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               <div className="input-box">
@@ -257,9 +258,9 @@ export default function LoginPage() {
           {/* Register */}
           <div className="register">
             <span>Don't have an account?</span>
-            <a href="/tenant/register">
+            <Link href="/tenant/register">
               Create an account
-            </a>
+            </Link>
           </div>
 
         </div>

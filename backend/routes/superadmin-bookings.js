@@ -7,6 +7,18 @@ const Table = require('../models/Table');
 
 const router = express.Router();
 
+const superAdminMiddleware = (req, res, next) => {
+  if (req.user.role !== 'superadmin') {
+    return res.status(403).json({
+      success: false,
+      error: 'Only super admin can access this'
+    });
+  }
+  next();
+};
+
+router.use(authMiddleware, superAdminMiddleware);
+
 // ===== GET BOOKING STATS (MUST BE FIRST!) =====
 router.get('/stats', authMiddleware, async (req, res) => {
   try {
@@ -21,6 +33,7 @@ router.get('/stats', authMiddleware, async (req, res) => {
     const completedBookings = bookings.filter(b => b.bookingStatus === 'completed').length;
     const cancelledBookings = bookings.filter(b => b.bookingStatus === 'cancelled').length;
     const checkedInBookings = bookings.filter(b => b.bookingStatus === 'checked_in').length;
+    const noShowBookings = bookings.filter(b => b.bookingStatus === 'no_show' || b.noShow).length;
     const totalGuests = bookings.reduce((sum, booking) => sum + Number(booking.numGuests || 0), 0);
 
     res.json({
@@ -32,6 +45,7 @@ router.get('/stats', authMiddleware, async (req, res) => {
         completedBookings,
         cancelledBookings,
         checkedInBookings,
+        noShowBookings,
         totalGuests,
         averageBookingValue: 0
       }

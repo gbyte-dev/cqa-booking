@@ -289,6 +289,36 @@ export async function checkInTenantBooking(
 
 
 // =========================================================
+// MARK NO-SHOW
+// =========================================================
+
+export async function markTenantBookingNoShow(
+  bookingId,
+  token
+) {
+
+  if (!token) {
+    throw new Error('No authentication token');
+  }
+
+  if (!bookingId) {
+    throw new Error('Booking ID is required');
+  }
+
+  return fetchWithDebug(
+    `/bookings/${bookingId}/no-show`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
+
+
+// =========================================================
 // EXPORT
 // =========================================================
 
@@ -299,5 +329,6 @@ export default {
   confirmTenantBooking,
   completeTenantBooking,
   cancelTenantBooking,
-  checkInTenantBooking
+  checkInTenantBooking,
+  markTenantBookingNoShow
 };

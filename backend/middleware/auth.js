@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -12,7 +13,23 @@ const authMiddleware = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-    req.user = decoded;
+
+    const user = await User.findByPk(decoded.userId, {
+      attributes: ['id', 'organizationId', 'role', 'status']
+    });
+
+    if (!user || user.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        error: 'User account is inactive or suspended'
+      });
+    }
+
+    req.user = {
+      userId: user.id,
+      organizationId: user.organizationId,
+      role: user.role
+    };
     next();
   } catch (error) {
     res.status(401).json({
