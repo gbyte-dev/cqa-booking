@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/TenantHeader';
-import Footer from '@/components/Footer';
-import TenantSidebar from '@/components/TenantSidebar';
 import { storage } from '@/lib/storage';
 import {
   getTenantVenues,
@@ -19,7 +16,6 @@ export default function TenantVenuesPage() {
   const [user, setUser] = useState(null);
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [showForm, setShowForm] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState(null);
@@ -175,30 +171,16 @@ export default function TenantVenuesPage() {
 
   if (loading) {
     return (
-      <div className="venues-page">
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <span>Loading Venues...</span>
-        </div>
+      <div className="loading-state">
+        <div className="loading-spinner" />
+        <span>Loading Venues...</span>
       </div>
     );
   }
 
   return (
-    <div className="venues-page">
-      <div className="venues-layout">
-        <TenantSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-
-        <div className="venues-main-wrapper">
-          <Header
-            title="Venues"
-            onMenuClick={() => setSidebarOpen(true)}
-          />
-
-          <main className="venues-content">
+    <>
+      <main className="venues-content">
             <div className="venues-header">
               <div>
                 <h2>🏢 Manage Your Venues</h2>
@@ -279,11 +261,7 @@ export default function TenantVenuesPage() {
                 ))}
               </div>
             )}
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       {/* FORM MODAL */}
       {showForm && (
@@ -486,6 +464,6 @@ export default function TenantVenuesPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

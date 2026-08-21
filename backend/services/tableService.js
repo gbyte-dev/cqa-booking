@@ -1,46 +1,51 @@
 const { v4: uuidv4 } = require('uuid');
-const Table = require('../models/Table');
-const Venue = require('../models/Venue');
+const TableDaybed = require('../models/TableDaybed');
+const Outlet = require('../models/Outlet');
 
 exports.findVenueForOrg = (venueId, organizationId) => {
-  return Venue.findOne({
-    where: { id: venueId, organizationId }
+  return Outlet.findOne({
+    where: { id: venueId, tenantId: organizationId }
   });
 };
 
-exports.create = ({ venueId, name, capacity, tableType, pricePerPerson, minCapacity }) => {
-  return Table.create({
+exports.create = ({ venueId, name, capacity, tableType, minCapacity }) => {
+  return TableDaybed.create({
     id: uuidv4(),
-    venueId,
-    name,
-    tableNumber: `T${Math.floor(Math.random() * 1000)}`,
-    capacity,
+    outletId: venueId,
+    tableNumber: name || `T${Math.floor(Math.random() * 1000)}`,
+    maxCapacity: capacity,
     minCapacity: minCapacity || 1,
     tableType: tableType || 'standard',
-    pricePerPerson: pricePerPerson || 0
+    isActive: true
   });
 };
 
 exports.listByVenue = (venueId) => {
-  return Table.findAll({
-    where: { venueId }
+  return TableDaybed.findAll({
+    where: { outletId: venueId }
   });
 };
 
 exports.findByIdForOrg = (id, organizationId) => {
-  return Table.findOne({
+  return TableDaybed.findOne({
     where: { id },
     include: [{
-      model: Venue,
-      as: 'Venue',
-      where: { organizationId },
+      model: Outlet,
+      as: 'Outlet',
+      where: { tenantId: organizationId },
       attributes: ['id']
     }]
   });
 };
 
 exports.update = async (table, body) => {
-  await table.update(body);
+  const updateData = {};
+  if ('name' in body) updateData.tableNumber = body.name;
+  if ('capacity' in body) updateData.maxCapacity = body.capacity;
+  if ('tableType' in body) updateData.tableType = body.tableType;
+  if ('minCapacity' in body) updateData.minCapacity = body.minCapacity;
+
+  await table.update(updateData);
   return table;
 };
 

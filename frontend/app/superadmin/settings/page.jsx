@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import { storage } from '@/lib/storage';
 
 export default function SuperAdminSettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [settings, setSettings] = useState({
@@ -66,24 +62,16 @@ export default function SuperAdminSettingsPage() {
 
   if (loading) {
     return (
-      <div className="settings-page">
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <span>Loading Settings...</span>
-        </div>
+      <div className="loading-state">
+        <div className="loading-spinner" />
+        <span>Loading Settings...</span>
       </div>
     );
   }
 
   return (
-    <div className="settings-page">
-      <div className="settings-layout">
-        <SuperAdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <div className="settings-main-wrapper">
-          <Header title="Settings" onMenuClick={() => setSidebarOpen(true)} />
-
-          <main className="settings-content">
+    <>
+      <main className="settings-content">
             <div className="page-header">
               <div>
                 <h2>Platform Settings</h2>
@@ -204,31 +192,10 @@ export default function SuperAdminSettingsPage() {
                 {saving ? 'Saving...' : 'Save Settings'}
               </button>
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       <style jsx>{`
         * { box-sizing: border-box; }
-
-        .settings-page {
-          min-height: 100vh;
-          background: var(--sa-bg, #f5f7fb);
-          color: var(--sa-text, #171c2d);
-          font-family: Inter, sans-serif;
-        }
-
-        .settings-layout { display: flex; min-height: 100vh; }
-
-        .settings-main-wrapper {
-          flex: 1;
-          min-width: 0;
-          margin-left: var(--sa-sidebar-width, 260px);
-          display: flex;
-          flex-direction: column;
-        }
 
         .settings-content { flex: 1; padding: 28px; max-width: 900px; }
 
@@ -415,15 +382,10 @@ export default function SuperAdminSettingsPage() {
           cursor: not-allowed;
         }
 
-        @media (max-width: 900px) {
-          .settings-main-wrapper { margin-left: 220px; }
-        }
-
         @media (max-width: 768px) {
-          .settings-main-wrapper { margin-left: 0; }
           .settings-content { padding: 18px 14px; }
         }
       `}</style>
-    </div>
+    </>
   );
 }

@@ -1,18 +1,48 @@
 const userService = require('../services/userService');
 
+const toApiShape = (user) => {
+  if (!user) return null;
+  const plain = user.toJSON ? user.toJSON() : user;
+  const [firstName, ...rest] = (plain.fullName || '').split(' ');
+  return {
+    ...plain,
+    firstName: firstName || '',
+    lastName: rest.join(' ') || '',
+    status: 'active',
+    createdAt: plain.created_at || plain.createdAt,
+    Organization: plain.Tenant ? { id: plain.Tenant.id, name: plain.Tenant.name, slug: plain.Tenant.slug } : null
+  };
+};
+
+const bookingToApiShape = (booking) => {
+  if (!booking) return null;
+  const plain = booking.toJSON ? booking.toJSON() : booking;
+  return {
+    ...plain,
+    bookingDate: plain.reservationDate,
+    bookingStartTime: plain.startTime,
+    bookingEndTime: plain.endTime,
+    numberOfGuests: plain.guestCount,
+    status: plain.status,
+    Venue: plain.Outlet ? { id: plain.Outlet.id, name: plain.Outlet.name, city: '', address: plain.Outlet.address } : null,
+    Table: plain.Table ? { id: plain.Table.id, name: plain.Table.tableNumber, capacity: plain.Table.maxCapacity } : null
+  };
+};
+
 // ===== GET ALL CUSTOMERS =====
 exports.listCustomers = async (req, res) => {
   try {
     console.log('👥 [GET /users/customers] Fetching all customers...');
 
     const customers = await userService.listCustomers();
+    const data = customers.map(toApiShape);
 
-    console.log(`✅ Found ${customers.length} customers`);
+    console.log(`✅ Found ${data.length} customers`);
 
     res.json({
       success: true,
-      data: customers,
-      count: customers.length
+      data,
+      count: data.length
     });
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -41,7 +71,7 @@ exports.getOne = async (req, res) => {
 
     res.json({
       success: true,
-      data: user
+      data: toApiShape(user)
     });
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -63,7 +93,7 @@ exports.getBookings = async (req, res) => {
 
     res.json({
       success: true,
-      data: bookings,
+      data: bookings.map(bookingToApiShape),
       stats
     });
   } catch (error) {
@@ -93,7 +123,7 @@ exports.update = async (req, res) => {
 
     res.json({
       success: true,
-      data: user,
+      data: toApiShape(user),
       message: 'User updated successfully'
     });
   } catch (error) {
@@ -135,61 +165,20 @@ exports.remove = async (req, res) => {
 };
 
 // ===== SUSPEND USER =====
+// NOTE: new `users` table has no `status` column — suspend/reactivate retired (user decision 2026-08-21).
 exports.suspend = async (req, res) => {
-  try {
-    console.log('🔒 [POST /users/:id/suspend] Suspending user:', req.params.id);
-
-    const user = await userService.suspend(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    console.log('✅ User suspended:', user.id);
-
-    res.json({
-      success: true,
-      data: user,
-      message: 'User suspended successfully'
-    });
-  } catch (error) {
-    console.error('❌ Error:', error.message);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
+  console.log('🔒 [POST /users/:id/suspend] Not available in current schema');
+  res.status(400).json({
+    success: false,
+    error: 'User suspend is not available in the current schema'
+  });
 };
 
 // ===== REACTIVATE USER =====
 exports.reactivate = async (req, res) => {
-  try {
-    console.log('✅ [POST /users/:id/reactivate] Reactivating user:', req.params.id);
-
-    const user = await userService.reactivate(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    console.log('✅ User reactivated:', user.id);
-
-    res.json({
-      success: true,
-      data: user,
-      message: 'User reactivated successfully'
-    });
-  } catch (error) {
-    console.error('❌ Error:', error.message);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
+  console.log('✅ [POST /users/:id/reactivate] Not available in current schema');
+  res.status(400).json({
+    success: false,
+    error: 'User reactivate is not available in the current schema'
+  });
 };

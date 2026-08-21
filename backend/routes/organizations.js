@@ -15,6 +15,9 @@ const superAdminMiddleware = (req, res, next) => {
   next();
 };
 
+// Tenant owners view their own organization + plan — no superadmin check, scoped by their own token.
+router.get('/me', authMiddleware, organizationController.getMine);
+
 router.get('/', authMiddleware, superAdminMiddleware, organizationController.list);
 router.get('/:id', authMiddleware, superAdminMiddleware, organizationController.getOne);
 router.post('/', authMiddleware, superAdminMiddleware, organizationController.create);

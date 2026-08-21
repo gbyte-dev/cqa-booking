@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 import { storage } from "@/lib/storage";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -13,7 +10,6 @@ function ReportsPage() {
   const router = useRouter();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [period, setPeriod] = useState("month");
 
   const token = storage.getToken();
@@ -54,24 +50,16 @@ function ReportsPage() {
 
   if (loading) {
     return (
-      <div className="reports-page">
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <span>Loading Reports...</span>
-        </div>
+      <div className="loading-state">
+        <div className="loading-spinner" />
+        <span>Loading Reports...</span>
       </div>
     );
   }
 
   return (
-    <div className="reports-page">
-      <div className="reports-layout">
-        <SuperAdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <div className="reports-main-wrapper">
-          <Header title="Reports" onMenuClick={() => setSidebarOpen(true)} />
-
-          <main className="reports-content">
+    <>
+      <main className="reports-content">
             <div className="page-header">
               <div>
                 <h2>Platform Reports</h2>
@@ -179,31 +167,10 @@ function ReportsPage() {
                 </div>
               )}
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       <style jsx>{`
         * { box-sizing: border-box; }
-
-        .reports-page {
-          min-height: 100vh;
-          background: var(--sa-bg, #f5f7fb);
-          color: var(--sa-text, #171c2d);
-          font-family: Inter, sans-serif;
-        }
-
-        .reports-layout { display: flex; min-height: 100vh; }
-
-        .reports-main-wrapper {
-          flex: 1;
-          min-width: 0;
-          margin-left: var(--sa-sidebar-width, 260px);
-          display: flex;
-          flex-direction: column;
-        }
 
         .reports-content { flex: 1; padding: 28px; }
 
@@ -427,12 +394,7 @@ function ReportsPage() {
           .export-grid { grid-template-columns: 1fr; }
         }
 
-        @media (max-width: 900px) {
-          .reports-main-wrapper { margin-left: 220px; }
-        }
-
         @media (max-width: 768px) {
-          .reports-main-wrapper { margin-left: 0; }
           .reports-content { padding: 18px 14px; }
           .page-header { flex-direction: column; align-items: flex-start; }
           .venue-info { min-width: 140px; }
@@ -442,7 +404,7 @@ function ReportsPage() {
           .stats-grid { grid-template-columns: 1fr; }
         }
       `}</style>
-    </div>
+    </>
   );
 }
 

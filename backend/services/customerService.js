@@ -1,50 +1,23 @@
-const Customer = require('../models/Customer');
-const Booking = require('../models/Booking');
-const Venue = require('../models/Venue');
-const Table = require('../models/Table');
+const GuestProfile = require('../models/GuestProfile');
+const Reservation = require('../models/Reservation');
+const Outlet = require('../models/Outlet');
+const TableDaybed = require('../models/TableDaybed');
 
 exports.listByOrganization = (organizationId) => {
-  return Customer.findAll({
-    where: { organizationId },
+  return GuestProfile.findAll({
+    where: { tenantId: organizationId },
     order: [['created_at', 'DESC']],
-    raw: false,
-    attributes: [
-      'id',
-      'firstName',
-      'lastName',
-      'email',
-      'phone',
-      'customerType',
-      'totalBookings',
-      'totalSpent',
-      'averageSpending',
-      'lastBookingDate',
-      'preferredContactMethod',
-      'marketingConsent',
-      'status',
-      'isVip',
-      'tags',
-      'created_at',
-      'updated_at'
-    ]
+    raw: false
   }).catch(err => {
     console.error('Database error:', err);
     return [];
   });
 };
 
-exports.getLoyalty = (id, organizationId) => {
-  return Customer.findOne({
-    where: { id, organizationId },
-    attributes: ['id', 'totalBookings', 'loyaltyPoints', 'customerType']
-  });
-};
-
 exports.getById = (id, organizationId) => {
-  return Customer.findOne({
-    where: { id, organizationId },
-    raw: false,
-    subQuery: false
+  return GuestProfile.findOne({
+    where: { id, tenantId: organizationId },
+    raw: false
   }).catch(err => {
     console.error('Database error:', err);
     return null;
@@ -52,36 +25,22 @@ exports.getById = (id, organizationId) => {
 };
 
 exports.getBookings = async (id, organizationId) => {
-  const customer = await Customer.findOne({
-    where: { id, organizationId }
+  const guest = await GuestProfile.findOne({
+    where: { id, tenantId: organizationId }
   });
 
-  if (!customer) {
+  if (!guest) {
     return null;
   }
 
-  const bookings = await Booking.findAll({
-    where: {
-      customerId: id,
-      organizationId
-    },
+  const bookings = await Reservation.findAll({
+    where: { guestProfileId: id },
     include: [
-      {
-        model: Venue,
-        as: 'Venue',
-        attributes: ['id', 'name'],
-        required: false
-      },
-      {
-        model: Table,
-        as: 'Table',
-        attributes: ['id', 'name'],
-        required: false
-      }
+      { model: Outlet, as: 'Outlet', attributes: ['id', 'name'], required: false },
+      { model: TableDaybed, as: 'Table', attributes: ['id', 'tableNumber'], required: false }
     ],
-    order: [['booking_date', 'DESC']],
-    raw: false,
-    subQuery: false
+    order: [['reservation_date', 'DESC']],
+    raw: false
   }).catch(err => {
     console.error('Database error:', err);
     return [];
@@ -89,96 +48,40 @@ exports.getBookings = async (id, organizationId) => {
 
   const stats = {
     totalBookings: bookings.length,
-    confirmedBookings: bookings.filter(b => b.bookingStatus === 'confirmed').length,
-    completedBookings: bookings.filter(b => b.bookingStatus === 'completed').length,
-    cancelledBookings: bookings.filter(b => b.bookingStatus === 'cancelled').length,
-    totalGuests: bookings.reduce((sum, b) => sum + (Number(b.numGuests) || 0), 0)
+    confirmedBookings: bookings.filter(b => b.status === 'confirmed').length,
+    completedBookings: bookings.filter(b => b.status === 'completed').length,
+    cancelledBookings: bookings.filter(b => b.status === 'cancelled').length,
+    totalGuests: bookings.reduce((sum, b) => sum + (Number(b.guestCount) || 0), 0)
   };
 
   return { bookings, stats };
 };
 
-const ALLOWED_UPDATE_FIELDS = [
-  'firstName',
-  'lastName',
-  'email',
-  'phone',
-  'dateOfBirth',
-  'gender',
-  'customerType',
-  'preferredContactMethod',
-  'marketingConsent',
-  'notes',
-  'isVip',
-  'tags',
-  'anniversaryDate'
-];
-
-exports.update = async (id, organizationId, body) => {
-  const customer = await Customer.findOne({
-    where: { id, organizationId }
+exports.update = async (id, organizationId, updateData) => {
+  const guest = await GuestProfile.findOne({
+    where: { id, tenantId: organizationId }
   }).catch(err => {
     console.error('Database error:', err);
     return null;
   });
 
-  if (!customer) {
+  if (!guest) {
     return null;
   }
 
-  const updateData = {};
-  ALLOWED_UPDATE_FIELDS.forEach(field => {
-    if (field in body) {
-      updateData[field] = body[field];
-    }
-  });
-
-  await customer.update(updateData);
-  return customer;
-};
-
-exports.suspend = async (id, organizationId, reason) => {
-  const customer = await Customer.findOne({
-    where: { id, organizationId }
-  });
-
-  if (!customer) {
-    return null;
-  }
-
-  const suspensionNote = reason || 'Customer suspended';
-  const updatedNotes = `[suspend reason] ${suspensionNote}\n${customer.notes || ''}`;
-
-  await customer.update({
-    status: 'suspended',
-    notes: updatedNotes
-  });
-
-  return customer;
-};
-
-exports.activate = async (id, organizationId) => {
-  const customer = await Customer.findOne({
-    where: { id, organizationId }
-  });
-
-  if (!customer) {
-    return null;
-  }
-
-  await customer.update({ status: 'active' });
-  return customer;
+  await guest.update(updateData);
+  return guest;
 };
 
 exports.remove = async (id, organizationId) => {
-  const customer = await Customer.findOne({
-    where: { id, organizationId }
+  const guest = await GuestProfile.findOne({
+    where: { id, tenantId: organizationId }
   });
 
-  if (!customer) {
+  if (!guest) {
     return false;
   }
 
-  await customer.destroy();
+  await guest.destroy();
   return true;
 };

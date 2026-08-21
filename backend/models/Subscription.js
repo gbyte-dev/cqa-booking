@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
-const Organization = require('./Organization');
 
 const Subscription = sequelize.define('Subscription', {
   id: {
@@ -9,64 +8,82 @@ const Subscription = sequelize.define('Subscription', {
     primaryKey: true,
     defaultValue: () => uuidv4()
   },
-  organizationId: {
+  tenantId: {
     type: DataTypes.STRING(36),
     allowNull: false,
-    references: { model: 'organizations', key: 'id' },
-    unique: true
+    field: 'tenant_id'
   },
-  plan: {
-    type: DataTypes.ENUM('starter', 'professional', 'enterprise'),
-    defaultValue: 'starter'
-  },
-  // STARTER: $200/month
-  // PROFESSIONAL: $500/month
-  // ENTERPRISE: $2000/month (custom)
-  monthlyPrice: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: false
-  },
-  // Starter: 1 venue, 50 bookings/day, 5 staff
-  // Professional: 5 venues, 200 bookings/day, 20 staff
-  // Enterprise: Unlimited
-  maxVenues: {
-    type: DataTypes.INTEGER,
-    defaultValue: 1
-  },
-  maxStaff: {
-    type: DataTypes.INTEGER,
-    defaultValue: 5
-  },
-  maxBookingsPerDay: {
-    type: DataTypes.INTEGER,
-    defaultValue: 50
+  planId: {
+    type: DataTypes.STRING(36),
+    allowNull: false,
+    field: 'plan_id'
   },
   status: {
-    type: DataTypes.ENUM('active', 'paused', 'cancelled'),
+    type: DataTypes.STRING(50),
+    allowNull: false,
     defaultValue: 'active'
   },
   startDate: {
     type: DataTypes.DATE,
-    allowNull: false
+    allowNull: false,
+    field: 'start_date'
   },
   endDate: {
     type: DataTypes.DATE,
-    allowNull: false
+    allowNull: true,
+    field: 'end_date'
+  },
+  trialStartDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'trial_start_date'
+  },
+  trialEndDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'trial_end_date'
   },
   autoRenew: {
     type: DataTypes.BOOLEAN,
-    defaultValue: true
+    allowNull: false,
+    defaultValue: true,
+    field: 'auto_renew'
   },
-  cancellationDate: DataTypes.DATE,
-  cancellationReason: DataTypes.TEXT
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    defaultValue: 0
+  },
+  currency: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+    defaultValue: 'USD'
+  },
+  paymentProvider: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'payment_provider'
+  },
+  externalSubscriptionId: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'external_subscription_id'
+  },
+  cancelledAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'cancelled_at'
+  },
+  cancellationReason: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'cancellation_reason'
+  }
 }, {
   tableName: 'subscriptions',
   timestamps: true,
-  underscored: true
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
-
-// ===== ASSOCIATIONS =====
-Organization.hasOne(Subscription, { foreignKey: 'organizationId' });
-Subscription.belongsTo(Organization, { foreignKey: 'organizationId' });
 
 module.exports = Subscription;

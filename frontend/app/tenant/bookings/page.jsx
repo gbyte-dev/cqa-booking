@@ -3,10 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import Header from '@/components/TenantHeader';
-import Footer from '@/components/Footer';
-import TenantSidebar from '@/components/TenantSidebar';
-
 import { storage } from '@/lib/storage';
 
 import {
@@ -30,7 +26,6 @@ export default function TenantBookingsPage() {
   const [stats, setStats] = useState(null);
 
   const [loading, setLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedBooking, setSelectedBooking] = useState(null);
 
@@ -359,17 +354,13 @@ export default function TenantBookingsPage() {
   if (loading) {
 
     return (
-      <div className="bookings-page">
+      <div className="loading-state">
 
-        <div className="loading-state">
+        <div className="loading-spinner" />
 
-          <div className="loading-spinner" />
-
-          <span>
-            Loading Bookings...
-          </span>
-
-        </div>
+        <span>
+          Loading Bookings...
+        </span>
 
       </div>
     );
@@ -382,29 +373,9 @@ export default function TenantBookingsPage() {
 
   return (
 
-    <div className="bookings-page">
+    <>
 
-      <div className="bookings-layout">
-
-        <TenantSidebar
-          open={sidebarOpen}
-          onClose={() =>
-            setSidebarOpen(false)
-          }
-        />
-
-
-        <div className="bookings-main-wrapper">
-
-          <Header
-            title="Bookings"
-            onMenuClick={() =>
-              setSidebarOpen(true)
-            }
-          />
-
-
-          <main className="bookings-content">
+      <main className="bookings-content">
 
 
             {/* =================================================
@@ -889,14 +860,7 @@ export default function TenantBookingsPage() {
 
             </div>
 
-          </main>
-
-
-          <Footer />
-
-        </div>
-
-      </div>
+      </main>
 
 
       {/* =====================================================
@@ -1348,6 +1312,6 @@ export default function TenantBookingsPage() {
 
       )}
 
-    </div>
+    </>
   );
 }

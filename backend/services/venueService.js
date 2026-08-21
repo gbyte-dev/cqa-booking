@@ -1,64 +1,29 @@
 const { v4: uuidv4 } = require('uuid');
-const Venue = require('../models/Venue');
+const Outlet = require('../models/Outlet');
 
 exports.create = (organizationId, body) => {
-  const {
-    name,
-    description,
-    address,
-    city,
-    state,
-    postalCode,
-    country,
-    latitude,
-    longitude,
-    phone,
-    email,
-    website,
-    logoUrl,
-    coverImageUrl,
-    venueType,
-    openingTime,
-    closingTime,
-    capacity,
-    currency,
-    timezone
-  } = body;
+  const { name, description, address, city, phone, email, venueType, currency, timezone } = body;
 
-  return Venue.create({
+  return Outlet.create({
     id: uuidv4(),
-    organizationId,
+    tenantId: organizationId,
     name,
     slug: name.toLowerCase().replace(/\s+/g, '-'),
-    description,
-    address,
-    city,
-    state,
-    postalCode,
-    country,
-    latitude,
-    longitude,
-    phone,
-    email,
-    website,
-    logoUrl,
-    coverImageUrl,
     venueType,
-    openingTime,
-    closingTime,
-    capacity,
     currency: currency || 'INR',
     timezone: timezone || 'UTC',
-    status: 'active'
+    contactEmail: email,
+    contactPhone: phone,
+    address: [address, city].filter(Boolean).join(', '),
+    settings: description ? { description } : null
   });
 };
 
 exports.listByOrganization = (organizationId) => {
-  return Venue.findAll({
-    where: { organizationId },
+  return Outlet.findAll({
+    where: { tenantId: organizationId },
     order: [['created_at', 'DESC']],
-    raw: false,
-    subQuery: false
+    raw: false
   }).catch(err => {
     console.error('Database error:', err);
     return [];
@@ -66,75 +31,61 @@ exports.listByOrganization = (organizationId) => {
 };
 
 exports.getById = (id, organizationId) => {
-  return Venue.findOne({
-    where: { id, organizationId },
-    raw: false,
-    subQuery: false
+  return Outlet.findOne({
+    where: { id, tenantId: organizationId },
+    raw: false
   }).catch(err => {
     console.error('Database error:', err);
     return null;
   });
 };
 
-const ALLOWED_UPDATE_FIELDS = [
-  'name',
-  'description',
-  'address',
-  'city',
-  'state',
-  'postalCode',
-  'country',
-  'latitude',
-  'longitude',
-  'phone',
-  'email',
-  'website',
-  'logoUrl',
-  'coverImageUrl',
-  'venueType',
-  'openingTime',
-  'closingTime',
-  'capacity',
-  'currency',
-  'timezone',
-  'status'
-];
+const ALLOWED_UPDATE_FIELDS_MAP = {
+  name: 'name',
+  venueType: 'venueType',
+  currency: 'currency',
+  timezone: 'timezone',
+  email: 'contactEmail',
+  phone: 'contactPhone',
+  address: 'address',
+  logoUrl: 'logoUrl'
+};
 
 exports.update = async (id, organizationId, body) => {
-  const venue = await Venue.findOne({
-    where: { id, organizationId }
+  const outlet = await Outlet.findOne({
+    where: { id, tenantId: organizationId }
   }).catch(err => {
     console.error('Database error:', err);
     return null;
   });
 
-  if (!venue) {
+  if (!outlet) {
     return null;
   }
 
   const updateData = {};
-  ALLOWED_UPDATE_FIELDS.forEach(field => {
-    if (field in body) {
-      updateData[field] = body[field];
+  Object.keys(ALLOWED_UPDATE_FIELDS_MAP).forEach(bodyField => {
+    if (bodyField in body) {
+      updateData[ALLOWED_UPDATE_FIELDS_MAP[bodyField]] = body[bodyField];
     }
   });
 
-  await venue.update(updateData);
-  return venue;
+  await outlet.update(updateData);
+  return outlet;
 };
 
 exports.remove = async (id, organizationId) => {
-  const venue = await Venue.findOne({
-    where: { id, organizationId }
+  const outlet = await Outlet.findOne({
+    where: { id, tenantId: organizationId }
   }).catch(err => {
     console.error('Database error:', err);
     return null;
   });
 
-  if (!venue) {
+  if (!outlet) {
     return false;
   }
 
-  await venue.destroy();
+  await outlet.destroy();
   return true;
 };

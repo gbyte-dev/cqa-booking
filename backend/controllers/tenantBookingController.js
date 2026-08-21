@@ -1,5 +1,28 @@
 const bookingService = require('../services/tenantBookingService');
 
+const toApiShape = (reservation) => {
+  if (!reservation) return null;
+  const plain = reservation.toJSON ? reservation.toJSON() : reservation;
+  return {
+    ...plain,
+    venueId: plain.outletId,
+    tableId: plain.tableId,
+    customerId: plain.guestProfileId,
+    customerName: plain.GuestProfile?.fullName || '',
+    customerEmail: plain.GuestProfile?.email || null,
+    customerPhone: plain.GuestProfile?.phone || null,
+    bookingDate: plain.reservationDate,
+    bookingStartTime: plain.startTime,
+    bookingEndTime: plain.endTime,
+    numGuests: plain.guestCount,
+    bookingStatus: plain.status,
+    totalAmount: plain.depositAmount || 0,
+    notes: plain.specialRequests,
+    Venue: plain.Outlet ? { id: plain.Outlet.id, name: plain.Outlet.name, city: '', address: '' } : null,
+    Table: plain.Table ? { id: plain.Table.id, name: plain.Table.tableNumber, capacity: plain.Table.maxCapacity } : null
+  };
+};
+
 // ===== CHECK AVAILABILITY =====
 exports.checkAvailability = async (req, res) => {
   try {
@@ -18,13 +41,6 @@ exports.checkAvailability = async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Venue not found'
-      });
-    }
-
-    if (!bookingService.isVenueOpenForBooking(venue, bookingStartTime, bookingEndTime)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Venue is closed or booking is outside operating hours'
       });
     }
 
@@ -72,9 +88,16 @@ exports.create = async (req, res) => {
       });
     }
 
+    const shaped = toApiShape(result.booking);
+    shaped.customerName = req.body.customerName;
+    shaped.customerEmail = req.body.customerEmail;
+    shaped.customerPhone = req.body.customerPhone;
+    shaped.totalAmount = Number(req.body.totalAmount || 0);
+    shaped.depositRequired = 0;
+
     res.status(201).json({
       success: true,
-      data: result.booking,
+      data: shaped,
       message: 'Booking created successfully'
     });
   } catch (error) {
@@ -139,13 +162,14 @@ exports.list = async (req, res) => {
     }
 
     const bookings = await bookingService.listByOrganization(organizationId);
+    const data = bookings.map(toApiShape);
 
-    console.log(`✅ Found ${bookings.length} bookings for org: ${organizationId}`);
+    console.log(`✅ Found ${data.length} bookings for org: ${organizationId}`);
 
     res.json({
       success: true,
-      data: bookings || [],
-      count: bookings.length
+      data: data || [],
+      count: data.length
     });
   } catch (error) {
     console.error('Get bookings error:', error);
@@ -171,7 +195,7 @@ exports.getOne = async (req, res) => {
 
     res.json({
       success: true,
-      data: booking
+      data: toApiShape(booking)
     });
   } catch (error) {
     console.error('Get booking error:', error);
@@ -196,14 +220,10 @@ exports.confirm = async (req, res) => {
 
     const result = await bookingService.confirm(booking, req);
 
-    if (result.error) {
-      return res.status(result.status).json({ success: false, error: result.error });
-    }
-
     res.json({
       success: true,
       message: 'Booking confirmed',
-      data: result.booking
+      data: toApiShape(result.booking)
     });
   } catch (error) {
     console.error('Confirm error:', error);
@@ -226,12 +246,12 @@ exports.complete = async (req, res) => {
       });
     }
 
-    const result = await bookingService.complete(booking, req);
+    const result = await bookingService.complete(booking);
 
     res.json({
       success: true,
       message: 'Booking completed',
-      data: result.booking
+      data: toApiShape(result.booking)
     });
   } catch (error) {
     console.error('Complete error:', error);
@@ -257,7 +277,7 @@ exports.checkIn = async (req, res) => {
       return res.status(result.status).json({ success: false, error: result.error });
     }
 
-    res.json({ success: true, message: 'Booking checked in', data: result.booking });
+    res.json({ success: true, message: 'Booking checked in', data: toApiShape(result.booking) });
   } catch (error) {
     console.error('Check-in error:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -279,7 +299,7 @@ exports.markNoShow = async (req, res) => {
       return res.status(result.status).json({ success: false, error: result.error });
     }
 
-    res.json({ success: true, message: 'Booking marked as no-show', data: result.booking });
+    res.json({ success: true, message: 'Booking marked as no-show', data: toApiShape(result.booking) });
   } catch (error) {
     console.error('No-show error:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -305,7 +325,7 @@ exports.cancel = async (req, res) => {
     res.json({
       success: true,
       message: 'Booking cancelled',
-      data: updated
+      data: toApiShape(updated)
     });
   } catch (error) {
     console.error('Cancel error:', error);

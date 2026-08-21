@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import { storage } from '@/lib/storage';
 
 export default function SuperAdminActivityLogsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [logs, setLogs] = useState([]);
   const [filterType, setFilterType] = useState('all');
@@ -106,24 +102,16 @@ export default function SuperAdminActivityLogsPage() {
 
   if (loading) {
     return (
-      <div className="logs-page">
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <span>Loading Activity Logs...</span>
-        </div>
+      <div className="loading-state">
+        <div className="loading-spinner" />
+        <span>Loading Activity Logs...</span>
       </div>
     );
   }
 
   return (
-    <div className="logs-page">
-      <div className="logs-layout">
-        <SuperAdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <div className="logs-main-wrapper">
-          <Header title="Activity Logs" onMenuClick={() => setSidebarOpen(true)} />
-
-          <main className="logs-content">
+    <>
+      <main className="logs-content">
             <div className="page-header">
               <div>
                 <h2>Activity Logs</h2>
@@ -190,31 +178,10 @@ export default function SuperAdminActivityLogsPage() {
                 </div>
               )}
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       <style jsx>{`
         * { box-sizing: border-box; }
-
-        .logs-page {
-          min-height: 100vh;
-          background: var(--sa-bg, #f5f7fb);
-          color: var(--sa-text, #171c2d);
-          font-family: Inter, sans-serif;
-        }
-
-        .logs-layout { display: flex; min-height: 100vh; }
-
-        .logs-main-wrapper {
-          flex: 1;
-          min-width: 0;
-          margin-left: var(--sa-sidebar-width, 260px);
-          display: flex;
-          flex-direction: column;
-        }
 
         .logs-content { flex: 1; padding: 28px; max-width: 1000px; }
 
@@ -384,17 +351,12 @@ export default function SuperAdminActivityLogsPage() {
           margin-bottom: 12px;
         }
 
-        @media (max-width: 900px) {
-          .logs-main-wrapper { margin-left: 220px; }
-        }
-
         @media (max-width: 768px) {
-          .logs-main-wrapper { margin-left: 0; }
           .logs-content { padding: 18px 14px; }
           .filters-section { flex-direction: column; }
           .type-filter { width: 100%; }
         }
       `}</style>
-    </div>
+    </>
   );
 }

@@ -2,18 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/TenantHeader';
-import Footer from '@/components/Footer';
-import TenantSidebar from '@/components/TenantSidebar';
 import { storage } from '@/lib/storage';
 import './staff.css';
 
 export default function TenantStaffPage() {
   const router = useRouter();
   const mountedRef = useRef(false);
-  
+
   const [staff, setStaff] = useState([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -44,7 +40,7 @@ export default function TenantStaffPage() {
   const loadStaff = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/v1/users`, {
+      const response = await fetch(`${API_URL}/api/v1/staff`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
@@ -63,7 +59,7 @@ export default function TenantStaffPage() {
     e.preventDefault();
     setFormLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/v1/users`, {
+      const response = await fetch(`${API_URL}/api/v1/staff`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,22 +94,15 @@ export default function TenantStaffPage() {
 
   if (loading) {
     return (
-      <div className="staff-page">
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <span>Loading Staff...</span>
-        </div>
+      <div className="loading-state">
+        <div className="loading-spinner" />
+        <span>Loading Staff...</span>
       </div>
     );
   }
 
   return (
-    <div className="staff-page">
-      <div className="staff-layout">
-        <TenantSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <div className="staff-main-wrapper">
-          <Header title="Staff" onMenuClick={() => setSidebarOpen(true)} />
+    <>
 
           <main className="staff-content">
             <div className="page-header">
@@ -184,11 +173,7 @@ export default function TenantStaffPage() {
                 </div>
               )}
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       {/* FORM MODAL */}
       {showForm && (
@@ -268,48 +253,53 @@ export default function TenantStaffPage() {
       )}
 
       <style jsx>{`
-        .staff-page { min-height: 100vh; background: var(--t-bg, #f5f7fb); }
+        .staff-page { min-height: 100vh; background: var(--tenant-bg, #f5f7fb); color: var(--tenant-text, #171c2d); }
         .staff-layout { display: flex; min-height: 100vh; }
-        .staff-main-wrapper { flex: 1; min-width: 0; margin-left: 260px; display: flex; flex-direction: column; }
+        .staff-main-wrapper { flex: 1; min-width: 0; margin-left: var(--tenant-sidebar-width, 260px); display: flex; flex-direction: column; }
         .staff-content { flex: 1; padding: 28px; overflow-y: auto; }
-        .loading-state { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-        .loading-spinner { width: 36px; height: 36px; border: 4px solid #e5e7eb; border-top-color: #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .loading-state { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--tenant-text-secondary, #667085); }
+        .loading-spinner { width: 36px; height: 36px; border: 4px solid var(--tenant-border, #e5e7eb); border-top-color: var(--tenant-primary, #667eea); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .page-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 24px; }
-        .page-header h2 { margin: 0; font-size: 26px; }
-        .page-header p { margin: 6px 0 0; color: #667085; font-size: 13px; }
-        .add-btn { height: 42px; padding: 0 18px; border: none; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-        .add-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
-        .panel { background: #fff; border: 1px solid #edf0f4; border-radius: 12px; overflow: hidden; }
-        .panel-header { padding: 0 22px; min-height: 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e7eb; }
-        .panel-header h3 { margin: 0; font-size: 15px; font-weight: 600; }
+        .page-header h2 { margin: 0; font-size: 26px; color: var(--tenant-text, #171c2d); }
+        .page-header p { margin: 6px 0 0; color: var(--tenant-text-secondary, #667085); font-size: 13px; }
+        .add-btn { height: 42px; padding: 0 18px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--tenant-primary, #667eea) 0%, #764ba2 100%); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .add-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); }
+        .panel { background: var(--tenant-surface, #fff); border: 1px solid var(--tenant-border-light, #edf0f4); border-radius: 12px; overflow: hidden; box-shadow: var(--tenant-shadow-sm, 0 2px 8px rgba(15,23,42,0.05)); }
+        .panel-header { padding: 0 22px; min-height: 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--tenant-border, #e5e7eb); }
+        .panel-header h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--tenant-text, #171c2d); }
+        .panel-header span { color: var(--tenant-text-secondary, #667085); font-size: 12px; }
         .table-container { overflow-x: auto; }
         .staff-table { width: 100%; border-collapse: collapse; }
-        .staff-table th { padding: 13px 18px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e5e7eb; }
-        .staff-table td { padding: 14px 18px; border-bottom: 1px solid #edf0f4; }
+        .staff-table th { padding: 13px 18px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--tenant-text-secondary, #667085); background: var(--tenant-surface-2, #f8f9fc); border-bottom: 1px solid var(--tenant-border, #e5e7eb); }
+        .staff-table td { padding: 14px 18px; color: var(--tenant-text, #171c2d); border-bottom: 1px solid var(--tenant-border-light, #edf0f4); }
+        .staff-table tbody tr { transition: background 0.2s ease; }
+        .staff-table tbody tr:hover td { background: var(--tenant-surface-hover, #f1f4f9); }
         .member-cell { display: flex; align-items: center; gap: 12px; }
-        .member-avatar { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: linear-gradient(135deg, #eef1ff 0%, #f3e8ff 100%); color: #667eea; font-weight: 700; }
-        .role-badge { padding: 4px 10px; border-radius: 12px; background: #eef1ff; color: #667eea; font-size: 11px; font-weight: 600; }
+        .member-avatar { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: linear-gradient(135deg, var(--tenant-primary, #667eea), #764ba2); color: #fff; font-weight: 700; }
+        .role-badge { padding: 4px 10px; border-radius: 12px; background: var(--tenant-primary-light, #eef1ff); color: var(--tenant-primary, #667eea); font-size: 11px; font-weight: 600; }
         .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-        .status-badge.active { background: #dcfce7; color: #16a34a; }
-        .status-badge.inactive { background: #fee2e2; color: #dc3545; }
-        .empty-state { padding: 60px 20px; text-align: center; }
+        .status-badge.active { background: var(--tenant-success-bg, #dcfce7); color: var(--tenant-success, #16a34a); }
+        .status-badge.inactive { background: var(--tenant-danger-bg, #fee2e2); color: var(--tenant-danger, #dc3545); }
+        .empty-state { padding: 60px 20px; text-align: center; color: var(--tenant-text-secondary, #667085); }
         .empty-icon { font-size: 34px; margin-bottom: 12px; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 300; }
-        .modal { width: 100%; max-width: 480px; background: #fff; border-radius: 12px; padding: 24px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: flex; align-items: center; justify-content: center; z-index: 300; backdrop-filter: blur(3px); }
+        .modal { width: 100%; max-width: 480px; background: var(--tenant-surface, #fff); color: var(--tenant-text, #171c2d); border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 12px; padding: 24px; animation: modalIn 0.18s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
-        .modal-header h2 { margin: 0; font-size: 18px; }
-        .close-btn { width: 32px; height: 32px; border: none; border-radius: 8px; background: #f8f9fc; cursor: pointer; }
+        .modal-header h2 { margin: 0; font-size: 18px; color: var(--tenant-text, #171c2d); }
+        .close-btn { width: 32px; height: 32px; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 8px; background: var(--tenant-surface-2, #f8f9fc); color: var(--tenant-text-secondary, #667085); cursor: pointer; transition: all 0.2s ease; }
+        .close-btn:hover { background: var(--tenant-surface-hover, #f1f4f9); color: var(--tenant-text, #171c2d); border-color: var(--tenant-primary, #667eea); }
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 7px; color: #667085; font-size: 12px; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; height: 42px; padding: 0 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; font-size: 13px; font-family: inherit; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .form-group label { display: block; margin-bottom: 7px; color: var(--tenant-text-secondary, #667085); font-size: 12px; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 8px; background: var(--tenant-surface, #fff); color: var(--tenant-text, #171c2d); font-size: 13px; font-family: inherit; transition: all 0.2s ease; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--tenant-primary, #667eea); box-shadow: 0 0 0 3px var(--tenant-primary-light, rgba(102,126,234,0.12)); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        .btn-cancel { height: 42px; padding: 0 16px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; cursor: pointer; }
-        .btn-cancel:hover { background: #f8f9fc; }
-        .btn-submit { height: 42px; padding: 0 18px; border: none; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; font-weight: 700; cursor: pointer; }
-        .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+        .btn-cancel { height: 42px; padding: 0 16px; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 8px; background: var(--tenant-surface, #fff); color: var(--tenant-text, #171c2d); cursor: pointer; transition: all 0.2s ease; }
+        .btn-cancel:hover { background: var(--tenant-surface-hover, #f8f9fc); }
+        .btn-submit { height: 42px; padding: 0 18px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--tenant-primary, #667eea) 0%, #764ba2 100%); color: #fff; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); }
         .btn-submit:disabled, .btn-cancel:disabled { opacity: 0.6; cursor: not-allowed; }
         @media (max-width: 900px) {
           .staff-main-wrapper { margin-left: 0; }
@@ -318,6 +308,6 @@ export default function TenantStaffPage() {
           .form-row { grid-template-columns: 1fr; }
         }
       `}</style>
-    </div>
+    </>
   );
 }

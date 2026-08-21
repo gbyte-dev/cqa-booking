@@ -1,19 +1,46 @@
 const customerService = require('../services/customerService');
 
+// Old frontend expects firstName/lastName separately; new schema only has full_name.
+const toApiShape = (guest) => {
+  if (!guest) return null;
+  const plain = guest.toJSON ? guest.toJSON() : guest;
+  const [firstName, ...rest] = (plain.fullName || '').split(' ');
+  return {
+    ...plain,
+    firstName: firstName || '',
+    lastName: rest.join(' ') || '',
+    email: plain.email,
+    phone: plain.phone,
+    customerType: 'regular',
+    totalBookings: plain.totalVisitsCount || 0,
+    totalSpent: plain.totalLifetimeSpend || 0,
+    averageSpending: 0,
+    lastBookingDate: plain.lastVisitAt,
+    preferredContactMethod: '',
+    marketingConsent: true,
+    isVip: !!plain.isVip,
+    tags: [],
+    dateOfBirth: plain.birthday,
+    anniversaryDate: plain.anniversary,
+    notes: plain.generalNotes
+  };
+};
+
 // ===== GET ALL CUSTOMERS =====
 exports.list = async (req, res) => {
   try {
     console.log('👥 [GET /customers] Fetching customers for org:', req.user.organizationId);
 
     const customers = await customerService.listByOrganization(req.user.organizationId);
+    const data = customers.map(toApiShape);
 
-    console.log(`✅ Found ${customers.length} customers`);
+    console.log(`✅ Found ${data.length} customers`);
 
     res.json({
       success: true,
-      data: customers || [],
-      count: customers.length,
-      message: customers.length === 0 ? 'No customers found' : `Found ${customers.length} customer(s)`
+      data,
+      count: data.length,
+      message: data.length === 0 ? 'No customers found' : `Found ${data.length} customer(s)`
     });
   } catch (error) {
     console.error('❌ Get customers error:', error);
@@ -27,9 +54,9 @@ exports.list = async (req, res) => {
   }
 };
 
-// ===== GET CUSTOMER LOYALTY =====
+// ===== GET CUSTOMER LOYALTY (loyalty points no longer tracked — returns placeholder) =====
 exports.getLoyalty = async (req, res) => {
-  const customer = await customerService.getLoyalty(req.params.id, req.user.organizationId);
+  const customer = await customerService.getById(req.params.id, req.user.organizationId);
 
   if (!customer) {
     return res.status(404).json({ success: false, error: 'Customer not found' });
@@ -39,9 +66,9 @@ exports.getLoyalty = async (req, res) => {
     success: true,
     data: {
       customerId: customer.id,
-      points: customer.loyaltyPoints,
-      totalBookings: customer.totalBookings,
-      segment: customer.totalBookings >= 5 ? 'repeat' : 'new'
+      points: 0,
+      totalBookings: customer.totalVisitsCount || 0,
+      segment: (customer.totalVisitsCount || 0) >= 5 ? 'repeat' : 'new'
     }
   });
 };
@@ -66,7 +93,7 @@ exports.getOne = async (req, res) => {
 
     res.json({
       success: true,
-      data: customer
+      data: toApiShape(customer)
     });
   } catch (error) {
     console.error('❌ Get customer error:', error);
@@ -120,7 +147,25 @@ exports.update = async (req, res) => {
   try {
     console.log('👥 [PATCH /customers/:id] Updating customer:', req.params.id);
 
-    const customer = await customerService.update(req.params.id, req.user.organizationId, req.body);
+    const body = req.body;
+    const updateData = {};
+
+    if ('firstName' in body || 'lastName' in body) {
+      const existing = await customerService.getById(req.params.id, req.user.organizationId);
+      const currentFirst = existing?.fullName?.split(' ')[0] || '';
+      const currentRest = existing?.fullName?.split(' ').slice(1).join(' ') || '';
+      const firstName = 'firstName' in body ? body.firstName : currentFirst;
+      const lastName = 'lastName' in body ? body.lastName : currentRest;
+      updateData.fullName = [firstName, lastName].filter(Boolean).join(' ');
+    }
+    if ('email' in body) updateData.email = body.email;
+    if ('phone' in body) updateData.phone = body.phone;
+    if ('dateOfBirth' in body) updateData.birthday = body.dateOfBirth || null;
+    if ('anniversaryDate' in body) updateData.anniversary = body.anniversaryDate || null;
+    if ('notes' in body) updateData.generalNotes = body.notes;
+    if ('isVip' in body) updateData.isVip = body.isVip;
+
+    const customer = await customerService.update(req.params.id, req.user.organizationId, updateData);
 
     if (!customer) {
       console.log('⚠️ Customer not found for update');
@@ -135,7 +180,7 @@ exports.update = async (req, res) => {
 
     res.json({
       success: true,
-      data: customer,
+      data: toApiShape(customer),
       message: 'Customer profile updated successfully'
     });
   } catch (error) {
@@ -149,70 +194,20 @@ exports.update = async (req, res) => {
   }
 };
 
-// ===== SUSPEND CUSTOMER =====
+// ===== SUSPEND CUSTOMER (feature retired — no status column in new schema) =====
 exports.suspend = async (req, res) => {
-  try {
-    console.log('⛔ [POST /customers/:id/suspend] Suspending customer:', req.params.id);
-
-    const customer = await customerService.suspend(req.params.id, req.user.organizationId, req.body.reason);
-
-    if (!customer) {
-      return res.json({
-        success: true,
-        data: null,
-        message: 'Customer not found'
-      });
-    }
-
-    console.log('✅ Customer suspended');
-
-    res.json({
-      success: true,
-      data: customer,
-      message: 'Customer suspended successfully'
-    });
-  } catch (error) {
-    console.error('❌ Suspend customer error:', error);
-
-    res.json({
-      success: true,
-      data: null,
-      message: 'Failed to suspend customer'
-    });
-  }
+  res.status(400).json({
+    success: false,
+    error: 'Customer suspend/activate is not available in the current schema'
+  });
 };
 
-// ===== ACTIVATE CUSTOMER =====
+// ===== ACTIVATE CUSTOMER (feature retired) =====
 exports.activate = async (req, res) => {
-  try {
-    console.log('✅ [POST /customers/:id/activate] Activating customer:', req.params.id);
-
-    const customer = await customerService.activate(req.params.id, req.user.organizationId);
-
-    if (!customer) {
-      return res.json({
-        success: true,
-        data: null,
-        message: 'Customer not found'
-      });
-    }
-
-    console.log('✅ Customer activated');
-
-    res.json({
-      success: true,
-      data: customer,
-      message: 'Customer activated successfully'
-    });
-  } catch (error) {
-    console.error('❌ Activate customer error:', error);
-
-    res.json({
-      success: true,
-      data: null,
-      message: 'Failed to activate customer'
-    });
-  }
+  res.status(400).json({
+    success: false,
+    error: 'Customer suspend/activate is not available in the current schema'
+  });
 };
 
 // ===== DELETE CUSTOMER =====

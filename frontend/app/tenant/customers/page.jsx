@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/TenantHeader';
-import Footer from '@/components/Footer';
-import TenantSidebar from '@/components/TenantSidebar';
 import { storage } from '@/lib/storage';
 import {
   getTenantCustomers,
@@ -22,7 +19,6 @@ export default function TenantCustomersPage() {
   const [user, setUser] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -210,30 +206,16 @@ export default function TenantCustomersPage() {
 
   if (loading) {
     return (
-      <div className="customers-page">
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <span>Loading Customers...</span>
-        </div>
+      <div className="loading-state">
+        <div className="loading-spinner" />
+        <span>Loading Customers...</span>
       </div>
     );
   }
 
   return (
-    <div className="customers-page">
-      <div className="customers-layout">
-        <TenantSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-
-        <div className="customers-main-wrapper">
-          <Header
-            title="Customers"
-            onMenuClick={() => setSidebarOpen(true)}
-          />
-
-          <main className="customers-content">
+    <>
+      <main className="customers-content">
             <div className="customers-header">
               <div>
                 <h2>👥 Customers</h2>
@@ -403,11 +385,7 @@ export default function TenantCustomersPage() {
                 </div>
               </div>
             )}
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       {/* ===== PROFILE MODAL ===== */}
       {showProfile && selectedCustomer && (
@@ -738,6 +716,6 @@ export default function TenantCustomersPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

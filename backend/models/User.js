@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
-const Organization = require('./Organization');
 
 const User = sequelize.define('User', {
   id: {
@@ -9,54 +8,52 @@ const User = sequelize.define('User', {
     primaryKey: true,
     defaultValue: () => uuidv4()
   },
-  organizationId: {
-    type: DataTypes.STRING(36),
-    allowNull: false,
-    references: { model: 'organizations', key: 'id' }
-  },
   email: {
     type: DataTypes.STRING(255),
-    allowNull: false,
-    unique: true
+    allowNull: true
   },
-  firstName: {
-    type: DataTypes.STRING(100),
-    allowNull: false
+  phone: {
+    type: DataTypes.STRING(50),
+    allowNull: true
   },
-  lastName: DataTypes.STRING(100),
-  passwordHash: DataTypes.STRING(500),
-  role: {
-    type: DataTypes.ENUM('admin', 'manager', 'staff', 'customer', 'superadmin'),
-    defaultValue: 'staff'
+  passwordHash: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'password_hash'
   },
-  status: {
-    type: DataTypes.ENUM('active', 'inactive', 'suspended'),
-    defaultValue: 'active'
-  },
-  emailVerified: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  isSuperAdmin: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  passwordResetToken: {
+  fullName: {
     type: DataTypes.STRING(255),
     allowNull: true,
-    field: 'password_reset_token'
+    field: 'full_name'
   },
-  passwordResetExpires: {
-    type: DataTypes.DATE,
+  roleId: {
+    type: DataTypes.STRING(36),
     allowNull: true,
-    field: 'password_reset_expires'
+    references: { model: 'roles', key: 'id' },
+    field: 'role_id'
+  },
+  roleCode: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'role_code'
+  },
+  tenantId: {
+    type: DataTypes.STRING(36),
+    allowNull: true,
+    references: { model: 'tenants', key: 'id' },
+    field: 'tenant_id'
+  },
+  outletId: {
+    type: DataTypes.STRING(36),
+    allowNull: true,
+    references: { model: 'outlets', key: 'id' },
+    field: 'outlet_id'
   }
 }, {
   tableName: 'users',
   timestamps: true,
-  underscored: true
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
-
-// ===== ASSOCIATIONS =====
 
 module.exports = User;

@@ -15,10 +15,10 @@ const authMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
 
     const user = await User.findByPk(decoded.userId, {
-      attributes: ['id', 'organizationId', 'role', 'status']
+      attributes: ['id', 'tenantId', 'roleCode']
     });
 
-    if (!user || user.status !== 'active') {
+    if (!user) {
       return res.status(403).json({
         success: false,
         error: 'User account is inactive or suspended'
@@ -27,8 +27,10 @@ const authMiddleware = async (req, res, next) => {
 
     req.user = {
       userId: user.id,
-      organizationId: user.organizationId,
-      role: user.role
+      organizationId: user.tenantId,
+      // Normalize 'super_admin' (new schema's role code) to 'superadmin'
+      // to match the existing frontend/route checks written before the schema switch.
+      role: user.roleCode === 'super_admin' ? 'superadmin' : user.roleCode
     };
     next();
   } catch (error) {

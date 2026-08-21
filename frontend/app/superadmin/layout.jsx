@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 import Header from '@/components/Header';
@@ -15,11 +15,20 @@ const titles = {
   '/superadmin/bookings': 'Bookings',
   '/superadmin/subscriptions': 'Subscriptions',
   '/superadmin/users': 'Users',
+  '/superadmin/payments': 'Payments',
+  '/superadmin/reports': 'Reports',
+  '/superadmin/settings': 'Settings',
+  '/superadmin/activity-logs': 'Activity Logs',
+  '/superadmin/profile': 'My Profile',
 };
 
 export default function SuperAdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   // Login page has no authenticated session yet — render it standalone,
   // without the Sidebar/Header/Footer that only make sense post-login.

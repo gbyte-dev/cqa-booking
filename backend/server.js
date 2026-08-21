@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const { sequelize, testConnection } = require('./config/database');
 const { setupAssociations } = require('./models/associations');
-const { migrateCore } = require('./scripts/migrate-core');
+// migrate-core.js is obsolete (targeted the old pre-schema-switch tables) — no longer required
 
 // ===== ROUTES IMPORTS =====
 const authRoutes = require('./routes/auth');
@@ -19,6 +19,7 @@ const superAdminRoutes = require('./routes/superadmin');
 const organizationsRoutes = require('./routes/organizations');
 const usersRoutes = require('./routes/users');
 const customersRoutes = require('./routes/customers');
+const staffRoutes = require('./routes/staff');
 const paymentsRoutes = require('./routes/payments');
 const promotionsRoutes = require('./routes/promotions');
 const notificationsRoutes = require('./routes/notifications');
@@ -59,8 +60,6 @@ const startServer = async () => {
       process.exit(1);
     }
     console.log('✅ MySQL Database connected successfully!');
-    await migrateCore();
-    console.log('✅ Core schema migration completed');
   } catch (error) {
     console.error('❌ Database error:', error);
     process.exit(1);
@@ -97,8 +96,11 @@ console.log('✅ Tables routes registered');
 app.use('/api/v1/bookings', tenantBookingRoutes);           // ✅ FIXED PATH
 console.log('✅ Tenant bookings routes registered');
 
-app.use('/api/v1/customers', customersRoutes); 
+app.use('/api/v1/customers', customersRoutes);
 console.log('✅ Customers routes registered');
+
+app.use('/api/v1/staff', staffRoutes);
+console.log('✅ Staff routes registered');
 
 app.use('/api/v1/payments', paymentsRoutes);
 app.use('/api/v1/promotions', promotionsRoutes);

@@ -1,231 +1,225 @@
-const sequelize = require('sequelize');
-const Organization = require('../models/Organization');
+const Tenant = require('../models/Tenant');
 const User = require('../models/User');
+const Reservation = require('../models/Reservation');
+const Outlet = require('../models/Outlet');
+const TableDaybed = require('../models/TableDaybed');
+const GuestProfile = require('../models/GuestProfile');
 const Subscription = require('../models/Subscription');
-const Payment = require('../models/Payment');
-const Booking = require('../models/Booking');
-const Venue = require('../models/Venue');
-const Table = require('../models/Table');
+const SubscriptionPlan = require('../models/SubscriptionPlan');
 
 // ===== ORGANIZATIONS =====
 
 exports.listOrganizations = () => {
-  return Organization.findAll({
-    include: [
-      {
-        association: 'Subscription',
-        attributes: ['id', 'plan', 'monthlyPrice', 'status']
-      }
-    ]
-  });
+  return Tenant.findAll({ order: [['created_at', 'DESC']] });
 };
 
 exports.getOrganization = (id) => {
-  return Organization.findByPk(id, {
-    include: ['Subscription']
-  });
+  return Tenant.findByPk(id);
 };
 
 exports.updateOrganization = async (id, body) => {
-  const org = await Organization.findByPk(id);
-  if (!org) return null;
+  const tenant = await Tenant.findByPk(id);
+  if (!tenant) return null;
 
-  await org.update(body);
-  return org;
+  const ALLOWED_UPDATE_FIELDS = ['name', 'slug', 'subscriptionTier', 'stripeCustomerId'];
+  const updateData = {};
+  for (const field of ALLOWED_UPDATE_FIELDS) {
+    if (body[field] !== undefined) updateData[field] = body[field];
+  }
+
+  await tenant.update(updateData);
+  return tenant;
 };
 
 exports.suspendOrganization = async (id) => {
-  const org = await Organization.findByPk(id);
-  if (!org) return null;
+  const tenant = await Tenant.findByPk(id);
+  if (!tenant) return null;
 
-  await org.update({ subscriptionStatus: 'suspended' });
-  return org;
+  await tenant.update({ isActive: false });
+  return tenant;
 };
 
 exports.reactivateOrganization = async (id) => {
-  const org = await Organization.findByPk(id);
-  if (!org) return null;
+  const tenant = await Tenant.findByPk(id);
+  if (!tenant) return null;
 
-  await org.update({ subscriptionStatus: 'active' });
-  return org;
+  await tenant.update({ isActive: true });
+  return tenant;
 };
 
 // ===== SUBSCRIPTIONS =====
+// Real `subscriptions` + `subscription_plans` tables (added 2026-08-21 via
+// migration 20260821120856-create-subscriptions.js), seeded from existing tenants
+// via scripts/seed-subscriptions.js. Replaces the old virtual/derived objects.
+
+const SUB_INCLUDE = [
+  { model: SubscriptionPlan, as: 'Plan' },
+  { model: Tenant, as: 'Tenant', attributes: ['id', 'name', 'slug', 'isActive'] }
+];
+
+const toApiSubscription = (sub) => {
+  if (!sub) return null;
+  const plain = sub.toJSON ? sub.toJSON() : sub;
+  return {
+    ...plain,
+    organizationId: plain.tenantId,
+    plan: plain.Plan?.code || null,
+    monthlyPrice: Number(plain.amount),
+    maxVenues: plain.Plan?.maxOutlets ?? null,
+    maxStaff: plain.Plan?.maxUsers ?? null,
+    maxBookingsPerDay: plain.Plan?.maxReservations ?? null,
+    startDate: plain.startDate,
+    endDate: plain.endDate,
+    Organization: plain.Tenant
+      ? { id: plain.Tenant.id, name: plain.Tenant.name, slug: plain.Tenant.slug, subscriptionStatus: plain.Tenant.isActive ? 'active' : 'suspended' }
+      : null
+  };
+};
 
 exports.getSubscriptionStats = async () => {
-  const totalSubscriptions = await Subscription.count();
+  const subs = await Subscription.findAll({ include: SUB_INCLUDE });
 
-  const byPlan = await Subscription.findAll({
-    attributes: [
-      'plan',
-      [sequelize.fn('COUNT', sequelize.col('*')), 'count']
-    ],
-    group: ['plan'],
-    raw: true
-  });
+  const totalSubscriptions = subs.length;
+  const activeSubs = subs.filter(s => s.status === 'active');
+  const cancelledSubs = subs.filter(s => s.status === 'cancelled');
 
-  const activeSubscriptions = await Subscription.count({ where: { status: 'active' } });
-  const cancelledSubscriptions = await Subscription.count({ where: { status: 'cancelled' } });
+  const byPlanMap = {};
+  for (const s of subs) {
+    const plan = s.Plan?.code || 'unknown';
+    byPlanMap[plan] = (byPlanMap[plan] || 0) + 1;
+  }
+  const byPlan = Object.entries(byPlanMap).map(([plan, count]) => ({ plan, count }));
 
-  const activeWithPrices = await Subscription.findAll({
-    where: { status: 'active' },
-    attributes: ['monthlyPrice']
-  });
-  const mrr = activeWithPrices.reduce((sum, sub) => sum + sub.monthlyPrice, 0);
+  const mrr = activeSubs.reduce((sum, s) => sum + Number(s.amount || 0), 0);
   const arr = mrr * 12;
+  const totalRevenue = activeSubs.reduce((sum, s) => sum + Number(s.amount || 0), 0);
 
-  const totalRevenue = await Payment.sum('amount', { where: { paymentStatus: 'completed' } }) || 0;
-
-  const churnedLast30Days = await Subscription.count({
-    where: {
-      status: 'cancelled',
-      cancellationDate: {
-        [sequelize.Op.gte]: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      }
-    }
-  });
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const churnedLast30Days = cancelledSubs.filter(s => s.cancelledAt && new Date(s.cancelledAt) >= thirtyDaysAgo).length;
+  const churnRate = totalSubscriptions > 0 ? ((churnedLast30Days / totalSubscriptions) * 100).toFixed(2) + '%' : '0.00%';
 
   return {
     totalSubscriptions,
-    activeSubscriptions,
-    cancelledSubscriptions,
+    activeSubscriptions: activeSubs.length,
+    cancelledSubscriptions: cancelledSubs.length,
     byPlan,
     mrr: Math.round(mrr),
     arr: Math.round(arr),
     totalRevenue: Math.round(totalRevenue),
     churnedLast30Days,
-    churnRate: ((churnedLast30Days / totalSubscriptions) * 100).toFixed(2) + '%'
+    churnRate
   };
 };
 
-exports.listSubscriptions = () => {
-  return Subscription.findAll({
-    include: [
-      {
-        association: 'Organization',
-        attributes: ['id', 'name', 'slug', 'subscriptionStatus']
-      }
-    ],
-    order: [['createdAt', 'DESC']]
-  });
+exports.listSubscriptions = async () => {
+  const subs = await Subscription.findAll({ include: SUB_INCLUDE, order: [['created_at', 'DESC']] });
+  return subs.map(toApiSubscription);
 };
 
 exports.getSubscription = async (id) => {
-  const subscription = await Subscription.findByPk(id, {
-    include: [
-      {
-        association: 'Organization',
-        attributes: ['id', 'name', 'slug', 'maxVenues']
-      }
-    ]
-  });
+  const sub = await Subscription.findByPk(id, { include: SUB_INCLUDE });
+  if (!sub) return null;
 
-  if (!subscription) return null;
-
-  const payments = await Payment.findAll({
-    where: { subscriptionId: subscription.id },
-    order: [['createdAt', 'DESC']],
-    limit: 10
-  });
-
-  return { subscription, payments };
+  return { subscription: toApiSubscription(sub), payments: [] };
 };
 
-const PLAN_PRICING = {
-  starter: { price: 200, maxVenues: 1, maxStaff: 5, maxBookingsPerDay: 50 },
-  professional: { price: 500, maxVenues: 5, maxStaff: 20, maxBookingsPerDay: 200 },
-  enterprise: { price: 2000, maxVenues: 999, maxStaff: 999, maxBookingsPerDay: 9999 }
-};
-
-exports.changePlan = async (id, plan) => {
-  if (!['starter', 'professional', 'enterprise'].includes(plan)) {
+exports.changePlan = async (id, planCode) => {
+  const plan = await SubscriptionPlan.findOne({ where: { code: planCode } });
+  if (!plan) {
     return { error: 'Invalid plan', status: 400 };
   }
 
-  const subscription = await Subscription.findByPk(id);
-  if (!subscription) {
+  const sub = await Subscription.findByPk(id, { include: SUB_INCLUDE });
+  if (!sub) {
     return { error: 'Subscription not found', status: 404 };
   }
 
-  const pricing = PLAN_PRICING[plan];
-  const oldPlan = subscription.plan;
-  const oldPrice = subscription.monthlyPrice;
+  const oldPlanCode = sub.Plan?.code;
+  const oldPrice = Number(sub.amount);
 
-  await subscription.update({
-    plan,
-    monthlyPrice: pricing.price,
-    maxVenues: pricing.maxVenues,
-    maxStaff: pricing.maxStaff,
-    maxBookingsPerDay: pricing.maxBookingsPerDay
-  });
+  await sub.update({ planId: plan.id, amount: plan.price });
+  await sub.reload({ include: SUB_INCLUDE });
 
   return {
-    subscription,
-    message: `Plan upgraded from ${oldPlan} ($${oldPrice}) to ${plan} ($${pricing.price})`
+    subscription: toApiSubscription(sub),
+    message: `Plan upgraded from ${oldPlanCode} ($${oldPrice}) to ${planCode} ($${plan.price})`
   };
 };
 
 exports.cancelSubscription = async (id, reason) => {
-  const subscription = await Subscription.findByPk(id);
-  if (!subscription) {
+  const sub = await Subscription.findByPk(id, { include: SUB_INCLUDE });
+  if (!sub) {
     return { error: 'Subscription not found', status: 404 };
   }
 
-  if (subscription.status === 'cancelled') {
+  if (sub.status === 'cancelled') {
     return { error: 'Subscription is already cancelled', status: 400 };
   }
 
-  await subscription.update({
-    status: 'cancelled',
-    cancellationDate: new Date(),
-    cancellationReason: reason || 'No reason provided'
-  });
+  await sub.update({ status: 'cancelled', cancelledAt: new Date(), cancellationReason: reason || 'No reason provided' });
+  if (sub.tenantId) {
+    await Tenant.update({ isActive: false }, { where: { id: sub.tenantId } });
+  }
+  await sub.reload({ include: SUB_INCLUDE });
 
-  await Organization.update(
-    { subscriptionStatus: 'suspended' },
-    { where: { id: subscription.organizationId } }
-  );
-
-  return { subscription };
+  return { subscription: toApiSubscription(sub) };
 };
 
 exports.updateAutoRenew = async (id, autoRenew) => {
-  const subscription = await Subscription.findByPk(id);
-  if (!subscription) return null;
+  const sub = await Subscription.findByPk(id, { include: SUB_INCLUDE });
+  if (!sub) return null;
 
-  await subscription.update({ autoRenew });
-  return subscription;
+  await sub.update({ autoRenew: !!autoRenew });
+  await sub.reload({ include: SUB_INCLUDE });
+  return toApiSubscription(sub);
 };
 
 // ===== PAYMENTS =====
-
-exports.listPayments = () => {
-  return Payment.findAll({
-    include: ['Subscription']
+// SaaS-billing "payments" are the historical subscription records themselves
+// (no separate payments/transactions ledger exists yet for platform billing —
+// `guest_payments` is a different, unrelated table for booking deposits).
+exports.listPayments = async (subscriptionId) => {
+  const where = subscriptionId ? { id: subscriptionId } : undefined;
+  const subs = await Subscription.findAll({ where, include: SUB_INCLUDE, order: [['created_at', 'DESC']] });
+  return subs.map(sub => {
+    const plain = sub.toJSON();
+    return {
+      id: plain.id,
+      subscriptionId: plain.id,
+      organizationId: plain.tenantId,
+      organization: plain.Tenant ? { id: plain.Tenant.id, name: plain.Tenant.name, slug: plain.Tenant.slug } : null,
+      amount: Number(plain.amount || 0),
+      currency: plain.currency,
+      status: plain.status === 'active' ? 'completed' : plain.status,
+      plan: plain.Plan?.code || null,
+      paymentProvider: plain.paymentProvider,
+      createdAt: plain.created_at
+    };
   });
 };
 
 // ===== DASHBOARD STATS =====
 
 exports.getDashboardStats = async () => {
-  const totalOrganizations = await Organization.count();
+  const totalOrganizations = await Tenant.count();
   const activeSubscriptions = await Subscription.count({ where: { status: 'active' } });
-  const totalRevenue = await Payment.sum('amount', { where: { paymentStatus: 'completed' } }) || 0;
+  const activeSubs = await Subscription.findAll({ where: { status: 'active' }, attributes: ['amount'] });
+  const totalRevenue = activeSubs.reduce((sum, s) => sum + Number(s.amount || 0), 0);
   const totalUsers = await User.count();
 
-  return { totalOrganizations, activeSubscriptions, totalRevenue, totalUsers };
+  return { totalOrganizations, activeSubscriptions, totalRevenue: Math.round(totalRevenue), totalUsers };
 };
 
 exports.getBookingStats = async () => {
-  const totalBookings = await Booking.count().catch(() => 0);
-  const confirmedBookings = await Booking.count({ where: { bookingStatus: 'confirmed' } }).catch(() => 0);
-  const cancelledBookings = await Booking.count({ where: { bookingStatus: 'cancelled' } }).catch(() => 0);
-  const completedBookings = await Booking.count({ where: { bookingStatus: 'completed' } }).catch(() => 0);
+  const totalBookings = await Reservation.count().catch(() => 0);
+  const confirmedBookings = await Reservation.count({ where: { status: 'confirmed' } }).catch(() => 0);
+  const cancelledBookings = await Reservation.count({ where: { status: 'cancelled' } }).catch(() => 0);
+  const completedBookings = await Reservation.count({ where: { status: 'completed' } }).catch(() => 0);
 
   let totalGuests = 0;
   try {
-    const bookings = await Booking.findAll({ attributes: ['numGuests'], raw: true });
-    totalGuests = bookings.reduce((sum, b) => sum + (b.numGuests || 0), 0);
+    const reservations = await Reservation.findAll({ attributes: ['guestCount'], raw: true });
+    totalGuests = reservations.reduce((sum, r) => sum + (Number(r.guestCount) || 0), 0);
   } catch (err) {
     console.error('Error calculating guests:', err.message);
     totalGuests = 0;
@@ -246,16 +240,17 @@ exports.getBookingStats = async () => {
 
 // ===== BOOKINGS =====
 
+const BOOKING_INCLUDE = [
+  { model: Outlet, as: 'Outlet', attributes: ['id', 'name', 'address'], required: false },
+  { model: TableDaybed, as: 'Table', attributes: ['id', 'tableNumber', 'maxCapacity'], required: false },
+  { model: GuestProfile, as: 'GuestProfile', attributes: ['id', 'fullName', 'email', 'phone'], required: false }
+];
+
 exports.listBookings = () => {
-  return Booking.findAll({
-    include: [
-      { model: Venue, as: 'Venue', attributes: ['id', 'name', 'city'], required: false },
-      { model: Table, as: 'Table', attributes: ['id', 'name', 'capacity'], required: false }
-    ],
-    order: [['bookingDate', 'DESC']],
-    limit: 500,
-    raw: false,
-    subQuery: false
+  return Reservation.findAll({
+    include: BOOKING_INCLUDE,
+    order: [['reservation_date', 'DESC']],
+    limit: 500
   }).catch(err => {
     console.error('Booking fetch error:', err.message);
     return [];
@@ -263,13 +258,8 @@ exports.listBookings = () => {
 };
 
 exports.getBooking = (id) => {
-  return Booking.findByPk(id, {
-    include: [
-      { model: Venue, as: 'Venue', attributes: ['id', 'name', 'city', 'address', 'phoneNumber'], required: false },
-      { model: Table, as: 'Table', attributes: ['id', 'name', 'capacity', 'tableType'], required: false }
-    ],
-    raw: false,
-    subQuery: false
+  return Reservation.findByPk(id, {
+    include: BOOKING_INCLUDE
   }).catch(err => {
     console.error('Booking fetch error:', err.message);
     return null;
@@ -277,23 +267,23 @@ exports.getBooking = (id) => {
 };
 
 exports.confirmBooking = async (id) => {
-  const booking = await Booking.findByPk(id);
+  const booking = await Reservation.findByPk(id);
   if (!booking) return null;
 
-  await booking.update({ bookingStatus: 'confirmed' });
+  await booking.update({ status: 'confirmed' });
   return booking;
 };
 
 exports.cancelBooking = async (id, reason) => {
-  const booking = await Booking.findByPk(id);
+  const booking = await Reservation.findByPk(id);
   if (!booking) return { error: 'Booking not found', status: 404 };
 
-  if (booking.bookingStatus === 'cancelled') {
+  if (booking.status === 'cancelled') {
     return { error: 'Booking is already cancelled', status: 400 };
   }
 
   await booking.update({
-    bookingStatus: 'cancelled',
+    status: 'cancelled',
     cancellationReason: reason || 'Cancelled by admin'
   });
 
@@ -301,9 +291,9 @@ exports.cancelBooking = async (id, reason) => {
 };
 
 exports.completeBooking = async (id) => {
-  const booking = await Booking.findByPk(id);
+  const booking = await Reservation.findByPk(id);
   if (!booking) return null;
 
-  await booking.update({ bookingStatus: 'completed' });
+  await booking.update({ status: 'completed' });
   return booking;
 };

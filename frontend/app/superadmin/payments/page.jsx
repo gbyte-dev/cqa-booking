@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import { storage } from '@/lib/storage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -14,7 +11,6 @@ export default function SuperAdminPaymentsPage() {
   const [payments, setPayments] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -84,24 +80,16 @@ export default function SuperAdminPaymentsPage() {
 
   if (loading) {
     return (
-      <div className="payments-page">
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <span>Loading Payments...</span>
-        </div>
+      <div className="loading-state">
+        <div className="loading-spinner" />
+        <span>Loading Payments...</span>
       </div>
     );
   }
 
   return (
-    <div className="payments-page">
-      <div className="payments-layout">
-        <SuperAdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <div className="payments-main-wrapper">
-          <Header title="Payments" onMenuClick={() => setSidebarOpen(true)} />
-
-          <main className="payments-content">
+    <>
+      <main className="payments-content">
             {/* Stats */}
             {stats && (
               <div className="stats-grid">
@@ -202,34 +190,10 @@ export default function SuperAdminPaymentsPage() {
                 </div>
               )}
             </div>
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       <style jsx>{`
         * { box-sizing: border-box; }
-
-        .payments-page {
-          min-height: 100vh;
-          background: var(--sa-bg, #f5f7fb);
-          color: var(--sa-text, #171c2d);
-          font-family: Inter, sans-serif;
-        }
-
-        .payments-layout {
-          display: flex;
-          min-height: 100vh;
-        }
-
-        .payments-main-wrapper {
-          flex: 1;
-          min-width: 0;
-          margin-left: var(--sa-sidebar-width, 260px);
-          display: flex;
-          flex-direction: column;
-        }
 
         .payments-content {
           flex: 1;
@@ -448,12 +412,7 @@ export default function SuperAdminPaymentsPage() {
           .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        @media (max-width: 900px) {
-          .payments-main-wrapper { margin-left: 220px; }
-        }
-
         @media (max-width: 768px) {
-          .payments-main-wrapper { margin-left: 0; }
           .payments-content { padding: 18px 14px; }
           .filters-section { flex-direction: column; }
           .status-filter { width: 100%; }
@@ -463,6 +422,6 @@ export default function SuperAdminPaymentsPage() {
           .stats-grid { grid-template-columns: 1fr; }
         }
       `}</style>
-    </div>
+    </>
   );
 }

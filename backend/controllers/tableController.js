@@ -1,9 +1,21 @@
 const tableService = require('../services/tableService');
 
+const toApiShape = (table) => {
+  if (!table) return null;
+  const plain = table.toJSON ? table.toJSON() : table;
+  return {
+    ...plain,
+    venueId: plain.outletId,
+    name: plain.tableNumber,
+    capacity: plain.maxCapacity,
+    status: plain.isActive ? 'active' : 'inactive'
+  };
+};
+
 // ===== CREATE TABLE =====
 exports.create = async (req, res) => {
   try {
-    const { venueId, name, capacity, tableType, pricePerPerson, minCapacity } = req.body;
+    const { venueId, name, capacity, tableType, minCapacity } = req.body;
 
     if (!venueId || !name || !capacity) {
       return res.status(400).json({
@@ -21,11 +33,11 @@ exports.create = async (req, res) => {
       });
     }
 
-    const table = await tableService.create({ venueId, name, capacity, tableType, pricePerPerson, minCapacity });
+    const table = await tableService.create({ venueId, name, capacity, tableType, minCapacity });
 
     res.status(201).json({
       success: true,
-      data: table
+      data: toApiShape(table)
     });
   } catch (error) {
     console.error('Create table error:', error);
@@ -52,7 +64,7 @@ exports.listByVenue = async (req, res) => {
 
     res.json({
       success: true,
-      data: tables
+      data: tables.map(toApiShape)
     });
   } catch (error) {
     console.error('Get tables error:', error);
@@ -79,7 +91,7 @@ exports.update = async (req, res) => {
 
     res.json({
       success: true,
-      data: table
+      data: toApiShape(table)
     });
   } catch (error) {
     console.error('Update table error:', error);

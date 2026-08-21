@@ -1,5 +1,24 @@
 const venueService = require('../services/venueService');
 
+// Old frontend expects venue.city/status/capacity/openingTime/closingTime which
+// no longer exist as columns on `outlets` — provide safe defaults so the UI doesn't break.
+const toApiShape = (outlet) => {
+  if (!outlet) return null;
+  const plain = outlet.toJSON ? outlet.toJSON() : outlet;
+  return {
+    ...plain,
+    name: plain.name,
+    city: (plain.address || '').split(',').pop()?.trim() || '',
+    email: plain.contactEmail,
+    phone: plain.contactPhone,
+    status: 'active',
+    capacity: null,
+    openingTime: null,
+    closingTime: null,
+    description: plain.settings?.description || ''
+  };
+};
+
 // ===== CREATE VENUE =====
 exports.create = async (req, res) => {
   try {
@@ -18,7 +37,7 @@ exports.create = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      data: venue,
+      data: toApiShape(venue),
       message: 'Venue created successfully'
     });
   } catch (error) {
@@ -36,14 +55,15 @@ exports.list = async (req, res) => {
     console.log('🏢 [GET /venues] Fetching venues for org:', req.user.organizationId);
 
     const venues = await venueService.listByOrganization(req.user.organizationId);
+    const data = venues.map(toApiShape);
 
-    console.log(`✅ Found ${venues.length} venues`);
+    console.log(`✅ Found ${data.length} venues`);
 
     res.json({
       success: true,
-      data: venues || [],
-      count: venues.length,
-      message: venues.length === 0 ? 'No venues found' : `Found ${venues.length} venue(s)`
+      data,
+      count: data.length,
+      message: data.length === 0 ? 'No venues found' : `Found ${data.length} venue(s)`
     });
   } catch (error) {
     console.error('❌ Get venues error:', error);
@@ -77,7 +97,7 @@ exports.getOne = async (req, res) => {
 
     res.json({
       success: true,
-      data: venue
+      data: toApiShape(venue)
     });
   } catch (error) {
     console.error('❌ Get venue error:', error);
@@ -110,7 +130,7 @@ exports.update = async (req, res) => {
 
     res.json({
       success: true,
-      data: venue,
+      data: toApiShape(venue),
       message: 'Venue updated successfully'
     });
   } catch (error) {

@@ -2,16 +2,12 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/TenantHeader';
-import Footer from '@/components/Footer';
-import TenantSidebar from '@/components/TenantSidebar';
 import { storage } from '@/lib/storage';
 
 export default function TenantTablesPage() {
   const router = useRouter();
   const mountedRef = useRef(false);
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [venues, setVenues] = useState([]);
   const [tables, setTables] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState('all');
@@ -47,20 +43,25 @@ export default function TenantTablesPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [venuesRes, tablesRes] = await Promise.all([
-        fetch(`${API_URL}/api/v1/venues`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch(`${API_URL}/api/v1/tables`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
-
+      const venuesRes = await fetch(`${API_URL}/api/v1/venues`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const venuesData = await venuesRes.json();
-      const tablesData = await tablesRes.json();
+      const loadedVenues = venuesData.success ? (venuesData.data || []) : [];
+      setVenues(loadedVenues);
 
-      if (venuesData.success) setVenues(venuesData.data || []);
-      if (tablesData.success) setTables(tablesData.data || []);
+      // Backend only exposes tables scoped to a venue (no bare "list all" route),
+      // so fetch each venue's tables in parallel and merge them.
+      const tableResponses = await Promise.all(
+        loadedVenues.map(venue =>
+          fetch(`${API_URL}/api/v1/tables/venue/${venue.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then(res => res.json()).catch(() => ({ success: false, data: [] }))
+        )
+      );
+
+      const allTables = tableResponses.flatMap(res => (res.success ? res.data || [] : []));
+      setTables(allTables);
     } catch (error) {
       console.error('Load error:', error);
     } finally {
@@ -124,24 +125,16 @@ export default function TenantTablesPage() {
 
   if (loading) {
     return (
-      <div className="tables-page">
-        <div className="loading-state">
-          <div className="loading-spinner" />
-          <span>Loading Tables...</span>
-        </div>
+      <div className="loading-state">
+        <div className="loading-spinner" />
+        <span>Loading Tables...</span>
       </div>
     );
   }
 
   return (
-    <div className="tables-page">
-      <div className="tables-layout">
-        <TenantSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <div className="tables-main-wrapper">
-          <Header title="Tables" onMenuClick={() => setSidebarOpen(true)} />
-
-          <main className="tables-content">
+    <>
+      <main className="tables-content">
             <div className="page-header">
               <div>
                 <h2>🪑 Manage Tables</h2>
@@ -210,11 +203,7 @@ export default function TenantTablesPage() {
                 ))}
               </div>
             )}
-          </main>
-
-          <Footer />
-        </div>
-      </div>
+      </main>
 
       {/* FORM MODAL */}
       {showForm && (
@@ -307,51 +296,55 @@ export default function TenantTablesPage() {
       )}
 
       <style jsx>{`
-        .tables-page { min-height: 100vh; background: #f5f7fb; }
+        .tables-page { min-height: 100vh; background: var(--tenant-bg, #f5f7fb); color: var(--tenant-text, #171c2d); }
         .tables-layout { display: flex; min-height: 100vh; }
-        .tables-main-wrapper { flex: 1; min-width: 0; margin-left: 260px; display: flex; flex-direction: column; }
+        .tables-main-wrapper { flex: 1; min-width: 0; margin-left: var(--tenant-sidebar-width, 260px); display: flex; flex-direction: column; }
         .tables-content { flex: 1; padding: 28px; overflow-y: auto; }
-        .loading-state { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-        .loading-spinner { width: 36px; height: 36px; border: 4px solid #e5e7eb; border-top-color: #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .loading-state { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--tenant-text-secondary, #667085); }
+        .loading-spinner { width: 36px; height: 36px; border: 4px solid var(--tenant-border, #e5e7eb); border-top-color: var(--tenant-primary, #667eea); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .page-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 24px; }
-        .page-header h2 { margin: 0; font-size: 26px; }
-        .page-header p { margin: 6px 0 0; color: #667085; font-size: 13px; }
-        .add-btn { height: 42px; padding: 0 18px; border: none; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
-        .add-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+        .page-header h2 { margin: 0; font-size: 26px; color: var(--tenant-text, #171c2d); }
+        .page-header p { margin: 6px 0 0; color: var(--tenant-text-secondary, #667085); font-size: 13px; }
+        .add-btn { height: 42px; padding: 0 18px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--tenant-primary, #667eea) 0%, #764ba2 100%); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .add-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); }
         .filters-section { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-        .venue-filter { height: 42px; padding: 0 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; font-size: 13px; cursor: pointer; }
-        .venue-filter:focus { outline: none; border-color: #667eea; }
-        .count-badge { padding: 6px 12px; border-radius: 999px; background: #f8f9fc; color: #667085; font-size: 12px; font-weight: 600; }
+        .venue-filter { height: 42px; padding: 0 12px; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 8px; background: var(--tenant-surface, #fff); color: var(--tenant-text, #171c2d); font-size: 13px; cursor: pointer; transition: all 0.2s ease; }
+        .venue-filter:hover { border-color: var(--tenant-primary, #667eea); }
+        .venue-filter:focus { outline: none; border-color: var(--tenant-primary, #667eea); box-shadow: 0 0 0 3px var(--tenant-primary-light, rgba(102,126,234,0.12)); }
+        .count-badge { padding: 6px 12px; border-radius: 999px; background: var(--tenant-surface-2, #f8f9fc); color: var(--tenant-text-secondary, #667085); font-size: 12px; font-weight: 600; }
         .tables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
-        .table-card { padding: 22px; background: #fff; border: 1px solid #edf0f4; border-radius: 12px; transition: all 0.2s; }
-        .table-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+        .table-card { padding: 22px; background: var(--tenant-surface, #fff); border: 1px solid var(--tenant-border-light, #edf0f4); border-radius: 12px; transition: all 0.2s ease; }
+        .table-card:hover { transform: translateY(-4px); box-shadow: var(--tenant-shadow-md, 0 8px 24px rgba(15, 23, 42, 0.08)); border-color: var(--tenant-primary, #667eea); }
         .table-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-        .table-avatar { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: linear-gradient(135deg, #eef1ff 0%, #f3e8ff 100%); color: #667eea; font-size: 18px; font-weight: 800; }
-        .table-status { padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; background: #dcfce7; color: #16a34a; }
-        .table-card h3 { margin: 0 0 16px; font-size: 17px; }
-        .table-meta { display: flex; gap: 26px; padding: 14px 0; border-top: 1px solid #edf0f4; border-bottom: 1px solid #edf0f4; }
-        .table-meta strong { display: block; font-size: 18px; }
-        .table-meta span { color: #98a2b3; font-size: 11px; }
-        .table-location { margin-top: 12px; color: #667085; font-size: 12px; }
-        .table-venue { margin-top: 4px; color: #98a2b3; font-size: 11px; }
-        .empty-state { padding: 60px 20px; text-align: center; }
+        .table-avatar { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: var(--tenant-primary-light, #eef1ff); color: var(--tenant-primary, #667eea); font-size: 18px; font-weight: 800; transition: transform 0.2s ease; }
+        .table-card:hover .table-avatar { transform: scale(1.08) rotate(-4deg); }
+        .table-status { padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; background: var(--tenant-success-bg, #dcfce7); color: var(--tenant-success, #16a34a); }
+        .table-card h3 { margin: 0 0 16px; font-size: 17px; color: var(--tenant-text, #171c2d); }
+        .table-meta { display: flex; gap: 26px; padding: 14px 0; border-top: 1px solid var(--tenant-border-light, #edf0f4); border-bottom: 1px solid var(--tenant-border-light, #edf0f4); }
+        .table-meta strong { display: block; font-size: 18px; color: var(--tenant-text, #171c2d); }
+        .table-meta span { color: var(--tenant-text-muted, #98a2b3); font-size: 11px; }
+        .table-location { margin-top: 12px; color: var(--tenant-text-secondary, #667085); font-size: 12px; }
+        .table-venue { margin-top: 4px; color: var(--tenant-text-muted, #98a2b3); font-size: 11px; }
+        .empty-state { padding: 60px 20px; text-align: center; color: var(--tenant-text-secondary, #667085); }
         .empty-icon { font-size: 34px; margin-bottom: 12px; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 300; }
-        .modal { width: 100%; max-width: 480px; background: #fff; border-radius: 12px; padding: 24px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: flex; align-items: center; justify-content: center; z-index: 300; backdrop-filter: blur(3px); }
+        .modal { width: 100%; max-width: 480px; background: var(--tenant-surface, #fff); color: var(--tenant-text, #171c2d); border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 12px; padding: 24px; animation: modalIn 0.18s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
-        .modal-header h2 { margin: 0; font-size: 18px; }
-        .close-btn { width: 32px; height: 32px; border: none; border-radius: 8px; background: #f8f9fc; cursor: pointer; }
+        .modal-header h2 { margin: 0; font-size: 18px; color: var(--tenant-text, #171c2d); }
+        .close-btn { width: 32px; height: 32px; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 8px; background: var(--tenant-surface-2, #f8f9fc); color: var(--tenant-text-secondary, #667085); cursor: pointer; transition: all 0.2s ease; }
+        .close-btn:hover { background: var(--tenant-surface-hover, #f1f4f9); color: var(--tenant-text, #171c2d); border-color: var(--tenant-primary, #667eea); }
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 7px; color: #667085; font-size: 12px; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; height: 42px; padding: 0 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; font-size: 13px; font-family: inherit; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .form-group label { display: block; margin-bottom: 7px; color: var(--tenant-text-secondary, #667085); font-size: 12px; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 8px; background: var(--tenant-surface, #fff); color: var(--tenant-text, #171c2d); font-size: 13px; font-family: inherit; transition: all 0.2s ease; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--tenant-primary, #667eea); box-shadow: 0 0 0 3px var(--tenant-primary-light, rgba(102,126,234,0.12)); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        .btn-cancel { height: 42px; padding: 0 16px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; cursor: pointer; }
-        .btn-cancel:hover { background: #f8f9fc; }
-        .btn-submit { height: 42px; padding: 0 18px; border: none; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; font-weight: 700; cursor: pointer; }
-        .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+        .btn-cancel { height: 42px; padding: 0 16px; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 8px; background: var(--tenant-surface, #fff); color: var(--tenant-text, #171c2d); cursor: pointer; transition: all 0.2s ease; }
+        .btn-cancel:hover { background: var(--tenant-surface-hover, #f8f9fc); }
+        .btn-submit { height: 42px; padding: 0 18px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--tenant-primary, #667eea) 0%, #764ba2 100%); color: #fff; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35); }
         .btn-submit:disabled, .btn-cancel:disabled { opacity: 0.6; cursor: not-allowed; }
         @media (max-width: 900px) {
           .tables-main-wrapper { margin-left: 0; }
@@ -361,6 +354,6 @@ export default function TenantTablesPage() {
           .tables-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
         }
       `}</style>
-    </div>
+    </>
   );
 }

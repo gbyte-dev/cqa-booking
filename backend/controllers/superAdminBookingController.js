@@ -1,5 +1,27 @@
 const bookingService = require('../services/superAdminBookingService');
 
+const toApiShape = (reservation) => {
+  if (!reservation) return null;
+  const plain = reservation.toJSON ? reservation.toJSON() : reservation;
+  return {
+    ...plain,
+    venueId: plain.outletId,
+    tableId: plain.tableId,
+    customerId: plain.guestProfileId,
+    customerName: plain.GuestProfile?.fullName || '',
+    customerEmail: plain.GuestProfile?.email || null,
+    customerPhone: plain.GuestProfile?.phone || null,
+    bookingDate: plain.reservationDate,
+    bookingStartTime: plain.startTime,
+    bookingEndTime: plain.endTime,
+    numGuests: plain.guestCount,
+    bookingStatus: plain.status,
+    notes: plain.specialRequests,
+    Venue: plain.Outlet ? { id: plain.Outlet.id, name: plain.Outlet.name, city: '', address: plain.Outlet.address } : null,
+    Table: plain.Table ? { id: plain.Table.id, name: plain.Table.tableNumber, capacity: plain.Table.maxCapacity } : null
+  };
+};
+
 exports.getStats = async (req, res) => {
   try {
     console.log('📊 [SUPERADMIN /bookings/stats] Calculating stats');
@@ -30,10 +52,11 @@ exports.list = async (req, res) => {
     console.log('📋 [SUPERADMIN /bookings] Fetching all bookings');
 
     const bookings = await bookingService.listAll();
+    const data = bookings.map(toApiShape);
 
-    console.log(`✅ Found ${bookings.length} total bookings`);
+    console.log(`✅ Found ${data.length} total bookings`);
 
-    res.json({ success: true, data: bookings || [], count: bookings.length });
+    res.json({ success: true, data: data || [], count: data.length });
   } catch (error) {
     console.error('Get all bookings error:', error);
     res.status(200).json({ success: true, data: [], count: 0 });
@@ -48,7 +71,7 @@ exports.getOne = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
 
-    res.json({ success: true, data: booking });
+    res.json({ success: true, data: toApiShape(booking) });
   } catch (error) {
     console.error('Get booking error:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -63,7 +86,7 @@ exports.confirm = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
 
-    res.json({ success: true, message: 'Booking confirmed', data: booking });
+    res.json({ success: true, message: 'Booking confirmed', data: toApiShape(booking) });
   } catch (error) {
     console.error('Confirm error:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -78,7 +101,7 @@ exports.complete = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
 
-    res.json({ success: true, message: 'Booking completed', data: booking });
+    res.json({ success: true, message: 'Booking completed', data: toApiShape(booking) });
   } catch (error) {
     console.error('Complete error:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -93,7 +116,7 @@ exports.cancel = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
 
-    res.json({ success: true, message: 'Booking cancelled', data: booking });
+    res.json({ success: true, message: 'Booking cancelled', data: toApiShape(booking) });
   } catch (error) {
     console.error('Cancel error:', error);
     res.status(500).json({ success: false, error: error.message });

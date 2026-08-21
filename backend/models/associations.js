@@ -2,124 +2,89 @@
 // यह file सब associations को एक जगह define करती है
 // circular dependencies avoid करने के लिए
 
-const Organization = require('./Organization');
+const Tenant = require('./Tenant');
 const User = require('./User');
-const Venue = require('./Venue');
-const Table = require('./Table');
-const Booking = require('./Booking');
-const Customer = require('./Customer');
+const Role = require('./Role');
+const Outlet = require('./Outlet');
+const GuestProfile = require('./GuestProfile');
+const TableDaybed = require('./TableDaybed');
+const TimeSlot = require('./TimeSlot');
+const Reservation = require('./Reservation');
+const Subscription = require('./Subscription');
+const SubscriptionPlan = require('./SubscriptionPlan');
 
 function setupAssociations() {
   console.log('🔗 Setting up model associations...');
 
-  // ===== ORGANIZATION ↔ USER =====
-  Organization.hasMany(User, {
-    foreignKey: 'organizationId',
-    as: 'Users'
-  });
+  // ===== TENANT ↔ USER =====
+  Tenant.hasMany(User, { foreignKey: 'tenantId', as: 'Users' });
+  User.belongsTo(Tenant, { foreignKey: 'tenantId', as: 'Tenant' });
 
-  User.belongsTo(Organization, {
-    foreignKey: 'organizationId',
-    as: 'Organization'
-  });
+  // ===== ROLE ↔ USER =====
+  Role.hasMany(User, { foreignKey: 'roleId', as: 'Users' });
+  User.belongsTo(Role, { foreignKey: 'roleId', as: 'Role' });
 
-  // ===== ORGANIZATION ↔ VENUE =====
-  Organization.hasMany(Venue, {
-    foreignKey: 'organizationId',
-    as: 'Venues'
-  });
+  // ===== TENANT ↔ OUTLET =====
+  Tenant.hasMany(Outlet, { foreignKey: 'tenantId', as: 'Outlets' });
+  Outlet.belongsTo(Tenant, { foreignKey: 'tenantId', as: 'Tenant' });
 
-  Venue.belongsTo(Organization, {
-    foreignKey: 'organizationId',
-    as: 'Organization'
-  });
+  // ===== OUTLET ↔ USER =====
+  Outlet.hasMany(User, { foreignKey: 'outletId', as: 'Users' });
+  User.belongsTo(Outlet, { foreignKey: 'outletId', as: 'Outlet' });
 
-  // ===== ORGANIZATION ↔ CUSTOMER =====
-  Organization.hasMany(Customer, {
-    foreignKey: 'organizationId',
-    as: 'Customers'
-  });
+  // ===== TENANT ↔ GUEST PROFILE =====
+  Tenant.hasMany(GuestProfile, { foreignKey: 'tenantId', as: 'GuestProfiles' });
+  GuestProfile.belongsTo(Tenant, { foreignKey: 'tenantId', as: 'Tenant' });
 
-  Customer.belongsTo(Organization, {
-    foreignKey: 'organizationId',
-    as: 'Organization'
-  });
+  // ===== USER ↔ GUEST PROFILE =====
+  User.hasMany(GuestProfile, { foreignKey: 'userId', as: 'GuestProfiles' });
+  GuestProfile.belongsTo(User, { foreignKey: 'userId', as: 'User' });
 
-  // ===== ORGANIZATION ↔ BOOKING =====
-  Organization.hasMany(Booking, {
-    foreignKey: 'organizationId',
-    as: 'Bookings'
-  });
+  // ===== OUTLET ↔ TABLE/DAYBED =====
+  Outlet.hasMany(TableDaybed, { foreignKey: 'outletId', as: 'Tables' });
+  TableDaybed.belongsTo(Outlet, { foreignKey: 'outletId', as: 'Outlet' });
 
-  Booking.belongsTo(Organization, {
-    foreignKey: 'organizationId',
-    as: 'Organization'
-  });
+  // ===== OUTLET ↔ TIME SLOT =====
+  Outlet.hasMany(TimeSlot, { foreignKey: 'outletId', as: 'TimeSlots' });
+  TimeSlot.belongsTo(Outlet, { foreignKey: 'outletId', as: 'Outlet' });
 
-  // ===== VENUE ↔ TABLE =====
-  Venue.hasMany(Table, {
-    foreignKey: 'venueId',
-    as: 'Tables'
-  });
+  // ===== OUTLET ↔ RESERVATION =====
+  Outlet.hasMany(Reservation, { foreignKey: 'outletId', as: 'Reservations' });
+  Reservation.belongsTo(Outlet, { foreignKey: 'outletId', as: 'Outlet' });
 
-  Table.belongsTo(Venue, {
-    foreignKey: 'venueId',
-    as: 'Venue'
-  });
+  // ===== GUEST PROFILE ↔ RESERVATION =====
+  GuestProfile.hasMany(Reservation, { foreignKey: 'guestProfileId', as: 'Reservations' });
+  Reservation.belongsTo(GuestProfile, { foreignKey: 'guestProfileId', as: 'GuestProfile' });
 
-  // ===== VENUE ↔ BOOKING =====
-  Venue.hasMany(Booking, {
-    foreignKey: 'venueId',
-    as: 'Bookings'
-  });
+  // ===== TABLE/DAYBED ↔ RESERVATION =====
+  TableDaybed.hasMany(Reservation, { foreignKey: 'tableId', as: 'Reservations' });
+  Reservation.belongsTo(TableDaybed, { foreignKey: 'tableId', as: 'Table' });
 
-  Booking.belongsTo(Venue, {
-    foreignKey: 'venueId',
-    as: 'Venue'
-  });
+  // ===== TIME SLOT ↔ RESERVATION =====
+  TimeSlot.hasMany(Reservation, { foreignKey: 'slotId', as: 'Reservations' });
+  Reservation.belongsTo(TimeSlot, { foreignKey: 'slotId', as: 'Slot' });
 
-  // ===== TABLE ↔ BOOKING =====
-  Table.hasMany(Booking, {
-    foreignKey: 'tableId',
-    as: 'Bookings'
-  });
+  // ===== TENANT ↔ SUBSCRIPTION =====
+  Tenant.hasMany(Subscription, { foreignKey: 'tenantId', as: 'Subscriptions' });
+  Subscription.belongsTo(Tenant, { foreignKey: 'tenantId', as: 'Tenant' });
 
-  Booking.belongsTo(Table, {
-    foreignKey: 'tableId',
-    as: 'Table'
-  });
-
-  // ===== CUSTOMER ↔ BOOKING =====
-  Customer.hasMany(Booking, {
-    foreignKey: 'customerId',
-    as: 'Bookings'
-  });
-
-  Booking.belongsTo(Customer, {
-    foreignKey: 'customerId',
-    as: 'Customer'
-  });
-
-  // ===== USER ↔ CUSTOMER =====
-  User.hasMany(Customer, {
-    foreignKey: 'userId',
-    as: 'Customers'
-  });
-
-  Customer.belongsTo(User, {
-    foreignKey: 'userId',
-    as: 'User'
-  });
+  // ===== SUBSCRIPTION PLAN ↔ SUBSCRIPTION =====
+  SubscriptionPlan.hasMany(Subscription, { foreignKey: 'planId', as: 'Subscriptions' });
+  Subscription.belongsTo(SubscriptionPlan, { foreignKey: 'planId', as: 'Plan' });
 
   console.log('✅ All associations set up successfully');
 }
 
 module.exports = {
   setupAssociations,
-  Organization,
+  Tenant,
   User,
-  Venue,
-  Table,
-  Booking,
-  Customer
+  Role,
+  Outlet,
+  GuestProfile,
+  TableDaybed,
+  TimeSlot,
+  Reservation,
+  Subscription,
+  SubscriptionPlan
 };

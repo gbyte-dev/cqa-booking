@@ -1,5 +1,43 @@
 const superAdminService = require('../services/superAdminService');
 
+const toApiShape = (tenant) => {
+  if (!tenant) return null;
+  const plain = tenant.toJSON ? tenant.toJSON() : tenant;
+  return {
+    ...plain,
+    timezone: 'UTC',
+    maxVenues: null,
+    subscriptionStatus: plain.isActive ? 'active' : 'suspended',
+    Subscription: {
+      plan: plain.subscriptionTier || 'core',
+      monthlyPrice: 0,
+      status: plain.isActive ? 'active' : 'suspended'
+    }
+  };
+};
+
+const bookingToApiShape = (booking) => {
+  if (!booking) return null;
+  const plain = booking.toJSON ? booking.toJSON() : booking;
+  return {
+    ...plain,
+    venueId: plain.outletId,
+    tableId: plain.tableId,
+    customerId: plain.guestProfileId,
+    customerName: plain.GuestProfile?.fullName || '',
+    customerEmail: plain.GuestProfile?.email || null,
+    customerPhone: plain.GuestProfile?.phone || null,
+    bookingDate: plain.reservationDate,
+    bookingStartTime: plain.startTime,
+    bookingEndTime: plain.endTime,
+    numGuests: plain.guestCount,
+    bookingStatus: plain.status,
+    notes: plain.specialRequests,
+    Venue: plain.Outlet ? { id: plain.Outlet.id, name: plain.Outlet.name, city: '', address: plain.Outlet.address } : null,
+    Table: plain.Table ? { id: plain.Table.id, name: plain.Table.tableNumber, capacity: plain.Table.maxCapacity } : null
+  };
+};
+
 // ===== ORGANIZATIONS =====
 
 exports.listOrganizations = async (req, res) => {
@@ -7,10 +45,11 @@ exports.listOrganizations = async (req, res) => {
     console.log('📊 Fetching all organizations...');
 
     const organizations = await superAdminService.listOrganizations();
+    const data = organizations.map(toApiShape);
 
-    console.log(`✅ Found ${organizations.length} organizations`);
+    console.log(`✅ Found ${data.length} organizations`);
 
-    res.json({ success: true, data: organizations });
+    res.json({ success: true, data });
   } catch (error) {
     console.error('❌ Error fetching organizations:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -25,7 +64,7 @@ exports.getOrganization = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Organization not found' });
     }
 
-    res.json({ success: true, data: org });
+    res.json({ success: true, data: toApiShape(org) });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -39,7 +78,7 @@ exports.updateOrganization = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Organization not found' });
     }
 
-    res.json({ success: true, data: org });
+    res.json({ success: true, data: toApiShape(org) });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -183,10 +222,19 @@ exports.updateAutoRenew = async (req, res) => {
 
 // ===== PAYMENTS =====
 
+const paymentToApiShape = (p) => ({
+  ...p,
+  paymentStatus: p.status,
+  paymentReference: p.id,
+  paymentMethod: p.paymentProvider || 'subscription',
+  Organization: p.organization,
+  Booking: null
+});
+
 exports.listPayments = async (req, res) => {
   try {
-    const payments = await superAdminService.listPayments();
-    res.json({ success: true, data: payments });
+    const payments = await superAdminService.listPayments(req.query.subscriptionId);
+    res.json({ success: true, data: payments.map(paymentToApiShape) });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -245,10 +293,11 @@ exports.listBookings = async (req, res) => {
     console.log('📋 [GET /bookings] Fetching all bookings...');
 
     const bookings = await superAdminService.listBookings();
+    const data = bookings.map(bookingToApiShape);
 
-    console.log(`✅ Found ${bookings.length} bookings`);
+    console.log(`✅ Found ${data.length} bookings`);
 
-    res.json({ success: true, data: bookings || [], count: bookings.length });
+    res.json({ success: true, data: data || [], count: data.length });
   } catch (error) {
     console.error('❌ Error:', error.message);
     res.status(200).json({ success: true, data: [], count: 0 });
@@ -267,7 +316,7 @@ exports.getBooking = async (req, res) => {
 
     console.log('✅ Booking found');
 
-    res.json({ success: true, data: booking });
+    res.json({ success: true, data: bookingToApiShape(booking) });
   } catch (error) {
     console.error('❌ Error:', error.message);
     res.status(500).json({ success: false, error: error.message });
@@ -286,7 +335,7 @@ exports.confirmBooking = async (req, res) => {
 
     console.log('✅ Booking confirmed');
 
-    res.json({ success: true, data: booking, message: 'Booking confirmed successfully' });
+    res.json({ success: true, data: bookingToApiShape(booking), message: 'Booking confirmed successfully' });
   } catch (error) {
     console.error('❌ Error:', error.message);
     res.status(500).json({ success: false, error: error.message });
@@ -305,7 +354,7 @@ exports.cancelBooking = async (req, res) => {
 
     console.log('✅ Booking cancelled');
 
-    res.json({ success: true, data: result.booking, message: 'Booking cancelled successfully' });
+    res.json({ success: true, data: bookingToApiShape(result.booking), message: 'Booking cancelled successfully' });
   } catch (error) {
     console.error('❌ Error:', error.message);
     res.status(500).json({ success: false, error: error.message });
@@ -324,7 +373,7 @@ exports.completeBooking = async (req, res) => {
 
     console.log('✅ Booking completed');
 
-    res.json({ success: true, data: booking, message: 'Booking marked as completed' });
+    res.json({ success: true, data: bookingToApiShape(booking), message: 'Booking marked as completed' });
   } catch (error) {
     console.error('❌ Error:', error.message);
     res.status(500).json({ success: false, error: error.message });

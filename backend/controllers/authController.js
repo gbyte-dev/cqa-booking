@@ -20,8 +20,8 @@ exports.register = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          firstName: user.firstName,
-          role: user.role
+          firstName: user.fullName ? user.fullName.split(' ')[0] : null,
+          role: user.roleCode === 'super_admin' ? 'superadmin' : user.roleCode
         },
         organization: {
           id: org.id,
@@ -69,8 +69,8 @@ exports.login = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          firstName: user.firstName,
-          role: user.role
+          firstName: user.fullName ? user.fullName.split(' ')[0] : null,
+          role: user.roleCode === 'super_admin' ? 'superadmin' : user.roleCode
         },
         token
       }

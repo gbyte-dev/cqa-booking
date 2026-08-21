@@ -1,4 +1,22 @@
 const organizationService = require('../services/organizationService');
+const Subscription = require('../models/Subscription');
+const SubscriptionPlan = require('../models/SubscriptionPlan');
+
+const toApiShape = (tenant) => {
+  if (!tenant) return null;
+  const plain = tenant.toJSON ? tenant.toJSON() : tenant;
+  return {
+    ...plain,
+    timezone: 'UTC',
+    maxVenues: null,
+    subscriptionStatus: plain.isActive ? 'active' : 'suspended',
+    Subscription: {
+      plan: plain.subscriptionTier || 'core',
+      monthlyPrice: 0,
+      status: plain.isActive ? 'active' : 'suspended'
+    }
+  };
+};
 
 // ===== GET ALL ORGANIZATIONS =====
 exports.list = async (req, res) => {
@@ -6,13 +24,14 @@ exports.list = async (req, res) => {
     console.log('📊 [GET /organizations] Fetching all organizations...');
 
     const organizations = await organizationService.listAll();
+    const data = organizations.map(toApiShape);
 
-    console.log(`✅ Found ${organizations.length} organizations`);
+    console.log(`✅ Found ${data.length} organizations`);
 
     res.json({
       success: true,
-      data: organizations,
-      count: organizations.length
+      data,
+      count: data.length
     });
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -41,7 +60,7 @@ exports.getOne = async (req, res) => {
 
     res.json({
       success: true,
-      data: org
+      data: toApiShape(org)
     });
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -57,7 +76,7 @@ exports.create = async (req, res) => {
   try {
     console.log('➕ [POST /organizations] Creating organization:', req.body);
 
-    const { name, slug, timezone, maxVenues } = req.body;
+    const { name, slug } = req.body;
 
     if (!name || !slug) {
       return res.status(400).json({
@@ -75,13 +94,13 @@ exports.create = async (req, res) => {
       });
     }
 
-    const createdOrg = await organizationService.create({ name, slug, timezone, maxVenues });
+    const createdOrg = await organizationService.create({ name, slug });
 
     console.log('✅ Organization created:', createdOrg.id);
 
     res.json({
       success: true,
-      data: createdOrg,
+      data: toApiShape(createdOrg),
       message: 'Organization created successfully'
     });
   } catch (error) {
@@ -118,7 +137,7 @@ exports.update = async (req, res) => {
 
     res.json({
       success: true,
-      data: result.org,
+      data: toApiShape(result.org),
       message: 'Organization updated successfully'
     });
   } catch (error) {
@@ -177,7 +196,7 @@ exports.suspend = async (req, res) => {
 
     res.json({
       success: true,
-      data: org,
+      data: toApiShape(org),
       message: 'Organization suspended successfully'
     });
   } catch (error) {
@@ -207,7 +226,7 @@ exports.reactivate = async (req, res) => {
 
     res.json({
       success: true,
-      data: org,
+      data: toApiShape(org),
       message: 'Organization reactivated successfully'
     });
   } catch (error) {
@@ -216,5 +235,46 @@ exports.reactivate = async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+};
+
+// ===== GET MY ORGANIZATION (tenant owner's own view) =====
+exports.getMine = async (req, res) => {
+  try {
+    const org = await organizationService.getById(req.user.organizationId);
+
+    if (!org) {
+      return res.status(404).json({ success: false, error: 'Organization not found' });
+    }
+
+    const subscription = await Subscription.findOne({
+      where: { tenantId: org.id },
+      include: [{ model: SubscriptionPlan, as: 'Plan' }],
+      order: [['created_at', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: {
+        ...toApiShape(org),
+        Subscription: subscription
+          ? {
+              plan: subscription.Plan?.code || null,
+              planName: subscription.Plan?.name || null,
+              monthlyPrice: Number(subscription.amount),
+              status: subscription.status,
+              startDate: subscription.startDate,
+              endDate: subscription.endDate,
+              autoRenew: subscription.autoRenew,
+              maxOutlets: subscription.Plan?.maxOutlets ?? null,
+              maxUsers: subscription.Plan?.maxUsers ?? null,
+              maxReservations: subscription.Plan?.maxReservations ?? null
+            }
+          : null
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error:', error.message);
+    res.status(500).json({ success: false, error: error.message });
   }
 };

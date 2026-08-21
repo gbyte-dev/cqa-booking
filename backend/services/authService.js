@@ -1,41 +1,43 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
-const Organization = require('../models/Organization');
+const Tenant = require('../models/Tenant');
 const User = require('../models/User');
+const Role = require('../models/Role');
 
-const signToken = (user, organizationId) => {
+const signToken = (user) => {
   return jwt.sign(
-    { userId: user.id, organizationId, role: user.role },
+    { userId: user.id, organizationId: user.tenantId, role: user.roleCode },
     process.env.JWT_SECRET || 'secret',
     { expiresIn: '7d' }
   );
 };
 
 exports.register = async ({ organizationName, organizationSlug, email, firstName, lastName, password }) => {
-  const org = await Organization.create({
+  const tenant = await Tenant.create({
     id: uuidv4(),
     name: organizationName,
     slug: organizationSlug || organizationName.toLowerCase().replace(/\s/g, '-'),
-    timezone: 'UTC'
+    subscriptionTier: 'CORE',
+    isActive: true
   });
 
+  const ownerRole = await Role.findOne({ where: { code: 'owner' } });
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await User.create({
     id: uuidv4(),
-    organizationId: org.id,
     email,
-    firstName,
-    lastName,
     passwordHash: hashedPassword,
-    role: 'admin'
+    fullName: [firstName, lastName].filter(Boolean).join(' '),
+    tenantId: tenant.id,
+    roleId: ownerRole ? ownerRole.id : null,
+    roleCode: 'owner'
   });
 
-  const token = signToken(user, org.id);
+  const token = signToken(user);
 
-  return { user, org, token };
+  return { user, org: tenant, token };
 };
 
 exports.login = async ({ email, password }) => {
@@ -50,27 +52,17 @@ exports.login = async ({ email, password }) => {
     return null;
   }
 
-  const token = signToken(user, user.organizationId);
+  const token = signToken(user);
 
   return { user, token };
 };
 
-exports.forgotPassword = async (email) => {
-  const user = await User.findOne({ where: { email } });
-  if (!user) return { found: false };
-
-  const token = crypto.randomBytes(32).toString('hex');
-  await user.update({ passwordResetToken: token, passwordResetExpires: new Date(Date.now() + 60 * 60 * 1000) });
-
-  return { found: true, token };
+exports.forgotPassword = async () => {
+  // NOTE: the new `users` table has no password_reset_token/expires columns.
+  // Feature disabled until those columns are added via a follow-up migration.
+  return { found: false };
 };
 
-exports.resetPassword = async (token, password) => {
-  const user = await User.findOne({ where: { passwordResetToken: token } });
-  if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
-    return { valid: false };
-  }
-
-  await user.update({ passwordHash: await bcrypt.hash(password, 12), passwordResetToken: null, passwordResetExpires: null });
-  return { valid: true };
+exports.resetPassword = async () => {
+  return { valid: false };
 };

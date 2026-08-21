@@ -1,19 +1,21 @@
+const { Op } = require('sequelize');
 const User = require('../models/User');
-const Booking = require('../models/Booking');
-const Venue = require('../models/Venue');
-const Table = require('../models/Table');
+const GuestProfile = require('../models/GuestProfile');
+const Reservation = require('../models/Reservation');
+const Outlet = require('../models/Outlet');
+const TableDaybed = require('../models/TableDaybed');
 
 exports.listCustomers = () => {
   return User.findAll({
-    where: { role: 'customer' },
+    where: { roleCode: 'customer' },
     include: [
       {
-        association: 'Organization',
+        association: 'Tenant',
         attributes: ['id', 'name', 'slug']
       }
     ],
     attributes: { exclude: ['passwordHash'] },
-    order: [['createdAt', 'DESC']]
+    order: [['created_at', 'DESC']]
   });
 };
 
@@ -21,7 +23,7 @@ exports.getById = (id) => {
   return User.findByPk(id, {
     include: [
       {
-        association: 'Organization',
+        association: 'Tenant',
         attributes: ['id', 'name', 'slug']
       }
     ],
@@ -30,32 +32,33 @@ exports.getById = (id) => {
 };
 
 exports.getBookingsForUser = async (userId) => {
-  const bookings = await Booking.findAll({
-    where: { userId },
+  const guestProfiles = await GuestProfile.findAll({ where: { userId }, attributes: ['id'] });
+  const guestProfileIds = guestProfiles.map(g => g.id);
+
+  if (guestProfileIds.length === 0) {
+    return { bookings: [], stats: { totalBookings: 0, cancelledBookings: 0, completedBookings: 0, totalGuests: 0 } };
+  }
+
+  const bookings = await Reservation.findAll({
+    where: { guestProfileId: { [Op.in]: guestProfileIds } },
     include: [
-      {
-        model: Venue,
-        attributes: ['id', 'name', 'address', 'city']
-      },
-      {
-        model: Table,
-        attributes: ['id', 'name', 'capacity', 'tableType']
-      }
+      { model: Outlet, as: 'Outlet', attributes: ['id', 'name', 'address'] },
+      { model: TableDaybed, as: 'Table', attributes: ['id', 'tableNumber', 'maxCapacity'] }
     ],
-    order: [['bookingDate', 'DESC']]
+    order: [['reservation_date', 'DESC']]
   });
 
   const stats = {
     totalBookings: bookings.length,
     cancelledBookings: bookings.filter(b => b.status === 'cancelled').length,
     completedBookings: bookings.filter(b => b.status === 'completed').length,
-    totalGuests: bookings.reduce((sum, b) => sum + (b.numberOfGuests || 0), 0)
+    totalGuests: bookings.reduce((sum, b) => sum + Number(b.guestCount || 0), 0)
   };
 
   return { bookings, stats };
 };
 
-const ALLOWED_UPDATE_FIELDS = ['firstName', 'lastName', 'emailVerified'];
+const ALLOWED_UPDATE_FIELDS = ['fullName', 'email'];
 
 exports.update = async (id, body) => {
   const user = await User.findByPk(id);
@@ -67,32 +70,21 @@ exports.update = async (id, body) => {
       updateData[field] = body[field];
     }
   }
+  if (body.firstName !== undefined || body.lastName !== undefined) {
+    const [currentFirst, ...currentRest] = (user.fullName || '').split(' ');
+    const firstName = body.firstName !== undefined ? body.firstName : currentFirst;
+    const lastName = body.lastName !== undefined ? body.lastName : currentRest.join(' ');
+    updateData.fullName = `${firstName || ''} ${lastName || ''}`.trim();
+  }
 
   await user.update(updateData);
-  return user;
+  return exports.getById(id);
 };
 
 exports.remove = async (id) => {
   const user = await User.findByPk(id);
   if (!user) return false;
 
-  await Booking.destroy({ where: { userId: user.id } });
   await user.destroy();
   return true;
-};
-
-exports.suspend = async (id) => {
-  const user = await User.findByPk(id);
-  if (!user) return null;
-
-  await user.update({ status: 'suspended' });
-  return user;
-};
-
-exports.reactivate = async (id) => {
-  const user = await User.findByPk(id);
-  if (!user) return null;
-
-  await user.update({ status: 'active' });
-  return user;
 };
