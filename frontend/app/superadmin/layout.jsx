@@ -7,8 +7,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 
-import './superadmin.css';
-
 const titles = {
   '/superadmin/dashboard': 'Super Admin',
   '/superadmin/organizations': 'Organizations',
@@ -30,21 +28,15 @@ export default function SuperAdminLayout({ children }) {
     window.scrollTo(0, 0);
   }, [pathname]);
 
-  // Login page has no authenticated session yet — render it standalone,
-  // without the Sidebar/Header/Footer that only make sense post-login.
-  if (pathname === '/superadmin/login') {
-    return <div className="superadmin-page">{children}</div>;
-  }
-
   return (
-    <div className="superadmin-page">
-      <div className="dashboard-layout">
+    <div className="min-h-screen bg-[var(--sa-bg)] text-[var(--sa-text)]">
+      <div className="dashboard-layout flex w-full min-h-screen">
         <SuperAdminSidebar
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
 
-        <div className="dashboard-main-wrapper">
+        <div className="dashboard-main-wrapper flex flex-1 min-w-0 min-h-screen flex-col bg-[var(--sa-bg)] ml-[260px] transition-[margin-left,background] duration-200 ease-in-out max-[1100px]:ml-[235px] max-[900px]:ml-[220px] max-[768px]:ml-0 max-[768px]:w-full">
           <Header
             title={titles[pathname] || 'Super Admin'}
             onMenuClick={() => setSidebarOpen(true)}

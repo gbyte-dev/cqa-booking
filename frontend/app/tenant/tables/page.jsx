@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,18 +29,18 @@ export default function TenantTablesPage() {
   const token = storage.getToken();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-  // ✅ Load once on mount only
+  // Load once on mount only
   useEffect(() => {
     if (mountedRef.current) return;
     mountedRef.current = true;
 
     if (!token) {
-      router.replace('/tenant/login');
+      router.replace('/login');
       return;
     }
 
     loadData();
-  }, []); // ✅ Empty dependency array
+  }, []); // Empty dependency array
 
   const loadData = async () => {
     setLoading(true);
@@ -62,9 +64,7 @@ export default function TenantTablesPage() {
 
       const allTables = tableResponses.flatMap(res => (res.success ? res.data || [] : []));
       setTables(allTables);
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -97,7 +97,7 @@ export default function TenantTablesPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('✅ Table added successfully');
+        notify('Table added successfully');
         setShowForm(false);
         setFormData({
           venueId: venues[0]?.id || '',
@@ -110,10 +110,10 @@ export default function TenantTablesPage() {
         });
         loadData();
       } else {
-        alert('❌ Error: ' + (data.error || 'Failed to create table'));
+        notify('Error: ' + (data.error || 'Failed to create table'));
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setFormLoading(false);
     }
@@ -137,11 +137,11 @@ export default function TenantTablesPage() {
       <main className="tables-content">
             <div className="page-header">
               <div>
-                <h2>🪑 Manage Tables</h2>
+                <h2><AppIcon name="table" /> Manage Tables</h2>
                 <p>Add and organize tables across your venues.</p>
               </div>
               <button className="add-btn" onClick={handleAddClick}>
-                ➕ Add Table
+                <AppIcon name="add" /> Add Table
               </button>
             </div>
 
@@ -161,10 +161,10 @@ export default function TenantTablesPage() {
 
             {filteredTables.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">🪑</div>
+                <div className="empty-icon"><AppIcon name="table" /></div>
                 <p>No tables found</p>
                 <button className="add-btn" onClick={handleAddClick}>
-                  ➕ Add First Table
+                  <AppIcon name="add" /> Add First Table
                 </button>
               </div>
             ) : (
@@ -193,11 +193,11 @@ export default function TenantTablesPage() {
                     </div>
 
                     <div className="table-location">
-                      📍 {table.location || 'Main floor'}
+                      <AppIcon name="location" /> {table.location || 'Main floor'}
                     </div>
 
                     <div className="table-venue">
-                      🏢 {table.Venue?.name || 'Venue'}
+                      <AppIcon name="building" /> {table.Venue?.name || 'Venue'}
                     </div>
                   </div>
                 ))}
@@ -210,8 +210,8 @@ export default function TenantTablesPage() {
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>➕ Add Table</h2>
-              <button className="close-btn" onClick={() => setShowForm(false)}>✕</button>
+              <h2><AppIcon name="add" /> Add Table</h2>
+              <button className="close-btn" onClick={() => setShowForm(false)}><AppIcon name="close" /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="table-form">
@@ -287,7 +287,7 @@ export default function TenantTablesPage() {
                   Cancel
                 </button>
                 <button type="submit" className="btn-submit" disabled={formLoading}>
-                  {formLoading ? '⏳ Adding...' : '➕ Add Table'}
+                  {formLoading ? 'Adding...' : 'Add Table'}
                 </button>
               </div>
             </form>

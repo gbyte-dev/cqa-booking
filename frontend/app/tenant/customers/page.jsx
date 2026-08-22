@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { confirmAction, notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +14,6 @@ import {
   activateTenantCustomer,
   deleteTenantCustomer
 } from '@/lib/tenant-customers';
-import './customers.css';
 
 export default function TenantCustomersPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function TenantCustomersPage() {
 
   useEffect(() => {
     if (!token || !currentUser) {
-      router.push('/tenant/login');
+      router.push('/login');
       return;
     }
     setUser(currentUser);
@@ -54,9 +55,7 @@ export default function TenantCustomersPage() {
       if (response.success) {
         setCustomers(response.data || []);
       }
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -118,7 +117,7 @@ export default function TenantCustomersPage() {
         await loadCustomers();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setEditSaving(false);
     }
@@ -133,56 +132,56 @@ export default function TenantCustomersPage() {
         setShowBookings(true);
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     }
   };
 
   const handleSuspend = async (customerId) => {
-    if (!confirm('Suspend this customer?')) return;
+    if (!(await confirmAction({ title: 'Suspend customer?', text: 'The customer will no longer be able to use their account.', confirmText: 'Suspend' }))) return;
 
     setActionLoading(true);
     try {
       const response = await suspendTenantCustomer(customerId, token);
       if (response.success) {
-        alert('✅ Customer suspended');
+        notify('Customer suspended');
         await loadCustomers();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleActivate = async (customerId) => {
-    if (!confirm('Activate this customer?')) return;
+    if (!(await confirmAction({ title: 'Activate customer?', text: 'The customer will regain access to their account.', confirmText: 'Activate' }))) return;
 
     setActionLoading(true);
     try {
       const response = await activateTenantCustomer(customerId, token);
       if (response.success) {
-        alert('✅ Customer activated');
+        notify('Customer activated');
         await loadCustomers();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDelete = async (customerId) => {
-    if (!confirm('Delete this customer? This cannot be undone.')) return;
+    if (!(await confirmAction({ title: 'Delete customer?', text: 'This action cannot be undone.', confirmText: 'Delete customer', danger: true }))) return;
 
     setActionLoading(true);
     try {
       const response = await deleteTenantCustomer(customerId, token);
       if (response.success) {
-        alert('✅ Customer deleted');
+        notify('Customer deleted');
         await loadCustomers();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setActionLoading(false);
     }
@@ -196,7 +195,7 @@ export default function TenantCustomersPage() {
       customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.phone?.includes(searchTerm);
 
-    // ✅ Updated status filter logic
+    // Updated status filter logic
     const matchesStatus = 
       filterStatus === 'all' || 
       getCustomerStatus(customer) === filterStatus;
@@ -218,7 +217,7 @@ export default function TenantCustomersPage() {
       <main className="customers-content">
             <div className="customers-header">
               <div>
-                <h2>👥 Customers</h2>
+                <h2><AppIcon name="users" /> Customers</h2>
                 <p>Manage your restaurant customers and their profiles</p>
               </div>
               <div className="header-stats">
@@ -258,7 +257,7 @@ export default function TenantCustomersPage() {
             {/* Customers Table */}
             {filteredCustomers.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">👥</div>
+                <div className="empty-icon"><AppIcon name="users" /></div>
                 <p>No customers found</p>
               </div>
             ) : (
@@ -293,7 +292,7 @@ export default function TenantCustomersPage() {
                                 <strong>
                                   {customer.firstName} {customer.lastName}
                                   {customer.isVip && (
-                                    <span className="vip-badge"> ⭐ VIP</span>
+                                    <span className="vip-badge"> <AppIcon name="star" /> VIP</span>
                                   )}
                                 </strong>
                                 {Array.isArray(customer.tags) && customer.tags.length > 0 && (
@@ -319,11 +318,11 @@ export default function TenantCustomersPage() {
                             </span>
                           </td>
                           <td>
-                            {/* ✅ Updated status badge logic */}
+                            {/* Updated status badge logic */}
                             <span 
                               className={`status-badge ${getCustomerStatus(customer)}`}
                             >
-                              {isSuspended(customer) ? '⛔ Suspended' : '✅ Active'}
+                              {isSuspended(customer) ? 'Suspended' : 'Active'}
                             </span>
                           </td>
                           <td>
@@ -339,16 +338,16 @@ export default function TenantCustomersPage() {
                                 onClick={() => handleViewProfile(customer)}
                                 title="View Profile"
                               >
-                                👁️
+                                <AppIcon name="eye" />
                               </button>
                               <button
                                 className="btn-bookings"
                                 onClick={() => handleViewBookings(customer)}
                                 title="View Bookings"
                               >
-                                📋
+                                <AppIcon name="bookings" />
                               </button>
-                              {/* ✅ Updated suspend/activate logic */}
+                              {/* Updated suspend/activate logic */}
                               {isSuspended(customer) ? (
                                 <button
                                   className="btn-activate"
@@ -356,7 +355,7 @@ export default function TenantCustomersPage() {
                                   disabled={actionLoading}
                                   title="Activate"
                                 >
-                                  ✅
+                                  <AppIcon name="checkCircle" />
                                 </button>
                               ) : (
                                 <button
@@ -365,7 +364,7 @@ export default function TenantCustomersPage() {
                                   disabled={actionLoading}
                                   title="Suspend"
                                 >
-                                  ⛔
+                                  <AppIcon name="ban" />
                                 </button>
                               )}
                               <button
@@ -374,7 +373,7 @@ export default function TenantCustomersPage() {
                                 disabled={actionLoading}
                                 title="Delete"
                               >
-                                🗑️
+                                <AppIcon name="trash" />
                               </button>
                             </div>
                           </td>
@@ -392,8 +391,8 @@ export default function TenantCustomersPage() {
         <div className="modal-overlay" onClick={() => setShowProfile(false)}>
           <div className="modal profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>👤 Customer Profile</h2>
-              <button className="close-btn" onClick={() => setShowProfile(false)}>✕</button>
+              <h2><AppIcon name="user" /> Customer Profile</h2>
+              <button className="close-btn" onClick={() => setShowProfile(false)}><AppIcon name="close" /></button>
             </div>
 
             <div className="profile-content">
@@ -404,12 +403,12 @@ export default function TenantCustomersPage() {
                 <div className="profile-name">
                   {selectedCustomer.firstName} {selectedCustomer.lastName}
                   {selectedCustomer.isVip && (
-                    <span className="vip-badge"> ⭐ VIP</span>
+                    <span className="vip-badge"> <AppIcon name="star" /> VIP</span>
                   )}
                 </div>
                 <div className="profile-status">
                   <span className={`badge ${getCustomerStatus(selectedCustomer)}`}>
-                    {isSuspended(selectedCustomer) ? '⛔ Suspended' : '✅ Active'}
+                    {isSuspended(selectedCustomer) ? 'Suspended' : 'Active'}
                   </span>
                 </div>
                 {Array.isArray(selectedCustomer.tags) && selectedCustomer.tags.length > 0 && (
@@ -454,7 +453,7 @@ export default function TenantCustomersPage() {
                     </div>
                     <div className="detail-row">
                       <span className="label">Total Spent:</span>
-                      <span className="value">₹{selectedCustomer.totalSpent || 0}</span>
+                      <span className="value">â‚¹{selectedCustomer.totalSpent || 0}</span>
                     </div>
                     <div className="detail-row">
                       <span className="label">Joined:</span>
@@ -475,7 +474,7 @@ export default function TenantCustomersPage() {
 
                   <div className="profile-actions">
                     <button className="btn-primary" onClick={startEdit}>
-                      ✏️ Edit Profile
+                      <AppIcon name="edit" /> Edit Profile
                     </button>
                     <button
                       className="btn-primary"
@@ -484,7 +483,7 @@ export default function TenantCustomersPage() {
                         handleViewBookings(selectedCustomer);
                       }}
                     >
-                      📋 View Bookings
+                      <AppIcon name="bookings" /> View Bookings
                     </button>
                     <button
                       className="btn-secondary"
@@ -620,7 +619,7 @@ export default function TenantCustomersPage() {
                       onClick={saveEdit}
                       disabled={editSaving}
                     >
-                      {editSaving ? 'Saving...' : '💾 Save'}
+                      {editSaving ? 'Saving...' : 'Save'}
                     </button>
                     <button
                       className="btn-secondary"
@@ -642,8 +641,8 @@ export default function TenantCustomersPage() {
         <div className="modal-overlay" onClick={() => setShowBookings(false)}>
           <div className="modal bookings-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>📋 {selectedCustomer.firstName}'s Bookings</h2>
-              <button className="close-btn" onClick={() => setShowBookings(false)}>✕</button>
+              <h2><AppIcon name="bookings" /> {selectedCustomer.firstName}'s Bookings</h2>
+              <button className="close-btn" onClick={() => setShowBookings(false)}><AppIcon name="close" /></button>
             </div>
 
             <div className="bookings-content">
@@ -682,13 +681,13 @@ export default function TenantCustomersPage() {
                         </div>
                         <div className="booking-info">
                           <div className="booking-venue">
-                            🏢 {booking.Venue?.name || 'N/A'}
+                            <AppIcon name="building" /> {booking.Venue?.name || 'N/A'}
                           </div>
                           <div className="booking-time">
-                            🕐 {booking.bookingStartTime} - {booking.bookingEndTime}
+                            <AppIcon name="clock" /> {booking.bookingStartTime} - {booking.bookingEndTime}
                           </div>
                           <div className="booking-guests">
-                            👥 {booking.numGuests} guests
+                            <AppIcon name="users" /> {booking.numGuests} guests
                           </div>
                         </div>
                       </div>

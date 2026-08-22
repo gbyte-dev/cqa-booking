@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -26,7 +28,7 @@ export default function TenantSettingsPage() {
     mountedRef.current = true;
 
     if (!token) {
-      router.replace('/tenant/login');
+      router.replace('/login');
       return;
     }
 
@@ -35,9 +37,7 @@ export default function TenantSettingsPage() {
       if (local) {
         setSettings(prev => ({ ...prev, ...JSON.parse(local) }));
       }
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   }, []);
@@ -52,11 +52,11 @@ export default function TenantSettingsPage() {
       localStorage.setItem('cqa-tenant-settings', JSON.stringify(settings));
       setTimeout(() => {
         setSaving(false);
-        alert('✅ Settings saved successfully');
+        notify('Settings saved successfully');
       }, 400);
     } catch (error) {
       setSaving(false);
-      alert('❌ Error saving settings: ' + error.message);
+      notify('Error saving settings: ' + error.message);
     }
   };
 
@@ -73,7 +73,7 @@ export default function TenantSettingsPage() {
     <>
       <main className="settings-content">
             <div className="page-header">
-              <h2>⚙️ Settings</h2>
+              <h2><AppIcon name="settings" /> Settings</h2>
               <p>Manage your business preferences.</p>
             </div>
 

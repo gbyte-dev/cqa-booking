@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { confirmAction, notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,7 +13,6 @@ import {
   suspendCustomer,
   reactivateCustomer,
 } from '@/lib/users';
-import './users.css';
 
 export default function UsersPage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function UsersPage() {
   // Check auth
   useEffect(() => {
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
-      router.push('/superadmin/login');
+      router.push('/login');
       return;
     }
     setUser(currentUser);
@@ -44,9 +45,7 @@ export default function UsersPage() {
       if (response.success) {
         setCustomers(response.data || []);
       }
-    } catch (error) {
-      console.error('Load error:', error);
-      alert('❌ Error loading customers: ' + error.message);
+    } catch (error) {      notify('Error loading customers: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -61,9 +60,7 @@ export default function UsersPage() {
         setBookings(response.data || []);
         setBookingStats(response.stats || {});
       }
-    } catch (error) {
-      console.error('Bookings error:', error);
-      alert('❌ Error loading bookings: ' + error.message);
+    } catch (error) {      notify('Error loading bookings: ' + error.message);
     } finally {
       setBookingsLoading(false);
     }
@@ -86,46 +83,46 @@ export default function UsersPage() {
 
   // Suspend
   const handleSuspend = async (customer) => {
-    if (!confirm(`Suspend customer "${customer.firstName} ${customer.lastName}"?`)) return;
+    if (!(await confirmAction({ title: `Suspend ${customer.firstName} ${customer.lastName}?`, text: 'The customer will no longer be able to use their account.', confirmText: 'Suspend' }))) return;
 
     try {
       const response = await suspendCustomer(customer.id, token);
       if (response.success) {
-        alert('✅ Customer suspended');
+        notify('Customer suspended');
         await loadCustomers();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     }
   };
 
   // Reactivate
   const handleReactivate = async (customer) => {
-    if (!confirm(`Reactivate customer "${customer.firstName} ${customer.lastName}"?`)) return;
+    if (!(await confirmAction({ title: `Reactivate ${customer.firstName} ${customer.lastName}?`, text: 'The customer will regain access to their account.', confirmText: 'Reactivate' }))) return;
 
     try {
       const response = await reactivateCustomer(customer.id, token);
       if (response.success) {
-        alert('✅ Customer reactivated');
+        notify('Customer reactivated');
         await loadCustomers();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     }
   };
 
   // Delete
   const handleDelete = async (customer) => {
-    if (!confirm(`Delete customer "${customer.firstName} ${customer.lastName}" permanently?`)) return;
+    if (!(await confirmAction({ title: `Delete ${customer.firstName} ${customer.lastName}?`, text: 'This action cannot be undone.', confirmText: 'Delete customer', danger: true }))) return;
 
     try {
       const response = await deleteCustomer(customer.id, token);
       if (response.success) {
-        alert('✅ Customer deleted');
+        notify('Customer deleted');
         await loadCustomers();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     }
   };
 
@@ -142,7 +139,7 @@ export default function UsersPage() {
   // Get status badge
   const getStatusBadge = (status) => {
     const statusClass = status === 'active' ? 'active' : 'suspended';
-    const statusText = status === 'active' ? '✅ Active' : '🔒 Suspended';
+    const statusText = status === 'active' ? 'Active' : 'Suspended';
     return { statusClass, statusText };
   };
 
@@ -175,7 +172,7 @@ export default function UsersPage() {
 
               {customers.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">👤</div>
+                  <div className="empty-icon"><AppIcon name="user" /></div>
                   <p>No customers found</p>
                 </div>
               ) : (
@@ -230,7 +227,7 @@ export default function UsersPage() {
                                   onClick={() => handleViewBookings(customer)}
                                   title="View Bookings"
                                 >
-                                  📋
+                                  <AppIcon name="bookings" />
                                 </button>
                                 {customer.status === 'active' ? (
                                   <button
@@ -238,7 +235,7 @@ export default function UsersPage() {
                                     onClick={() => handleSuspend(customer)}
                                     title="Suspend"
                                   >
-                                    🔒
+                                    <AppIcon name="lock" />
                                   </button>
                                 ) : (
                                   <button
@@ -246,7 +243,7 @@ export default function UsersPage() {
                                     onClick={() => handleReactivate(customer)}
                                     title="Reactivate"
                                   >
-                                    ✅
+                                    <AppIcon name="checkCircle" />
                                   </button>
                                 )}
                                 <button
@@ -254,7 +251,7 @@ export default function UsersPage() {
                                   onClick={() => handleDelete(customer)}
                                   title="Delete"
                                 >
-                                  🗑️
+                                  <AppIcon name="trash" />
                                 </button>
                               </div>
                             </td>
@@ -273,8 +270,8 @@ export default function UsersPage() {
         <div className="modal-overlay" onClick={handleCloseBookings}>
           <div className="modal bookings-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>📋 Booking History</h2>
-              <button className="close-btn" onClick={handleCloseBookings}>✕</button>
+              <h2><AppIcon name="bookings" /> Booking History</h2>
+              <button className="close-btn" onClick={handleCloseBookings}><AppIcon name="close" /></button>
             </div>
 
             {bookingsLoading ? (
@@ -344,10 +341,10 @@ export default function UsersPage() {
                             </td>
                             <td>
                               <span className={`booking-status ${booking.status}`}>
-                                {booking.status === 'confirmed' && '✅ Confirmed'}
-                                {booking.status === 'cancelled' && '❌ Cancelled'}
-                                {booking.status === 'completed' && '✔️ Completed'}
-                                {booking.status === 'pending' && '⏳ Pending'}
+                                {booking.status === 'confirmed' && 'Confirmed'}
+                                {booking.status === 'cancelled' && 'Cancelled'}
+                                {booking.status === 'completed' && 'Completed'}
+                                {booking.status === 'pending' && 'Pending'}
                               </span>
                             </td>
                           </tr>

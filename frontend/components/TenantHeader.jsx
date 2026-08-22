@@ -1,7 +1,19 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  Menu,
+  Building2,
+  Search,
+  Sun,
+  Moon,
+  Bell,
+  User,
+  Settings,
+  CreditCard,
+  LogOut,
+} from 'lucide-react';
 import { storage } from '@/lib/storage';
 
 export default function TenantHeader({
@@ -15,7 +27,7 @@ export default function TenantHeader({
   const [organization, setOrganization] = useState(null);
   const [mounted, setMounted] = useState(false);
 
-  // ✅ ONLY: Set user/organization/theme after mount
+  // ONLY: Set user/organization/theme after mount
   useEffect(() => {
     setUser(storage.getUser());
     setOrganization(storage.getOrganization?.());
@@ -41,119 +53,147 @@ export default function TenantHeader({
 
   const handleLogout = () => {
     storage.clear();
-    router.push('/tenant/login');
+    router.push('/login');
   };
 
+  const iconBtnClasses =
+    'flex w-10 h-10 max-[768px]:w-[38px] max-[768px]:h-[38px] max-[480px]:w-9 max-[480px]:h-9 max-[360px]:w-[34px] max-[360px]:h-[34px] shrink-0 items-center justify-center rounded-[var(--tenant-radius-sm)] border border-[var(--tenant-border)] bg-[var(--tenant-surface)] p-0 text-[var(--tenant-text)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:border-[var(--tenant-primary)] hover:text-[var(--tenant-primary)]';
+
   return (
-    <header className="tenant-header">
-      <div className="header-left">
+    <header className="sticky top-0 z-[90] flex h-[76px] max-[768px]:h-16 max-[480px]:h-[60px] w-full items-center justify-between gap-5 max-[768px]:gap-[10px] border-b border-[var(--tenant-border)] bg-[var(--tenant-header-bg)] px-[30px] max-[1100px]:px-[22px] max-[768px]:px-[15px] max-[600px]:px-3 max-[480px]:px-[10px] transition-colors duration-200">
+      <div className="flex min-w-0 items-center gap-[15px] max-[768px]:gap-[10px]">
         <button
-          className="mobile-menu-btn"
+          className={`hidden max-[768px]:flex ${iconBtnClasses}`}
           onClick={onMenuClick}
           aria-label="Open menu"
         >
-          ☰
+          <Menu size={20} />
         </button>
 
-        <div className="header-title">
-          <div className="header-title-icon">
-            🏢
+        <div className="flex min-w-0 items-center gap-3 max-[768px]:gap-[9px]">
+          <div className="flex h-10 w-10 max-[768px]:h-9 max-[768px]:w-9 max-[600px]:hidden shrink-0 items-center justify-center rounded-[10px] max-[768px]:rounded-[9px] bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-white shadow-[0_5px_15px_rgba(102,126,234,0.25)]">
+            <Building2 size={18} />
           </div>
 
-          <div>
-            <h1>{title}</h1>
-            <span>{mounted ? (organization?.name || 'Organization') : 'Organization'}</span>
+          <div className="flex min-w-0 flex-col leading-[1.2]">
+            <h1 className="m-0 max-w-[190px] max-[600px]:max-w-[145px] max-[480px]:max-w-[120px] max-[360px]:max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap text-[17px] max-[768px]:text-[15px] max-[480px]:text-[14px] font-bold text-[var(--tenant-text)]">
+              {title}
+            </h1>
+            <span className="mt-1 max-[600px]:hidden overflow-hidden text-ellipsis whitespace-nowrap text-[11px] max-[768px]:text-[9px] text-[var(--tenant-text-secondary)]">
+              {mounted ? (organization?.name || 'Organization') : 'Organization'}
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="header-right">
-        <div className="search-box">
+      <div className="flex shrink-0 items-center gap-[10px] max-[768px]:gap-[6px] max-[480px]:gap-[3px]">
+        <div className="relative flex h-10 w-[270px] max-[1100px]:w-[220px] max-[900px]:w-[190px] max-[768px]:hidden items-center">
           <input
             type="text"
             placeholder="Search bookings, customers..."
-            className="search-input"
+            className="h-10 w-full rounded-[var(--tenant-radius-sm)] border border-[var(--tenant-border)] bg-[var(--tenant-surface)] pl-[13px] pr-[38px] text-xs text-[var(--tenant-text)] outline-none transition-all duration-200 placeholder:text-[var(--tenant-text-muted)] focus:border-[var(--tenant-primary)] focus:shadow-[0_0_0_3px_var(--tenant-primary-light)]"
           />
-          <span className="search-icon">🔍</span>
+          <span className="pointer-events-none absolute right-3 flex items-center text-[var(--tenant-text-muted)]">
+            <Search size={14} />
+          </span>
         </div>
-        <button type="button" className="theme-toggle-btn"
-          onClick={toggleTheme} title={ theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          aria-label={ theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
-          {theme === 'light' ? '🌙' : '☀️'}
+
+        <button
+          type="button"
+          className={`${iconBtnClasses} hover:-translate-y-px active:scale-95`}
+          onClick={toggleTheme}
+          title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
+          {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
         </button>
 
-        <button className="notification-btn" title="Notifications">
-          <span>🔔</span>
-          <i />
+        <button
+          className={`${iconBtnClasses} relative text-[var(--tenant-text-secondary)]`}
+          title="Notifications"
+        >
+          <Bell size={17} />
+          <span className="absolute right-[7px] top-[7px] h-[7px] w-[7px] rounded-full border-2 border-[var(--tenant-header-bg)] bg-[var(--tenant-danger)]" />
         </button>
 
-        <div className="profile-wrapper">
+        <div className="relative">
           <button
-            className="profile-btn"
+            className="flex min-h-[44px] max-[768px]:min-h-[38px] items-center gap-[9px] rounded-[var(--tenant-radius-md)] border border-[var(--tenant-border)] max-[768px]:border-0 bg-[var(--tenant-surface)] max-[768px]:bg-transparent px-[9px] py-[5px] max-[768px]:p-[2px] text-[var(--tenant-text)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:border-[var(--tenant-primary)] max-[768px]:hover:border-transparent"
             onClick={() => setShowProfile(!showProfile)}
           >
-            <div className="profile-avatar">
+            <div className="flex h-[34px] w-[34px] max-[480px]:h-[31px] max-[480px]:w-[31px] max-[360px]:h-[29px] max-[360px]:w-[29px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-[13px] font-bold text-white">
               {mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'}
             </div>
 
-            <div className="profile-info">
-              <strong>
+            <div className="flex min-w-[90px] max-[768px]:hidden flex-col items-start leading-[1.2]">
+              <strong className="max-w-[130px] overflow-hidden text-ellipsis whitespace-nowrap text-xs font-bold text-[var(--tenant-text)]">
                 {mounted ? (user?.firstName || 'Tenant') : 'Tenant'}
               </strong>
-              <span>Manager</span>
+              <span className="mt-[3px] text-[10px] text-[var(--tenant-text-muted)]">Manager</span>
             </div>
-
-            <span className="profile-arrow">⌄</span>
           </button>
 
           {showProfile && (
-            <div className="profile-dropdown">
-              <div className="dropdown-user">
-                <div className="profile-avatar large">
+            <div className="absolute right-0 max-[600px]:right-[-3px] top-[calc(100%+9px)] z-[300] w-[270px] max-[600px]:w-[min(270px,calc(100vw-24px))] rounded-[var(--tenant-radius-md)] border border-[var(--tenant-border)] bg-[var(--tenant-surface)] p-2 shadow-[var(--tenant-shadow-lg)] animate-[tenant-dropdown-in_0.15s_ease]">
+              <div className="flex items-center gap-[10px] p-[10px]">
+                <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-[15px] font-bold text-white">
                   {mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'}
                 </div>
 
-                <div>
-                  <strong>
+                <div className="flex min-w-0 flex-col">
+                  <strong className="text-[13px] font-bold text-[var(--tenant-text)]">
                     {mounted ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim() : 'User'}
                   </strong>
-                  <span>{mounted ? user?.email : 'email@example.com'}</span>
-                  <span className="org-badge">
+                  <span className="mt-[3px] overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--tenant-text-muted)]">
+                    {mounted ? user?.email : 'email@example.com'}
+                  </span>
+                  <span className="mt-[3px] text-[10px] font-semibold text-[var(--tenant-primary)]">
                     {mounted ? organization?.name : 'Organization'}
                   </span>
                 </div>
               </div>
 
-              <div className="dropdown-divider" />
+              <div className="my-[6px] h-px bg-[var(--tenant-border)]" />
 
               <button
+                className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
                 onClick={() => router.push('/tenant/profile')}
               >
-                <span>👤</span>
+                <span className="flex w-5 items-center justify-center">
+                  <User size={15} />
+                </span>
                 My Profile
               </button>
 
               <button
+                className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
                 onClick={() => router.push('/tenant/settings')}
               >
-                <span>⚙️</span>
+                <span className="flex w-5 items-center justify-center">
+                  <Settings size={15} />
+                </span>
                 Settings
               </button>
 
               <button
+                className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
                 onClick={() => router.push('/tenant/billing')}
               >
-                <span>💳</span>
+                <span className="flex w-5 items-center justify-center">
+                  <CreditCard size={15} />
+                </span>
                 Billing
               </button>
 
-              <div className="dropdown-divider" />
+              <div className="my-[6px] h-px bg-[var(--tenant-border)]" />
 
               <button
-                className="logout-dropdown"
+                className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-danger)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-danger-bg)] hover:text-[var(--tenant-danger)]"
                 onClick={handleLogout}
               >
-                <span>↪</span>
+                <span className="flex w-5 items-center justify-center">
+                  <LogOut size={15} />
+                </span>
                 Sign Out
               </button>
             </div>

@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +14,6 @@ import {
   reactivateOrganization,
 } from '@/lib/superadmin-dashboard';
 
-import './dashboard.css';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function SuperAdminDashboard() {
       !currentUser ||
       currentUser.role !== 'superadmin'
     ) {
-      router.push('/superadmin/login');
+      router.push('/login');
       return;
     }
 
@@ -61,12 +62,7 @@ export default function SuperAdminDashboard() {
           organizationsResponse.data || []
         );
       }
-    } catch (error) {
-      console.error(
-        'Dashboard loading error:',
-        error
-      );
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -114,13 +110,13 @@ export default function SuperAdminDashboard() {
         closeActionModal();
         await loadDashboard();
       } else {
-        alert(
+        notify(
           response.error ||
           'Unable to complete action.'
         );
       }
     } catch (error) {
-      alert(error.message);
+      notify(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -201,7 +197,7 @@ export default function SuperAdminDashboard() {
                   </div>
 
                   <div className="stat-icon">
-                    ▥
+                    <AppIcon name="building" />
                   </div>
                 </div>
 
@@ -227,7 +223,7 @@ export default function SuperAdminDashboard() {
                   </div>
 
                   <div className="stat-icon">
-                    ◈
+                    <AppIcon name="status" />
                   </div>
                 </div>
 
@@ -281,7 +277,7 @@ export default function SuperAdminDashboard() {
                   </div>
 
                   <div className="stat-icon">
-                    ♙
+                    <AppIcon name="users" />
                   </div>
                 </div>
 
@@ -323,7 +319,7 @@ export default function SuperAdminDashboard() {
                     <div className="overview-item">
                       <div className="overview-item-left">
                         <div className="overview-item-icon">
-                          ▥
+                          <AppIcon name="building" />
                         </div>
 
                         <div>
@@ -345,7 +341,7 @@ export default function SuperAdminDashboard() {
                     <div className="overview-item">
                       <div className="overview-item-left">
                         <div className="overview-item-icon">
-                          ◈
+                          <AppIcon name="status" />
                         </div>
 
                         <div>
@@ -392,7 +388,7 @@ export default function SuperAdminDashboard() {
                     <div className="overview-item">
                       <div className="overview-item-left">
                         <div className="overview-item-icon">
-                          ♙
+                          <AppIcon name="users" />
                         </div>
 
                         <div>
@@ -439,7 +435,7 @@ export default function SuperAdminDashboard() {
                       }
                     >
                       <div className="quick-action-icon">
-                        ▥
+                        <AppIcon name="building" />
                       </div>
 
                       <strong>
@@ -460,7 +456,7 @@ export default function SuperAdminDashboard() {
                       }
                     >
                       <div className="quick-action-icon">
-                        ◈
+                        <AppIcon name="status" />
                       </div>
 
                       <strong>
@@ -481,7 +477,7 @@ export default function SuperAdminDashboard() {
                       }
                     >
                       <div className="quick-action-icon">
-                        ♙
+                        <AppIcon name="users" />
                       </div>
 
                       <strong>
@@ -502,7 +498,7 @@ export default function SuperAdminDashboard() {
                       }
                     >
                       <div className="quick-action-icon">
-                        ◫
+                        <AppIcon name="reports" />
                       </div>
 
                       <strong>
@@ -536,7 +532,7 @@ export default function SuperAdminDashboard() {
               {organizations.length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-icon">
-                    ▥
+                    <AppIcon name="building" />
                   </div>
 
                   <p>
@@ -614,12 +610,7 @@ export default function SuperAdminDashboard() {
                                     : 'inactive'
                                 }`}
                               >
-                                <span>
-                                  {org.subscriptionStatus ===
-                                  'active'
-                                    ? '●'
-                                    : '●'}
-                                </span>
+                                <AppIcon name="status" size={10} />
 
                                 {org.subscriptionStatus ||
                                   'inactive'}
@@ -650,11 +641,13 @@ export default function SuperAdminDashboard() {
                                     org
                                   )
                                 }
+                                aria-label={org.subscriptionStatus === 'active' ? 'Suspend organization' : 'Reactivate organization'}
+                                title={org.subscriptionStatus === 'active' ? 'Suspend organization' : 'Reactivate organization'}
                               >
-                                {org.subscriptionStatus ===
-                                'active'
-                                  ? 'Suspend'
-                                  : 'Reactivate'}
+                                <AppIcon
+                                  name={org.subscriptionStatus === 'active' ? 'pause' : 'refresh'}
+                                  size={16}
+                                />
                               </button>
                             </td>
 
@@ -682,9 +675,7 @@ export default function SuperAdminDashboard() {
             }
           >
             <div className="modal-icon">
-              {actionType === 'suspend'
-                ? '⚠'
-                : '✓'}
+              {actionType === 'suspend' && <AppIcon name="alert" />}
             </div>
 
             <h3>

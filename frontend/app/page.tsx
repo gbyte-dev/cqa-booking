@@ -3,7 +3,60 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import {
+  Sparkles,
+  ArrowRight,
+  LogIn,
+  Building2,
+  CalendarCheck,
+  Users,
+  DollarSign,
+  Activity,
+  BarChart3,
+  Circle,
+  Infinity as InfinityIcon,
+} from 'lucide-react';
 import { storage } from '@/lib/storage';
+import { getRoleRedirectPath } from '@/lib/roleRedirect';
+
+const features = [
+  {
+    icon: Building2,
+    title: 'Venue & table management',
+    text: 'Add restaurants, lounges, and cafes. Define tables, capacity, and availability windows.',
+  },
+  {
+    icon: CalendarCheck,
+    title: 'Smart reservations',
+    text: 'Guests pick a date, time, and party size. Your staff confirms with one click.',
+  },
+  {
+    icon: Users,
+    title: 'Customer profiles',
+    text: 'Track regulars, preferences, spending, and booking history automatically.',
+  },
+  {
+    icon: DollarSign,
+    title: 'Flexible plans',
+    text: 'Start with the free plan. Scale to unlimited venues as your business grows.',
+  },
+  {
+    icon: Activity,
+    title: 'Real-time status',
+    text: 'Check-ins, no-shows, and completions update your board instantly.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Reports & analytics',
+    text: 'Understand occupancy, revenue, and guest trends with clear reports.',
+  },
+];
+
+const steps = [
+  { number: '01', title: 'Create your account', text: 'Register your restaurant or venue in under a minute.' },
+  { number: '02', title: 'Set up your venues', text: 'Add your venues, tables, and opening hours.' },
+  { number: '03', title: 'Accept bookings', text: 'Share your booking link and start filling tables.' },
+];
 
 export default function Home() {
   const router = useRouter();
@@ -15,11 +68,7 @@ export default function Home() {
     const user = storage.getUser();
 
     if (token && user) {
-      if (user.role === 'superadmin') {
-        router.replace('/superadmin/dashboard');
-      } else {
-        router.replace('/tenant/dashboard');
-      }
+      router.replace(getRoleRedirectPath(user.role));
       return;
     }
 
@@ -28,11 +77,9 @@ export default function Home() {
 
   if (checking) {
     return (
-      <div className="home-loading">
-        <div className="home-loading-logo">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-            <path d="M12 3L14.4 8.2L20 9L16 13L17 18.7L12 16L7 18.7L8 13L4 9L9.6 8.2L12 3Z" fill="#b45309" />
-          </svg>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#faf6ef] font-sans text-[13px] text-[#8a6d3b]">
+        <div className="flex h-[58px] w-[58px] animate-pulse items-center justify-center rounded-2xl border border-[#eadfc8] bg-[#fff8ed]">
+          <Sparkles className="h-[26px] w-[26px] text-[#b45309]" />
         </div>
         <p>Loading CQA Booking...</p>
       </div>
@@ -40,198 +87,136 @@ export default function Home() {
   }
 
   return (
-    <main className="home-page">
+    <main className="min-h-screen overflow-x-hidden bg-[#faf6ef] font-sans text-[#2b2118]">
       {/* NAV */}
-      <header className="home-nav">
-        <div className="home-nav-inner">
-          <div className="home-logo">
-            <div className="home-logo-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3L14.4 8.2L20 9L16 13L17 18.7L12 16L7 18.7L8 13L4 9L9.6 8.2L12 3Z" fill="white" />
-              </svg>
+      <header className="sticky top-0 z-50 border-b border-[#eadfc8] bg-[#faf6ef]/92 backdrop-blur-[10px]">
+        <div className="mx-auto flex max-w-[1150px] items-center justify-between gap-5 px-4 py-[13px] sm:px-6 sm:py-4">
+          <div className="flex items-center gap-2.5 text-base font-extrabold tracking-[0.5px] text-[#2b2118]">
+            <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[11px] bg-gradient-to-br from-[#d97706] to-[#92400e] shadow-[0_6px_18px_rgba(180,83,9,0.22)]">
+              <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <span>CQA<em>BOOKING</em></span>
+            <span>
+              CQA<em className="ml-1 text-[13px] font-bold not-italic tracking-[1.2px] text-[#b45309]">BOOKING</em>
+            </span>
           </div>
 
-          <div className="home-nav-links">
-            <a href="#features">Features</a>
-            <a href="#how-it-works">How it works</a>
-            <Link href="/tenant/login" className="nav-login">Sign in</Link>
-            <Link href="/tenant/register" className="nav-register">Get started</Link>
+          <div className="flex items-center gap-2.5">
+            <a href="#features" className="hidden rounded-lg px-3 py-2.5 text-[13px] font-semibold text-[#6b5d4b] transition-all hover:bg-[#f4ecdd] hover:text-[#b45309] sm:inline-block">
+              Features
+            </a>
+            <a href="#how-it-works" className="hidden rounded-lg px-3 py-2.5 text-[13px] font-semibold text-[#6b5d4b] transition-all hover:bg-[#f4ecdd] hover:text-[#b45309] sm:inline-block">
+              How it works
+            </a>
+            <Link href="/login" className="rounded-lg px-3 py-2.5 text-[13px] font-semibold text-[#3f3326] transition-all">
+              Sign in
+            </Link>
+            <Link href="/tenant/register" className="rounded-[9px] bg-[#1f2937] px-[18px] py-2.5 text-[13px] font-semibold text-white transition-all hover:-translate-y-px hover:bg-[#b45309]">
+              Get started
+            </Link>
           </div>
         </div>
       </header>
 
       {/* HERO */}
-      <section className="home-hero">
-        <div className="home-hero-glow glow-a"></div>
-        <div className="home-hero-glow glow-b"></div>
+      <section className="relative overflow-hidden px-[18px] pt-[60px] pb-[70px] sm:px-6 sm:pt-[90px] sm:pb-[100px]">
+        <div className="pointer-events-none absolute top-[-180px] left-[-160px] h-[480px] w-[480px] rounded-full bg-[rgba(217,119,6,0.16)] blur-[110px]" />
+        <div className="pointer-events-none absolute right-[-160px] bottom-[-240px] h-[480px] w-[480px] rounded-full bg-[rgba(166,108,42,0.14)] blur-[110px]" />
 
-        <div className="home-hero-inner">
-          <div className="home-hero-badge">
-            <span>●</span>
+        <div className="relative z-[2] mx-auto max-w-[1150px] text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#e4d5b8] bg-[#fff9ef] px-3.5 py-2 text-[11px] font-bold tracking-[1px] text-[#8a6d3b] uppercase">
+            <Circle className="h-[9px] w-[9px] fill-current text-[#16a34a]" aria-hidden="true" />
             Multi-tenant booking platform
           </div>
 
-          <h1>
+          <h1 className="mt-7 text-[clamp(40px,6vw,68px)] leading-[1.08] font-extrabold tracking-[-2.5px] text-[#241c14]">
             Book tables, manage venues,
             <br />
-            <span>grow your restaurant.</span>
+            <span className="text-[#b45309]">grow your restaurant.</span>
           </h1>
 
-          <p>
+          <p className="mx-auto mt-6 max-w-[620px] text-base leading-[1.75] text-[#7d6f5c]">
             CQA Booking helps restaurants and venues accept reservations,
             manage tables, track customers, and grow revenue — all from one
             simple dashboard.
           </p>
 
-          <div className="home-hero-actions">
-            <Link href="/tenant/register" className="hero-btn primary">
+          <div className="mt-9 flex flex-col items-stretch justify-center gap-3.5 sm:flex-row sm:flex-wrap sm:items-center">
+            <Link href="/tenant/register" className="inline-flex items-center justify-center gap-2 rounded-[11px] bg-[#d97706] px-7 py-[15px] text-sm font-bold text-white shadow-[0_10px_30px_rgba(217,119,6,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[#b45309] hover:shadow-[0_16px_38px_rgba(180,83,9,0.32)]">
               Start free
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-                <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                <path d="M13 6L19 12L13 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ArrowRight className="h-[17px] w-[17px]" />
             </Link>
 
-            <Link href="/tenant/login" className="hero-btn secondary">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" strokeWidth="1.8" />
-                <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" />
-              </svg>
+            <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-[11px] border border-[#e4d5b8] bg-white px-7 py-[15px] text-sm font-bold text-[#3f3326] transition-all hover:-translate-y-0.5 hover:border-[#b45309] hover:text-[#b45309]">
+              <LogIn className="h-4 w-4" />
               Sign in to dashboard
             </Link>
           </div>
 
-          <div className="home-hero-proof">
-            <div className="proof-item">
-              <strong>3</strong>
-              <span>Plans</span>
+          <div className="mt-14 flex justify-center gap-[42px]">
+            <div className="flex flex-col items-center gap-1">
+              <strong className="text-[26px] font-extrabold text-[#241c14]">3</strong>
+              <span className="text-[11px] tracking-[1px] text-[#8a7b66] uppercase">Plans</span>
             </div>
-            <div className="proof-item">
-              <strong>∞</strong>
-              <span>Venues</span>
+            <div className="flex flex-col items-center gap-1">
+              <InfinityIcon className="h-6 w-6 text-[#241c14]" aria-label="Unlimited" />
+              <span className="text-[11px] tracking-[1px] text-[#8a7b66] uppercase">Venues</span>
             </div>
-            <div className="proof-item">
-              <strong>24/7</strong>
-              <span>Availability</span>
+            <div className="flex flex-col items-center gap-1">
+              <strong className="text-[26px] font-extrabold text-[#241c14]">24/7</strong>
+              <span className="text-[11px] tracking-[1px] text-[#8a7b66] uppercase">Availability</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* FEATURES */}
-      <section className="home-section" id="features">
-        <div className="home-section-inner">
-          <div className="home-section-heading">
-            <span className="home-kicker">FEATURES</span>
-            <h2>Everything you need to run bookings</h2>
-            <p>
+      <section className="px-[18px] py-[60px] sm:px-6 sm:py-[85px]" id="features">
+        <div className="mx-auto max-w-[1100px]">
+          <div className="mb-[50px] text-center">
+            <span className="mb-3 inline-block text-[11px] font-extrabold tracking-[2px] text-[#b45309]">FEATURES</span>
+            <h2 className="text-[clamp(30px,4vw,42px)] tracking-[-1.5px] text-[#241c14]">Everything you need to run bookings</h2>
+            <p className="mt-3.5 text-[15px] text-[#7d6f5c]">
               From first reservation to repeat customer — manage it all.
             </p>
           </div>
 
-          <div className="home-features-grid">
-            <div className="home-feature-card">
-              <div className="feature-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 21h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                  <path d="M5 21V6l7-3 7 3v15" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-                  <path d="M9 21v-5h6v5" stroke="currentColor" strokeWidth="1.8" />
-                </svg>
+          <div className="grid grid-cols-1 gap-[22px] sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((f) => (
+              <div
+                key={f.title}
+                className="rounded-2xl border border-[#eadfc8] bg-[#fffdf8] p-7 transition-all hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(59,42,24,0.08)]"
+              >
+                <div className="mb-5 flex h-[46px] w-[46px] items-center justify-center rounded-xl bg-[#f7ead6] text-[#b45309]">
+                  <f.icon className="h-[22px] w-[22px]" />
+                </div>
+                <strong className="mb-2.5 block text-base text-[#2b2118]">{f.title}</strong>
+                <p className="text-[13px] leading-[1.65] text-[#7d6f5c]">{f.text}</p>
               </div>
-              <strong>Venue & table management</strong>
-              <p>Add restaurants, lounges, and cafes. Define tables, capacity, and availability windows.</p>
-            </div>
-
-            <div className="home-feature-card">
-              <div className="feature-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M8 3v4M16 3v4M3 10h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-              </div>
-              <strong>Smart reservations</strong>
-              <p>Guests pick a date, time, and party size. Your staff confirms with one click.</p>
-            </div>
-
-            <div className="home-feature-card">
-              <div className="feature-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M2 7h20v5H2z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-                  <path d="M12 22v-6" stroke="currentColor" strokeWidth="1.8" />
-                </svg>
-              </div>
-              <strong>Customer profiles</strong>
-              <p>Track regulars, preferences, spending, and booking history automatically.</p>
-            </div>
-
-            <div className="home-feature-card">
-              <div className="feature-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-              </div>
-              <strong>Flexible plans</strong>
-              <p>Start with the free plan. Scale to unlimited venues as your business grows.</p>
-            </div>
-
-            <div className="home-feature-card">
-              <div className="feature-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" strokeWidth="1.8" />
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-                </svg>
-              </div>
-              <strong>Real-time status</strong>
-              <p>Check-ins, no-shows, and completions update your board instantly.</p>
-            </div>
-
-            <div className="home-feature-card">
-              <div className="feature-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 3v18M18 3v18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-                </svg>
-              </div>
-              <strong>Reports & analytics</strong>
-              <p>Understand occupancy, revenue, and guest trends with clear reports.</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="home-section home-section-alt" id="how-it-works">
-        <div className="home-section-inner">
-          <div className="home-section-heading">
-            <span className="home-kicker">HOW IT WORKS</span>
-            <h2>Live in three simple steps</h2>
+      <section className="bg-[#f1e8d8] px-[18px] py-[60px] sm:px-6 sm:py-[85px]" id="how-it-works">
+        <div className="mx-auto max-w-[1100px]">
+          <div className="mb-[50px] text-center">
+            <span className="mb-3 inline-block text-[11px] font-extrabold tracking-[2px] text-[#b45309]">HOW IT WORKS</span>
+            <h2 className="text-[clamp(30px,4vw,42px)] tracking-[-1.5px] text-[#241c14]">Live in three simple steps</h2>
           </div>
 
-          <div className="home-steps">
-            <div className="home-step">
-              <div className="step-number">01</div>
-              <strong>Create your account</strong>
-              <p>Register your restaurant or venue in under a minute.</p>
-            </div>
-
-            <div className="home-step">
-              <div className="step-number">02</div>
-              <strong>Set up your venues</strong>
-              <p>Add your venues, tables, and opening hours.</p>
-            </div>
-
-            <div className="home-step">
-              <div className="step-number">03</div>
-              <strong>Accept bookings</strong>
-              <p>Share your booking link and start filling tables.</p>
-            </div>
+          <div className="mx-auto grid max-w-[480px] grid-cols-1 gap-[22px] lg:max-w-none lg:grid-cols-3">
+            {steps.map((s) => (
+              <div key={s.number} className="rounded-2xl border border-[#e4d5b8] bg-[#fffdf8] p-[34px_28px] text-left">
+                <div className="mb-4 text-[13px] font-extrabold tracking-[1.5px] text-[#b45309]">{s.number}</div>
+                <strong className="mb-2.5 block text-[17px] text-[#2b2118]">{s.title}</strong>
+                <p className="text-[13px] leading-[1.65] text-[#7d6f5c]">{s.text}</p>
+              </div>
+            ))}
           </div>
 
-          <div className="home-step-cta">
-            <Link href="/tenant/register" className="hero-btn primary">
+          <div className="mt-11 flex justify-center">
+            <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-[11px] bg-[#d97706] px-7 py-[15px] text-sm font-bold text-white shadow-[0_10px_30px_rgba(217,119,6,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[#b45309] hover:shadow-[0_16px_38px_rgba(180,83,9,0.32)]">
               Create a free account
             </Link>
           </div>
@@ -239,540 +224,42 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="home-cta">
-        <div className="home-cta-inner">
-          <h2>Ready to fill more tables?</h2>
-          <p>
+      <section className="bg-[#1f2937] px-[18px] py-20 sm:px-6">
+        <div className="mx-auto max-w-[640px] text-center">
+          <h2 className="text-[clamp(28px,4vw,40px)] tracking-[-1.2px] text-white">Ready to fill more tables?</h2>
+          <p className="mt-4 mb-[30px] text-[15px] leading-[1.7] text-[#aeb8c4]">
             Join restaurants using CQA Booking to simplify reservations
             and grow their business.
           </p>
-          <Link href="/tenant/register" className="hero-btn primary">
+          <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-[11px] bg-[#d97706] px-7 py-[15px] text-sm font-bold text-white shadow-[0_10px_30px_rgba(217,119,6,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[#b45309] hover:shadow-[0_16px_38px_rgba(180,83,9,0.32)]">
             Get started now
           </Link>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="home-footer">
-        <div className="home-footer-inner">
-          <div className="home-footer-brand">
-            <div className="home-logo-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3L14.4 8.2L20 9L16 13L17 18.7L12 16L7 18.7L8 13L4 9L9.6 8.2L12 3Z" fill="white" />
-              </svg>
+      <footer className="bg-[#171e2b] px-[18px] py-[30px] sm:px-6">
+        <div className="mx-auto flex max-w-[1100px] flex-col items-center justify-center gap-[18px] text-center sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:text-left">
+          <div className="flex items-center gap-2.5 text-sm font-extrabold tracking-[0.5px] text-white">
+            <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[11px] bg-gradient-to-br from-[#d97706] to-[#92400e] shadow-[0_6px_18px_rgba(180,83,9,0.22)]">
+              <Sparkles className="h-[18px] w-[18px] text-white" />
             </div>
-            <span>CQA<em>BOOKING</em></span>
+            <span>
+              CQA<em className="ml-1 text-[11px] font-normal not-italic tracking-[1.2px] text-[#d97706]">BOOKING</em>
+            </span>
           </div>
 
-          <div className="home-footer-links">
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/support">Support</Link>
+          <div className="flex gap-[22px]">
+            <Link href="/privacy" className="text-xs text-[#98a2b3] transition-colors hover:text-[#d97706]">Privacy</Link>
+            <Link href="/terms" className="text-xs text-[#98a2b3] transition-colors hover:text-[#d97706]">Terms</Link>
+            <Link href="/support" className="text-xs text-[#98a2b3] transition-colors hover:text-[#d97706]">Support</Link>
           </div>
 
-          <div className="home-footer-copy">
+          <div className="text-[11px] text-[#6b7686]">
             © {new Date().getFullYear()} CQA Booking. All rights reserved.
           </div>
         </div>
       </footer>
-
-      <style jsx>{`
-        * { box-sizing: border-box; }
-
-        .home-page {
-          min-height: 100vh;
-          background: #faf6ef;
-          color: #2b2118;
-          font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-          overflow-x: hidden;
-        }
-
-        .home-loading {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 16px;
-          background: #faf6ef;
-          color: #8a6d3b;
-          font-family: Inter, sans-serif;
-          font-size: 13px;
-        }
-
-        .home-loading-logo {
-          width: 58px;
-          height: 58px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 16px;
-          background: #fff8ed;
-          border: 1px solid #eadfc8;
-          animation: pulse 1.2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.08); opacity: 0.75; }
-        }
-
-        /* NAV */
-        .home-nav {
-          position: sticky;
-          top: 0;
-          z-index: 50;
-          background: rgba(250, 246, 239, 0.92);
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid #eadfc8;
-        }
-
-        .home-nav-inner {
-          max-width: 1150px;
-          margin: 0 auto;
-          padding: 16px 24px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-        }
-
-        .home-logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 16px;
-          font-weight: 800;
-          letter-spacing: 0.5px;
-          color: #2b2118;
-        }
-
-        .home-logo em {
-          font-style: normal;
-          color: #b45309;
-          margin-left: 4px;
-          font-weight: 700;
-          font-size: 13px;
-          letter-spacing: 1.2px;
-        }
-
-        .home-logo-icon {
-          width: 38px;
-          height: 38px;
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 11px;
-          background: linear-gradient(135deg, #d97706, #92400e);
-          box-shadow: 0 6px 18px rgba(180, 83, 9, 0.22);
-        }
-
-        .home-nav-links {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .home-nav-links a {
-          text-decoration: none;
-          font-size: 13px;
-          font-weight: 600;
-          color: #6b5d4b;
-          padding: 9px 12px;
-          border-radius: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .home-nav-links a:not(.nav-login):not(.nav-register):hover {
-          color: #b45309;
-          background: #f4ecdd;
-        }
-
-        .home-nav-links .nav-login {
-          color: #3f3326;
-        }
-
-        .home-nav-links .nav-register {
-          background: #1f2937;
-          color: #fff;
-          padding: 10px 18px;
-          border-radius: 9px;
-        }
-
-        .home-nav-links .nav-register:hover {
-          background: #b45309;
-          transform: translateY(-1px);
-        }
-
-        /* HERO */
-        .home-hero {
-          position: relative;
-          overflow: hidden;
-          padding: 90px 24px 100px;
-        }
-
-        .home-hero-glow {
-          position: absolute;
-          width: 480px;
-          height: 480px;
-          border-radius: 50%;
-          filter: blur(110px);
-          pointer-events: none;
-        }
-
-        .glow-a { top: -180px; left: -160px; background: rgba(217, 119, 6, 0.16); }
-        .glow-b { bottom: -240px; right: -160px; background: rgba(166, 108, 42, 0.14); }
-
-        .home-hero-inner {
-          position: relative;
-          z-index: 2;
-          max-width: 1150px;
-          margin: 0 auto;
-          text-align: center;
-        }
-
-        .home-hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 14px;
-          border-radius: 999px;
-          border: 1px solid #e4d5b8;
-          background: #fff9ef;
-          color: #8a6d3b;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-
-        .home-hero-badge span {
-          color: #16a34a;
-          font-size: 9px;
-        }
-
-        .home-hero h1 {
-          margin: 28px 0 0;
-          font-size: clamp(40px, 6vw, 68px);
-          line-height: 1.08;
-          letter-spacing: -2.5px;
-          font-weight: 800;
-          color: #241c14;
-        }
-
-        .home-hero h1 span {
-          color: #b45309;
-        }
-
-        .home-hero-inner > p {
-          margin: 24px auto 0;
-          max-width: 620px;
-          color: #7d6f5c;
-          font-size: 16px;
-          line-height: 1.75;
-        }
-
-        .home-hero-actions {
-          display: flex;
-          justify-content: center;
-          gap: 14px;
-          margin-top: 36px;
-          flex-wrap: wrap;
-        }
-
-        .hero-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 15px 28px;
-          border-radius: 11px;
-          font-size: 14px;
-          font-weight: 700;
-          text-decoration: none;
-          transition: all 0.2s ease;
-        }
-
-        .hero-btn.primary {
-          background: #d97706;
-          color: #fff;
-          box-shadow: 0 10px 30px rgba(217, 119, 6, 0.28);
-        }
-
-        .hero-btn.primary:hover {
-          background: #b45309;
-          transform: translateY(-2px);
-          box-shadow: 0 16px 38px rgba(180, 83, 9, 0.32);
-        }
-
-        .hero-btn.secondary {
-          background: #fff;
-          color: #3f3326;
-          border: 1px solid #e4d5b8;
-        }
-
-        .hero-btn.secondary:hover {
-          border-color: #b45309;
-          color: #b45309;
-          transform: translateY(-2px);
-        }
-
-        .home-hero-proof {
-          display: flex;
-          justify-content: center;
-          gap: 42px;
-          margin-top: 56px;
-        }
-
-        .proof-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .proof-item strong {
-          font-size: 26px;
-          font-weight: 800;
-          color: #241c14;
-        }
-
-        .proof-item span {
-          font-size: 11px;
-          color: #8a7b66;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-
-        /* SECTIONS */
-        .home-section {
-          padding: 85px 24px;
-        }
-
-        .home-section-alt {
-          background: #f1e8d8;
-        }
-
-        .home-section-inner {
-          max-width: 1100px;
-          margin: 0 auto;
-        }
-
-        .home-section-heading {
-          text-align: center;
-          margin-bottom: 50px;
-        }
-
-        .home-kicker {
-          display: inline-block;
-          margin-bottom: 12px;
-          color: #b45309;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 2px;
-        }
-
-        .home-section-heading h2 {
-          margin: 0;
-          font-size: clamp(30px, 4vw, 42px);
-          letter-spacing: -1.5px;
-          color: #241c14;
-        }
-
-        .home-section-heading p {
-          margin: 14px 0 0;
-          color: #7d6f5c;
-          font-size: 15px;
-        }
-
-        /* FEATURE GRID */
-        .home-features-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 22px;
-        }
-
-        .home-feature-card {
-          padding: 30px 28px;
-          background: #fffdf8;
-          border: 1px solid #eadfc8;
-          border-radius: 16px;
-          transition: all 0.25s ease;
-        }
-
-        .home-feature-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 18px 44px rgba(59, 42, 24, 0.08);
-        }
-
-        .feature-icon {
-          width: 46px;
-          height: 46px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 12px;
-          background: #f7ead6;
-          color: #b45309;
-          margin-bottom: 20px;
-        }
-
-        .home-feature-card strong {
-          display: block;
-          font-size: 16px;
-          color: #2b2118;
-          margin-bottom: 9px;
-        }
-
-        .home-feature-card p {
-          margin: 0;
-          color: #7d6f5c;
-          font-size: 13px;
-          line-height: 1.65;
-        }
-
-        /* STEPS */
-        .home-steps {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 22px;
-        }
-
-        .home-step {
-          background: #fffdf8;
-          border: 1px solid #e4d5b8;
-          border-radius: 16px;
-          padding: 34px 28px;
-          text-align: left;
-        }
-
-        .step-number {
-          font-size: 13px;
-          font-weight: 800;
-          color: #b45309;
-          letter-spacing: 1.5px;
-          margin-bottom: 16px;
-        }
-
-        .home-step strong {
-          display: block;
-          font-size: 17px;
-          color: #2b2118;
-          margin-bottom: 9px;
-        }
-
-        .home-step p {
-          margin: 0;
-          color: #7d6f5c;
-          font-size: 13px;
-          line-height: 1.65;
-        }
-
-        .home-step-cta {
-          display: flex;
-          justify-content: center;
-          margin-top: 44px;
-        }
-
-        /* CTA */
-        .home-cta {
-          padding: 80px 24px;
-          background: #1f2937;
-        }
-
-        .home-cta-inner {
-          max-width: 640px;
-          margin: 0 auto;
-          text-align: center;
-        }
-
-        .home-cta h2 {
-          margin: 0;
-          color: #fff;
-          font-size: clamp(28px, 4vw, 40px);
-          letter-spacing: -1.2px;
-        }
-
-        .home-cta p {
-          margin: 16px 0 30px;
-          color: #aeb8c4;
-          font-size: 15px;
-          line-height: 1.7;
-        }
-
-        /* FOOTER */
-        .home-footer {
-          padding: 30px 24px;
-          background: #171e2b;
-        }
-
-        .home-footer-inner {
-          max-width: 1100px;
-          margin: 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 18px;
-          flex-wrap: wrap;
-        }
-
-        .home-footer-brand {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          color: #fff;
-          font-size: 14px;
-          font-weight: 800;
-          letter-spacing: 0.5px;
-        }
-
-        .home-footer-brand em {
-          font-style: normal;
-          color: #d97706;
-          margin-left: 4px;
-          font-size: 11px;
-          letter-spacing: 1.2px;
-        }
-
-        .home-footer-links {
-          display: flex;
-          gap: 22px;
-        }
-
-        .home-footer-links a {
-          color: #98a2b3;
-          font-size: 12px;
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-
-        .home-footer-links a:hover {
-          color: #d97706;
-        }
-
-        .home-footer-copy {
-          color: #6b7686;
-          font-size: 11px;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 900px) {
-          .home-features-grid { grid-template-columns: repeat(2, 1fr); }
-          .home-steps { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
-        }
-
-        @media (max-width: 640px) {
-          .home-nav-inner { padding: 13px 16px; }
-          .home-nav-links a:not(.nav-login):not(.nav-register) { display: none; }
-          .home-hero { padding: 60px 18px 70px; }
-          .home-hero-actions { flex-direction: column; align-items: stretch; max-width: 340px; margin-left: auto; margin-right: auto; }
-          .home-features-grid { grid-template-columns: 1fr; }
-          .home-section { padding: 60px 18px; }
-          .home-hero-proof { gap: 28px; }
-          .home-footer-inner { flex-direction: column; text-align: center; justify-content: center; }
-        }
-      `}</style>
     </main>
   );
 }

@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,7 +18,7 @@ export default function SuperAdminActivityLogsPage() {
 
   useEffect(() => {
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
-      router.push('/superadmin/login');
+      router.push('/login');
       return;
     }
     loadLogs();
@@ -34,9 +35,7 @@ export default function SuperAdminActivityLogsPage() {
       if (data.success) {
         setLogs(data.data || []);
       }
-    } catch (error) {
-      console.error('Load error:', error);
-      setLogs(generateDemoLogs());
+    } catch (error) {      setLogs(generateDemoLogs());
     } finally {
       setLoading(false);
     }
@@ -80,14 +79,14 @@ export default function SuperAdminActivityLogsPage() {
 
   const getTypeIcon = (type) => {
     const icons = {
-      create: '➕',
-      suspend: '🔒',
-      activate: '✅',
-      plan: '📊',
-      auth: '🔑',
-      booking: '📋',
+      create: 'plus',
+      suspend: 'lock',
+      activate: 'checkCircle',
+      plan: 'chart',
+      auth: 'key',
+      booking: 'bookings',
     };
-    return icons[type] || '•';
+    return <AppIcon name={icons[type] || 'status'} />;
   };
 
   const filteredLogs = logs.filter(log => {
@@ -152,7 +151,7 @@ export default function SuperAdminActivityLogsPage() {
 
               {filteredLogs.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">📜</div>
+                  <div className="empty-icon"><AppIcon name="file" /></div>
                   <p>No activity logs found</p>
                 </div>
               ) : (
@@ -167,7 +166,7 @@ export default function SuperAdminActivityLogsPage() {
                         <div className="log-action">{log.action}</div>
                         <div className="log-meta">
                           <span className="log-actor">{log.actor}</span>
-                          <span className="log-dot">•</span>
+                          <span className="log-dot">â€¢</span>
                           <span className="log-target">{log.target}</span>
                         </div>
                       </div>

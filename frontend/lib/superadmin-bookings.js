@@ -1,37 +1,23 @@
 // ===== API CONFIGURATION =====
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-const API_URL = API_BASE ? `${API_BASE}/api/v1` : 'http://localhost:5000/api/v1';
-
-console.log('📋 Bookings API URL:', API_URL);
-
+const API_URL = API_BASE ? `${API_BASE}/api/v1` : 'http://localhost:5000/api/v1';
 // ===== REQUEST HELPER =====
 async function fetchWithDebug(endpoint, options = {}) {
-  const url = `${API_URL}${endpoint}`;
-  
-  console.log(`\n📡 API REQUEST - ${options.method || 'GET'} ${endpoint}`);
-
+  const url = `${API_URL}${endpoint}`;
   try {
-    const response = await fetch(url, options);
-    console.log(`✅ Status: ${response.status}`);
-    
+    const response = await fetch(url, options);    
     const data = await response.json();
     
-    if (!response.ok) {
-      console.error(`❌ Error Response:`, data);
-      throw new Error(data?.error || `HTTP ${response.status}`);
+    if (!response.ok) {      throw new Error(data?.error || `HTTP ${response.status}`);
     }
     
     return data;
-  } catch (error) {
-    console.error(`❌ FETCH ERROR:`, error.message);
-    throw error;
+  } catch (error) {    throw error;
   }
 }
 
 // ===== GET ALL BOOKINGS =====
-export async function getAllBookings(token) {
-  console.log('\n📋 [getAllBookings] Started');
-  
+export async function getAllBookings(token) {  
   if (!token) throw new Error('No authentication token');
 
   try {
@@ -48,9 +34,7 @@ export async function getAllBookings(token) {
       data: response.data || [],
       count: response.count || 0
     };
-  } catch (error) {
-    console.error('Error in getAllBookings:', error.message);
-    return {
+  } catch (error) {    return {
       success: false,
       data: [],
       count: 0,
@@ -60,9 +44,7 @@ export async function getAllBookings(token) {
 }
 
 // ===== GET BOOKING DETAILS =====
-export async function getBookingDetails(bookingId, token) {
-  console.log('\n📋 [getBookingDetails] Started with ID:', bookingId);
-  
+export async function getBookingDetails(bookingId, token) {  
   if (!token) throw new Error('No authentication token');
   if (!bookingId) throw new Error('Booking ID is required');
 
@@ -76,9 +58,7 @@ export async function getBookingDetails(bookingId, token) {
 }
 
 // ===== GET BOOKING STATS =====
-export async function getBookingStats(token) {
-  console.log('\n📊 [getBookingStats] Started');
-  
+export async function getBookingStats(token) {  
   if (!token) throw new Error('No authentication token');
 
   try {
@@ -102,9 +82,7 @@ export async function getBookingStats(token) {
         topVenue: null
       }
     };
-  } catch (error) {
-    console.error('Error in getBookingStats:', error.message);
-    return {
+  } catch (error) {    return {
       success: false,
       data: {
         totalBookings: 0,
@@ -121,9 +99,7 @@ export async function getBookingStats(token) {
 }
 
 // ===== CANCEL BOOKING =====
-export async function cancelBooking(bookingId, reason, token) {
-  console.log('\n❌ [cancelBooking] Started with ID:', bookingId);
-  
+export async function cancelBooking(bookingId, reason, token) {  
   if (!token) throw new Error('No authentication token');
   if (!bookingId) throw new Error('Booking ID is required');
 
@@ -138,9 +114,7 @@ export async function cancelBooking(bookingId, reason, token) {
 }
 
 // ===== CONFIRM BOOKING =====
-export async function confirmBooking(bookingId, token) {
-  console.log('\n✅ [confirmBooking] Started with ID:', bookingId);
-  
+export async function confirmBooking(bookingId, token) {  
   if (!token) throw new Error('No authentication token');
   if (!bookingId) throw new Error('Booking ID is required');
 
@@ -154,9 +128,7 @@ export async function confirmBooking(bookingId, token) {
 }
 
 // ===== COMPLETE BOOKING =====
-export async function completeBooking(bookingId, token) {
-  console.log('\n✔️ [completeBooking] Started with ID:', bookingId);
-  
+export async function completeBooking(bookingId, token) {  
   if (!token) throw new Error('No authentication token');
   if (!bookingId) throw new Error('Booking ID is required');
 

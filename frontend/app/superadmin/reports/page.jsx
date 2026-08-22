@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +18,7 @@ function ReportsPage() {
 
   useEffect(() => {
     if (!token || !currentUser || currentUser.role !== "superadmin") {
-      router.push("/superadmin/login");
+      router.push("/login");
       return;
     }
     loadReports();
@@ -33,9 +34,7 @@ function ReportsPage() {
       if (data.success) {
         setStats(data.data || {});
       }
-    } catch (error) {
-      console.error("Load error:", error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -112,7 +111,7 @@ function ReportsPage() {
 
               <div className="export-grid">
                 <a className="export-card" href={`${API_URL}/api/v1/reports/bookings.csv`} target="_blank" rel="noreferrer">
-                  <div className="export-icon">⬇</div>
+                  <div className="export-icon"><AppIcon name="download" /></div>
                   <div>
                     <strong>Bookings Report</strong>
                     <span>Download all bookings as CSV</span>
@@ -120,7 +119,7 @@ function ReportsPage() {
                 </a>
 
                 <a className="export-card" href={`${API_URL}/api/v1/reports/customers.csv`} target="_blank" rel="noreferrer">
-                  <div className="export-icon">⬇</div>
+                  <div className="export-icon"><AppIcon name="download" /></div>
                   <div>
                     <strong>Customers Report</strong>
                     <span>Download all customers as CSV</span>
@@ -128,7 +127,7 @@ function ReportsPage() {
                 </a>
 
                 <a className="export-card" href={`${API_URL}/api/v1/reports/payments.csv`} target="_blank" rel="noreferrer">
-                  <div className="export-icon">⬇</div>
+                  <div className="export-icon"><AppIcon name="download" /></div>
                   <div>
                     <strong>Payments Report</strong>
                     <span>Download all payments as CSV</span>

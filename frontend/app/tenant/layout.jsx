@@ -7,9 +7,7 @@ import TenantHeader from '@/components/TenantHeader';
 import Footer from '@/components/Footer';
 import TenantSidebar from '@/components/TenantSidebar';
 
-import './tenantGlobal.css';
-
-const STANDALONE_PATHS = ['/tenant/login', '/tenant/register', '/tenant/forgot-password'];
+const STANDALONE_PATHS = ['/tenant/register', '/tenant/forgot-password'];
 
 const titles = {
   '/tenant/dashboard': 'Dashboard',
@@ -35,18 +33,22 @@ export default function TenantLayout({ children }) {
   }, [pathname]);
 
   if (STANDALONE_PATHS.some(p => pathname?.startsWith(p))) {
-    return <div className="tenant-page">{children}</div>;
+    return (
+      <div className="min-h-screen bg-[var(--tenant-bg)] text-[var(--tenant-text)] transition-colors duration-200">
+        {children}
+      </div>
+    );
   }
 
   return (
-    <div className="tenant-page">
-      <div className="tenant-layout">
+    <div className="min-h-screen bg-[var(--tenant-bg)] text-[var(--tenant-text)] transition-colors duration-200">
+      <div className="flex w-full min-h-screen bg-[var(--tenant-bg)]">
         <TenantSidebar
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
 
-        <div className="tenant-main-wrapper">
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-[var(--tenant-bg)] ml-[260px] max-[1100px]:ml-[235px] max-[900px]:ml-[220px] max-[768px]:ml-0 max-[768px]:w-full transition-[margin-left,background-color] duration-200 ease-in-out">
           <TenantHeader
             title={titles[pathname] || 'Dashboard'}
             onMenuClick={() => setSidebarOpen(true)}

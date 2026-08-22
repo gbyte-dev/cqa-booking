@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,7 +12,6 @@ import {
   confirmBooking,
   completeBooking,
 } from '@/lib/superadmin-bookings';
-import './bookings.css';
 
 export default function BookingsPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function BookingsPage() {
   // Check auth
   useEffect(() => {
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
-      router.push('/superadmin/login');
+      router.push('/login');
       return;
     }
     setUser(currentUser);
@@ -56,9 +57,7 @@ export default function BookingsPage() {
       if (statsResponse.success) {
         setStats(statsResponse.data);
       }
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -69,11 +68,11 @@ export default function BookingsPage() {
     try {
         const response = await confirmBooking(booking.id, token);
         if (response.success) {
-        alert('✅ Booking confirmed');
+        notify('Booking confirmed');
         await loadData();
         }
     } catch (error) {
-        alert('❌ Error: ' + error.message);
+        notify('Error: ' + error.message);
     } finally {
         setActionLoading(false);
     }
@@ -84,11 +83,11 @@ export default function BookingsPage() {
     try {
         const response = await completeBooking(booking.id, token);
         if (response.success) {
-        alert('✅ Booking completed');
+        notify('Booking completed');
         await loadData();
         }
     } catch (error) {
-        alert('❌ Error: ' + error.message);
+        notify('Error: ' + error.message);
     } finally {
         setActionLoading(false);
     }
@@ -102,7 +101,7 @@ export default function BookingsPage() {
 
   const handleCancelBooking = async () => {
     if (!cancelReason.trim()) {
-      alert('⚠️ Please provide a reason');
+      notify('Please provide a reason');
       return;
     }
 
@@ -110,12 +109,12 @@ export default function BookingsPage() {
     try {
       const response = await cancelBooking(selectedBooking.id, cancelReason, token);
       if (response.success) {
-        alert('✅ Booking cancelled');
+        notify('Booking cancelled');
         setShowCancelModal(false);
         await loadData();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setActionLoading(false);
     }
@@ -139,11 +138,11 @@ export default function BookingsPage() {
   // Get status badge
   const getStatusBadge = (status) => {
     const badges = {
-        confirmed: { class: 'confirmed', text: '✅ Confirmed' },
-        pending: { class: 'pending', text: '⏳ Pending' },
-        cancelled: { class: 'cancelled', text: '❌ Cancelled' },
-        completed: { class: 'completed', text: '✔️ Completed' },
-        checked_in: { class: 'pending', text: '📍 Checked In' }
+        confirmed: { class: 'confirmed', text: 'Confirmed' },
+        pending: { class: 'pending', text: 'Pending' },
+        cancelled: { class: 'cancelled', text: 'Cancelled' },
+        completed: { class: 'completed', text: 'Completed' },
+        checked_in: { class: 'pending', text: 'Checked In' }
     };
     return badges[status] || { class: 'pending', text: status };
     };
@@ -250,7 +249,7 @@ export default function BookingsPage() {
 
               {filteredBookings.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">📋</div>
+                  <div className="empty-icon"><AppIcon name="bookings" /></div>
                   <p>No bookings found</p>
                 </div>
               ) : (
@@ -295,7 +294,7 @@ export default function BookingsPage() {
                             <td>{booking.Table?.name}</td>
                             <td>
                                 <span className="guests-badge">
-                                {booking.numGuests}  {/* ← numGuests */}
+                                {booking.numGuests}  {/* numGuests */}
                                 </span>
                             </td>
                             <td>{formatDate(booking.bookingDate)}</td>
@@ -315,7 +314,7 @@ export default function BookingsPage() {
                                   }}
                                   title="View Details"
                                 >
-                                  👁️
+                                  <AppIcon name="eye" />
                                 </button>
                                 {booking.status === 'pending' && (
                                   <button
@@ -324,7 +323,7 @@ export default function BookingsPage() {
                                     disabled={actionLoading}
                                     title="Confirm"
                                   >
-                                    ✅
+                                    <AppIcon name="checkCircle" />
                                   </button>
                                 )}
                                 {booking.status === 'confirmed' && (
@@ -334,7 +333,7 @@ export default function BookingsPage() {
                                     disabled={actionLoading}
                                     title="Complete"
                                   >
-                                    ✔️
+                                    <AppIcon name="check" />
                                   </button>
                                 )}
                                 {booking.status !== 'cancelled' && booking.status !== 'completed' && (
@@ -344,7 +343,7 @@ export default function BookingsPage() {
                                     disabled={actionLoading}
                                     title="Cancel"
                                   >
-                                    ❌
+                                    <AppIcon name="cancel" />
                                   </button>
                                 )}
                               </div>
@@ -364,13 +363,13 @@ export default function BookingsPage() {
         <div className="modal-overlay" onClick={() => setShowDetails(false)}>
             <div className="modal details-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-                <h2>📋 Booking Details</h2>
-                <button className="close-btn" onClick={() => setShowDetails(false)}>✕</button>
+                <h2><AppIcon name="bookings" /> Booking Details</h2>
+                <button className="close-btn" onClick={() => setShowDetails(false)}><AppIcon name="close" /></button>
             </div>
 
             <div className="booking-details">
                 <div className="details-section">
-                <h3>👤 Customer Information</h3>
+                <h3><AppIcon name="user" /> Customer Information</h3>
                 <div className="detail-row">
                     <span className="label">Name:</span>
                     <span className="value">{selectedBooking.customerName}</span>
@@ -386,7 +385,7 @@ export default function BookingsPage() {
                 </div>
 
                 <div className="details-section">
-                <h3>🏢 Venue Information</h3>
+                <h3><AppIcon name="building" /> Venue Information</h3>
                 <div className="detail-row">
                     <span className="label">Venue:</span>
                     <span className="value">{selectedBooking.Venue?.name}</span>
@@ -402,7 +401,7 @@ export default function BookingsPage() {
                 </div>
 
                 <div className="details-section">
-                <h3>🪑 Table Information</h3>
+                <h3><AppIcon name="table" /> Table Information</h3>
                 <div className="detail-row">
                     <span className="label">Table:</span>
                     <span className="value">{selectedBooking.Table?.name}</span>
@@ -414,7 +413,7 @@ export default function BookingsPage() {
                 </div>
 
                 <div className="details-section">
-                <h3>📅 Booking Details</h3>
+                <h3><AppIcon name="calendar" /> Booking Details</h3>
                 <div className="detail-row">
                     <span className="label">Date:</span>
                     <span className="value">{formatDate(selectedBooking.bookingDate)}</span>
@@ -464,8 +463,8 @@ export default function BookingsPage() {
         <div className="modal-overlay" onClick={() => setShowCancelModal(false)}>
           <div className="modal cancel-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>❌ Cancel Booking</h2>
-              <button className="close-btn" onClick={() => setShowCancelModal(false)}>✕</button>
+              <h2><AppIcon name="cancel" /> Cancel Booking</h2>
+              <button className="close-btn" onClick={() => setShowCancelModal(false)}><AppIcon name="close" /></button>
             </div>
 
             <div className="cancel-content">
@@ -477,9 +476,9 @@ export default function BookingsPage() {
                 ?
               </p>
               <p className="booking-info">
-                📅 {formatDate(selectedBooking.bookingDate)} at {formatTime(selectedBooking.bookingStartTime)}
+                <AppIcon name="calendar" /> {formatDate(selectedBooking.bookingDate)} at {formatTime(selectedBooking.bookingStartTime)}
                 <br />
-                🏢 {selectedBooking.Venue?.name}
+                <AppIcon name="building" /> {selectedBooking.Venue?.name}
               </p>
 
               <div className="form-group">
@@ -506,7 +505,7 @@ export default function BookingsPage() {
                   onClick={handleCancelBooking}
                   disabled={actionLoading}
                 >
-                  {actionLoading ? 'Cancelling...' : '❌ Cancel Booking'}
+                  {actionLoading ? 'Cancelling...' : 'Cancel Booking'}
                 </button>
               </div>
             </div>

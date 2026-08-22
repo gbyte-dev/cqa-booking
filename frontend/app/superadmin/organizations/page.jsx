@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { confirmAction, notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,7 +13,6 @@ import {
   suspendOrganization,
   reactivateOrganization,
 } from '@/lib/organizations';
-import './organizations.css';
 
 export default function OrganizationsPage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function OrganizationsPage() {
   useEffect(() => {
     // Check auth once on mount
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
-        router.push('/superadmin/login');
+        router.push('/login');
         return;
     }
     
@@ -53,8 +54,7 @@ export default function OrganizationsPage() {
         setOrganizations(response.data || []);
       }
     } catch (error) {
-      console.error('Load error:', error);
-      alert('❌ Error loading organizations: ' + error.message);
+      notify('Error loading organizations: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -131,10 +131,10 @@ export default function OrganizationsPage() {
       }
 
       if (response.success) {
-        alert(
+        notify(
           formMode === 'add'
-            ? '✅ Organization created successfully'
-            : '✅ Organization updated successfully'
+            ? 'Organization created successfully'
+            : 'Organization updated successfully'
         );
         handleCloseForm();
         await loadOrganizations();
@@ -150,46 +150,46 @@ export default function OrganizationsPage() {
 
   // Handle Suspend
   const handleSuspend = async (org) => {
-    if (!confirm(`Suspend "${org.name}"?`)) return;
+    if (!(await confirmAction({ title: `Suspend ${org.name}?`, text: 'The organization will no longer be active.', confirmText: 'Suspend' }))) return;
 
     try {
       const response = await suspendOrganization(org.id, token);
       if (response.success) {
-        alert('✅ Organization suspended');
+        notify('Organization suspended');
         await loadOrganizations();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     }
   };
 
   // Handle Reactivate
   const handleReactivate = async (org) => {
-    if (!confirm(`Reactivate "${org.name}"?`)) return;
+    if (!(await confirmAction({ title: `Reactivate ${org.name}?`, text: 'The organization will regain access.', confirmText: 'Reactivate' }))) return;
 
     try {
       const response = await reactivateOrganization(org.id, token);
       if (response.success) {
-        alert('✅ Organization reactivated');
+        notify('Organization reactivated');
         await loadOrganizations();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     }
   };
 
   // Handle Delete
   const handleDelete = async (org) => {
-    if (!confirm(`Delete "${org.name}" permanently?`)) return;
+    if (!(await confirmAction({ title: `Delete ${org.name}?`, text: 'This action cannot be undone.', confirmText: 'Delete organization', danger: true }))) return;
 
     try {
       const response = await deleteOrganization(org.id, token);
       if (response.success) {
-        alert('✅ Organization deleted');
+        notify('Organization deleted');
         await loadOrganizations();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     }
   };
 
@@ -232,7 +232,7 @@ export default function OrganizationsPage() {
                 </p>
               </div>
               <button className="add-btn" onClick={handleAddClick}>
-                ➕ Add Organization
+                <AppIcon name="add" /> Add Organization
               </button>
             </div>
 
@@ -244,13 +244,13 @@ export default function OrganizationsPage() {
 
               {organizations.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">🏢</div>
+                  <div className="empty-icon"><AppIcon name="building" /></div>
                   <p>No organizations found</p>
                   <button
                     className="empty-action-btn"
                     onClick={handleAddClick}
                   >
-                    ➕ Create First Organization
+                    <AppIcon name="add" /> Create First Organization
                   </button>
                 </div>
               ) : (
@@ -259,7 +259,7 @@ export default function OrganizationsPage() {
                     <thead>
                       <tr>
                         <th>Organization</th>
-                        <th>Slug</th>
+                        {/* <th>Slug</th> */}
                         <th>Timezone</th>
                         <th>Plan</th>
                         <th>Status</th>
@@ -288,9 +288,9 @@ export default function OrganizationsPage() {
                               </div>
                             </div>
                           </td>
-                          <td>
+                          {/* <td>
                             <code className="slug-badge">{org.slug}</code>
-                          </td>
+                          </td> */}
                           <td>{org.timezone}</td>
                           <td>{org.Subscription?.plan || 'No Plan'}</td>
                           <td>
@@ -321,7 +321,7 @@ export default function OrganizationsPage() {
                                 onClick={() => handleEditClick(org)}
                                 title="Edit"
                               >
-                                ✏️
+                                <AppIcon name="edit" />
                               </button>
                               {org.subscriptionStatus === 'active' ? (
                                 <button
@@ -329,7 +329,7 @@ export default function OrganizationsPage() {
                                   onClick={() => handleSuspend(org)}
                                   title="Suspend"
                                 >
-                                  🔒
+                                  <AppIcon name="lock" />
                                 </button>
                               ) : (
                                 <button
@@ -337,7 +337,7 @@ export default function OrganizationsPage() {
                                   onClick={() => handleReactivate(org)}
                                   title="Reactivate"
                                 >
-                                  ✅
+                                  <AppIcon name="checkCircle" />
                                 </button>
                               )}
                               <button
@@ -345,7 +345,7 @@ export default function OrganizationsPage() {
                                 onClick={() => handleDelete(org)}
                                 title="Delete"
                               >
-                                🗑️
+                                <AppIcon name="trash" />
                               </button>
                             </div>
                           </td>
@@ -368,16 +368,16 @@ export default function OrganizationsPage() {
             <div className="modal-header">
               <h2>
                 {formMode === 'add'
-                  ? '➕ Add Organization'
-                  : '✏️ Edit Organization'}
+                  ? 'Add Organization'
+                  : 'Edit Organization'}
               </h2>
               <button className="close-btn" onClick={handleCloseForm}>
-                ✕
+                <AppIcon name="close" />
               </button>
             </div>
 
             {formError && (
-              <div className="form-error">❌ {formError}</div>
+              <div className="form-error"><AppIcon name="cancel" /> {formError}</div>
             )}
 
             <form onSubmit={handleSubmit}>
@@ -454,8 +454,8 @@ export default function OrganizationsPage() {
                   {formLoading
                     ? 'Processing...'
                     : formMode === 'add'
-                    ? '➕ Create'
-                    : '💾 Update'}
+                    ? 'Create'
+                    : 'Update'}
                 </button>
               </div>
             </form>
