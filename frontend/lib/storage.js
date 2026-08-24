@@ -10,7 +10,12 @@ export const storage = {
   getUser: () => {
     if (typeof window !== 'undefined') {
       const user = localStorage.getItem('user');
-      return user ? JSON.parse(user) : null;
+      if (!user) return null;
+      try {
+        return JSON.parse(user);
+      } catch {
+        return null;
+      }
     }
     return null;
   },
@@ -37,7 +42,12 @@ export const storage = {
   getOrganization: () => {
     if (typeof window !== 'undefined') {
       const org = localStorage.getItem('organization');
-      return org ? JSON.parse(org) : null;
+      if (!org) return null;
+      try {
+        return JSON.parse(org);
+      } catch {
+        return null;
+      }
     }
     return null;
   },

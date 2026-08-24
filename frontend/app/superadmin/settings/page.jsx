@@ -1,390 +1,1141 @@
 ﻿'use client';
-import { notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  Settings,
+  Globe,
+  Shield,
+  CreditCard,
+  Save,
+} from 'lucide-react';
+import { notifySuccess, notifyError } from '@/lib/alerts';
 import { storage } from '@/lib/storage';
+import { getPlatformSettings, updatePlatformSettings } from '@/lib/settings';
 
-export default function SuperAdminSettingsPage() {
+const DEFAULT_SETTINGS = {
+  platformName: '',
+  supportEmail: '',
+  supportPhone: '',
+  defaultCurrency: 'USD',
+  defaultTimezone: 'UTC',
+  allowNewRegistrations: true,
+  maintenanceMode: false,
+  smtpHost: '',
+
+  paymentGateways: {
+    stripe: {
+      enabled: false,
+      environment: 'test',
+      publicKey: '',
+      secretKey: '',
+      webhookSecret: '',
+    },
+
+    razorpay: {
+      enabled: false,
+      environment: 'test',
+      keyId: '',
+      keySecret: '',
+      webhookSecret: '',
+    },
+
+    paypal: {
+      enabled: false,
+      environment: 'sandbox',
+      clientId: '',
+      clientSecret: '',
+      webhookSecret: '',
+    },
+
+    paytm: {
+      enabled: false,
+      environment: 'test',
+      merchantId: '',
+      merchantKey: '',
+      website: 'WEBSTAGING',
+      webhookSecret: '',
+    },
+  },
+};
+
+export default function PlatformSettingsPage() {
   const router = useRouter();
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const [settings, setSettings] = useState({
-    platformName: 'CQA Booking',
-    supportEmail: 'support@cqabooking.com',
-    currency: 'USD',
-    defaultTimezone: 'UTC',
-    allowNewRegistrations: true,
-    maintenanceMode: false,
-  });
-
-  const token = storage.getToken();
-  const currentUser = storage.getUser();
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
 
   useEffect(() => {
-    if (!token || !currentUser || currentUser.role !== 'superadmin') {
+    const token = storage.getToken();
+    const user = storage.getUser();
+
+    if (!token || !user || user.role !== 'superadmin') {
       router.push('/login');
       return;
     }
-    loadSettings();
+
+    (async () => {
+      try {
+        const result = await getPlatformSettings(token);
+        if (result.success) {
+          setSettings({ ...DEFAULT_SETTINGS, ...result.data, paymentGateways: { ...DEFAULT_SETTINGS.paymentGateways, ...result.data.paymentGateways } });
+        }
+      } catch (error) {
+        notifyError(error.message || 'Failed to load platform settings.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadSettings = async () => {
-    try {
-      const local = localStorage.getItem('cqa-platform-settings');
-      if (local) {
-        setSettings({ ...settings, ...JSON.parse(local) });
-      }
-    } catch (error) {    } finally {
-      setLoading(false);
-    }
-  };
+  /* =========================================================
+     General Settings Change
+  ========================================================= */
 
   const handleChange = (field, value) => {
-    setSettings(prev => ({ ...prev, [field]: value }));
+    setSettings((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
+
+  /* =========================================================
+     Gateway Settings Change
+  ========================================================= */
+
+  const handleGatewayChange = (
+    gateway,
+    field,
+    value
+  ) => {
+    setSettings((prev) => ({
+      ...prev,
+
+      paymentGateways: {
+        ...prev.paymentGateways,
+
+        [gateway]: {
+          ...prev.paymentGateways[gateway],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  /* =========================================================
+     Save Settings
+  ========================================================= */
 
   const handleSave = async () => {
     setSaving(true);
+
     try {
-      localStorage.setItem('cqa-platform-settings', JSON.stringify(settings));
-      setTimeout(() => {
-        setSaving(false);
-        notify('Settings saved successfully');
-      }, 500);
+      const token = storage.getToken();
+      const result = await updatePlatformSettings(token, settings);
+
+      if (result.success) {
+        setSettings({ ...DEFAULT_SETTINGS, ...result.data, paymentGateways: { ...DEFAULT_SETTINGS.paymentGateways, ...result.data.paymentGateways } });
+        notifySuccess(result.message || 'Platform settings saved successfully.');
+      } else {
+        notifyError(result.error || 'Failed to save platform settings.');
+      }
     } catch (error) {
+      notifyError(error?.message || 'Failed to save platform settings.');
+    } finally {
       setSaving(false);
-      notify('Error saving settings: ' + error.message);
     }
   };
 
+  /* =========================================================
+     Loading
+  ========================================================= */
+
   if (loading) {
     return (
-      <div className="loading-state">
-        <div className="loading-spinner" />
-        <span>Loading Settings...</span>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+
+          <p className="mt-4 text-sm text-gray-600">
+            Loading Platform Settings...
+          </p>
+
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <main className="settings-content">
-            <div className="page-header">
-              <div>
-                <h2>Platform Settings</h2>
-                <p>Configure global platform preferences.</p>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+        {/* =====================================================
+            Page Header
+        ===================================================== */}
+
+        <div className="mb-8">
+
+          <div className="flex items-center gap-3">
+
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
+              <Settings className="h-5 w-5 text-indigo-600" />
             </div>
 
-            {/* General */}
-            <div className="panel">
-              <div className="panel-header">
-                <h3>General</h3>
-                <span>Platform identity</span>
-              </div>
+            <div className="min-w-0">
 
-              <div className="settings-body">
-                <div className="form-group">
-                  <label>Platform Name</label>
-                  <input
-                    type="text"
-                    value={settings.platformName}
-                    onChange={(e) => handleChange('platformName', e.target.value)}
-                  />
-                </div>
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+                Platform Settings
+              </h1>
 
-                <div className="form-group">
-                  <label>Support Email</label>
-                  <input
-                    type="email"
-                    value={settings.supportEmail}
-                    onChange={(e) => handleChange('supportEmail', e.target.value)}
-                  />
-                </div>
-              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                Configure global platform preferences,
+                access controls and payment gateways.
+              </p>
+
             </div>
 
-            {/* Regional */}
-            <div className="panel">
-              <div className="panel-header">
-                <h3>Regional Preferences</h3>
-                <span>Currency & timezone</span>
-              </div>
+          </div>
 
-              <div className="settings-body">
-                <div className="form-group">
-                  <label>Default Currency</label>
-                  <select
-                    value={settings.currency}
-                    onChange={(e) => handleChange('currency', e.target.value)}
-                  >
-                    <option value="USD">USD â€” US Dollar</option>
-                    <option value="EUR">EUR â€” Euro</option>
-                    <option value="GBP">GBP â€” British Pound</option>
-                    <option value="INR">INR â€” Indian Rupee</option>
-                    <option value="AUD">AUD â€” Australian Dollar</option>
-                  </select>
-                </div>
+        </div>
 
-                <div className="form-group">
-                  <label>Default Timezone</label>
-                  <select
-                    value={settings.defaultTimezone}
-                    onChange={(e) => handleChange('defaultTimezone', e.target.value)}
-                  >
-                    <option value="UTC">UTC</option>
-                    <option value="America/New_York">America/New_York</option>
-                    <option value="Europe/London">Europe/London</option>
-                    <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                    <option value="Asia/Tokyo">Asia/Tokyo</option>
-                    <option value="Australia/Sydney">Australia/Sydney</option>
-                  </select>
-                </div>
-              </div>
+
+        {/* =====================================================
+            General Settings
+        ===================================================== */}
+
+        <SettingsSection
+          title="General Settings"
+          description="Platform identity and contact information"
+          icon={
+            <Settings className="h-5 w-5 text-gray-400" />
+          }
+        >
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+            <InputField
+              label="Platform Name"
+              value={settings.platformName}
+              onChange={(value) =>
+                handleChange(
+                  'platformName',
+                  value
+                )
+              }
+              placeholder="Bookly Platform"
+            />
+
+            <InputField
+              label="Support Email"
+              type="email"
+              value={settings.supportEmail}
+              onChange={(value) =>
+                handleChange(
+                  'supportEmail',
+                  value
+                )
+              }
+              placeholder="support@example.com"
+            />
+
+            <InputField
+              label="Support Phone"
+              type="tel"
+              value={settings.supportPhone}
+              onChange={(value) =>
+                handleChange(
+                  'supportPhone',
+                  value
+                )
+              }
+              placeholder="+1 234 567 890"
+            />
+
+            <InputField
+              label="SMTP Host"
+              value={settings.smtpHost}
+              onChange={(value) =>
+                handleChange(
+                  'smtpHost',
+                  value
+                )
+              }
+              placeholder="smtp.example.com"
+            />
+
+          </div>
+
+        </SettingsSection>
+
+
+        {/* =====================================================
+            Platform Controls + Regional Settings
+        ===================================================== */}
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+          {/* ===================================================
+              Platform Controls
+          =================================================== */}
+
+          <SettingsSection
+            title="Platform Controls"
+            description="Access and platform availability"
+            icon={
+              <Shield className="h-5 w-5 text-gray-400" />
+            }
+          >
+
+            <div className="space-y-4">
+
+              <ToggleRow
+                title="Allow New Registrations"
+                description="Allow new organizations to register on the platform."
+                enabled={
+                  settings.allowNewRegistrations
+                }
+                onChange={() =>
+                  handleChange(
+                    'allowNewRegistrations',
+                    !settings.allowNewRegistrations
+                  )
+                }
+              />
+
+              <ToggleRow
+                title="Maintenance Mode"
+                description="Temporarily restrict platform access while maintenance is being performed."
+                enabled={
+                  settings.maintenanceMode
+                }
+                onChange={() =>
+                  handleChange(
+                    'maintenanceMode',
+                    !settings.maintenanceMode
+                  )
+                }
+              />
+
             </div>
 
-            {/* Platform Controls */}
-            <div className="panel">
-              <div className="panel-header">
-                <h3>Platform Controls</h3>
-                <span>Access & availability</span>
-              </div>
+          </SettingsSection>
 
-              <div className="settings-body">
-                <div className="toggle-row">
-                  <div>
-                    <strong>Allow New Registrations</strong>
-                    <span>Let new organizations sign up</span>
-                  </div>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={settings.allowNewRegistrations}
-                      onChange={(e) => handleChange('allowNewRegistrations', e.target.checked)}
-                    />
-                    <span className="slider"></span>
-                  </label>
-                </div>
 
-                <div className="toggle-row">
-                  <div>
-                    <strong>Maintenance Mode</strong>
-                    <span>Temporarily disable platform access</span>
-                  </div>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={settings.maintenanceMode}
-                      onChange={(e) => handleChange('maintenanceMode', e.target.checked)}
-                    />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-              </div>
+          {/* ===================================================
+              Regional Settings
+          =================================================== */}
+
+          <SettingsSection
+            title="Regional Settings"
+            description="Default currency and timezone"
+            icon={
+              <Globe className="h-5 w-5 text-gray-400" />
+            }
+          >
+
+            <div className="grid grid-cols-1 gap-5">
+
+              <SelectField
+                label="Default Currency"
+                value={settings.defaultCurrency}
+                onChange={(value) =>
+                  handleChange(
+                    'defaultCurrency',
+                    value
+                  )
+                }
+                options={[
+                  ['USD', 'USD — US Dollar'],
+                  ['EUR', 'EUR — Euro'],
+                  ['GBP', 'GBP — British Pound'],
+                  ['INR', 'INR — Indian Rupee'],
+                  ['AUD', 'AUD — Australian Dollar'],
+                ]}
+              />
+
+              <SelectField
+                label="Default Timezone"
+                value={settings.defaultTimezone}
+                onChange={(value) =>
+                  handleChange(
+                    'defaultTimezone',
+                    value
+                  )
+                }
+                options={[
+                  ['UTC', 'UTC'],
+                  [
+                    'Asia/Kolkata',
+                    'Asia/Kolkata (IST)',
+                  ],
+                  [
+                    'America/New_York',
+                    'America/New_York',
+                  ],
+                  [
+                    'Europe/London',
+                    'Europe/London',
+                  ],
+                  [
+                    'Asia/Tokyo',
+                    'Asia/Tokyo',
+                  ],
+                ]}
+              />
+
             </div>
 
-            {/* Save */}
-            <div className="save-bar">
-              <button className="save-btn" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Settings'}
-              </button>
-            </div>
-      </main>
+          </SettingsSection>
 
-      <style jsx>{`
-        * { box-sizing: border-box; }
+        </div>
 
-        .settings-content { flex: 1; padding: 28px; max-width: 900px; }
 
-        .loading-state {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 14px;
-          color: var(--sa-text-secondary, #667085);
-          font-size: 13px;
-        }
+        {/* =====================================================
+            Payment Gateways
+        ===================================================== */}
 
-        .loading-spinner {
-          width: 36px;
-          height: 36px;
-          border: 4px solid var(--sa-border, #e5e7eb);
-          border-top-color: var(--sa-primary, #667eea);
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-        }
+        <SettingsSection
+          title="Payment Gateways"
+          description="Configure payment gateways available for tenant subscriptions."
+          icon={
+            <CreditCard className="h-5 w-5 text-gray-400" />
+          }
+        >
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+          {/*
 
-        .page-header { margin-bottom: 24px; }
+            Responsive:
 
-        .page-header h2 {
-          margin: 0;
-          font-size: 26px;
-          letter-spacing: -0.5px;
-        }
+            Mobile:
+            1 card
 
-        .page-header p {
-          margin: 6px 0 0;
-          color: var(--sa-text-secondary, #667085);
-          font-size: 13px;
-        }
+            Tablet:
+            2 cards
 
-        .panel {
-          background: var(--sa-surface, #fff);
-          border: 1px solid var(--sa-border-light, #edf0f4);
-          border-radius: var(--sa-radius-lg, 14px);
-          box-shadow: var(--sa-shadow-sm, 0 2px 8px rgba(15,23,42,0.05));
-          margin-bottom: 22px;
-          overflow: hidden;
-        }
+            Large Desktop:
+            3 cards
 
-        .panel-header {
-          min-height: 60px;
-          padding: 0 22px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          border-bottom: 1px solid var(--sa-border, #e5e7eb);
-        }
+            Extra Large Desktop:
+            3 cards
 
-        .panel-header h3 { margin: 0; font-size: 15px; }
-        .panel-header span { color: var(--sa-text-muted, #98a2b3); font-size: 11px; }
+            Example:
 
-        .settings-body { padding: 22px; }
+            Stripe     Razorpay     PayPal
+            Paytm      ...
 
-        .form-group { margin-bottom: 18px; }
-        .form-group:last-child { margin-bottom: 0; }
+          */}
 
-        .form-group label {
-          display: block;
-          margin-bottom: 8px;
-          color: var(--sa-text-secondary, #667085);
-          font-size: 12px;
-          font-weight: 600;
-        }
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
-        .form-group input,
-        .form-group select {
-          width: 100%;
-          height: 42px;
-          padding: 0 12px;
-          border: 1px solid var(--sa-border, #e5e7eb);
-          border-radius: var(--sa-radius-sm, 7px);
-          background: var(--sa-surface, #fff);
-          color: var(--sa-text, #171c2d);
-          font-size: 13px;
-          outline: none;
-          transition: all 0.2s;
-        }
+            <GatewayCard
+              name="Stripe"
+              gateway="stripe"
+              settings={
+                settings.paymentGateways.stripe
+              }
+              onChange={handleGatewayChange}
+            />
 
-        .form-group input:focus,
-        .form-group select:focus {
-          border-color: var(--sa-primary, #667eea);
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+            <GatewayCard
+              name="Razorpay"
+              gateway="razorpay"
+              settings={
+                settings.paymentGateways.razorpay
+              }
+              onChange={handleGatewayChange}
+            />
 
-        .toggle-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-          padding: 16px 0;
-          border-bottom: 1px solid var(--sa-border-light, #edf0f4);
-        }
+            <GatewayCard
+              name="PayPal"
+              gateway="paypal"
+              settings={
+                settings.paymentGateways.paypal
+              }
+              onChange={handleGatewayChange}
+            />
 
-        .toggle-row:last-child { border-bottom: none; }
+            <GatewayCard
+              name="Paytm"
+              gateway="paytm"
+              settings={
+                settings.paymentGateways.paytm
+              }
+              onChange={handleGatewayChange}
+            />
 
-        .toggle-row strong {
-          display: block;
-          font-size: 14px;
-          margin-bottom: 4px;
-        }
+          </div>
 
-        .toggle-row span {
-          color: var(--sa-text-muted, #98a2b3);
-          font-size: 12px;
-        }
+        </SettingsSection>
 
-        .switch {
-          position: relative;
-          width: 46px;
-          height: 26px;
-          flex-shrink: 0;
-        }
 
-        .switch input {
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
+        {/* =====================================================
+            Save Button
+        ===================================================== */}
 
-        .slider {
-          position: absolute;
-          inset: 0;
-          border-radius: 999px;
-          background: var(--sa-border, #e5e7eb);
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
+        <div className="flex justify-end">
 
-        .slider::before {
-          content: "";
-          position: absolute;
-          width: 20px;
-          height: 20px;
-          left: 3px;
-          top: 3px;
-          border-radius: 50%;
-          background: #fff;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-          transition: transform 0.2s ease;
-        }
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
 
-        .switch input:checked + .slider {
-          background: var(--sa-primary, #667eea);
-        }
+            <Save className="h-4 w-4" />
 
-        .switch input:checked + .slider::before {
-          transform: translateX(20px);
-        }
+            {saving
+              ? 'Saving...'
+              : 'Save Platform Settings'}
 
-        .save-bar {
-          display: flex;
-          justify-content: flex-end;
-        }
+          </button>
 
-        .save-btn {
-          height: 46px;
-          padding: 0 28px;
-          border: none;
-          border-radius: var(--sa-radius-sm, 7px);
-          background: var(--sa-primary, #667eea);
-          color: #fff;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
+        </div>
 
-        .save-btn:hover:not(:disabled) {
-          background: var(--sa-primary-dark, #5568d9);
-          transform: translateY(-1px);
-        }
+      </div>
 
-        .save-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-          .settings-content { padding: 18px 14px; }
-        }
-      `}</style>
-    </>
+    </div>
   );
+}
+
+
+/* =========================================================
+   Settings Section
+========================================================= */
+
+function SettingsSection({
+  title,
+  description,
+  icon,
+  children,
+}) {
+  return (
+    <section className="mb-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+
+      {/* Header */}
+
+      <div className="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4 sm:px-6">
+
+        <div className="min-w-0">
+
+          <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
+            {title}
+          </h2>
+
+          <p className="mt-1 text-xs text-gray-500 sm:text-sm">
+            {description}
+          </p>
+
+        </div>
+
+        <div className="shrink-0">
+          {icon}
+        </div>
+
+      </div>
+
+      {/* Content */}
+
+      <div className="p-5 sm:p-6">
+        {children}
+      </div>
+
+    </section>
+  );
+}
+
+
+/* =========================================================
+   Input Field
+========================================================= */
+
+function InputField({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+}) {
+  return (
+    <div className="min-w-0">
+
+      <label className="mb-2 block text-sm font-medium text-gray-700">
+        {label}
+      </label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) =>
+          onChange(e.target.value)
+        }
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+      />
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   Select Field
+========================================================= */
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}) {
+  return (
+    <div className="min-w-0">
+
+      <label className="mb-2 block text-sm font-medium text-gray-700">
+        {label}
+      </label>
+
+      <select
+        value={value}
+        onChange={(e) =>
+          onChange(e.target.value)
+        }
+        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+      >
+
+        {options.map(
+          ([optionValue, optionLabel]) => (
+            <option
+              key={optionValue}
+              value={optionValue}
+            >
+              {optionLabel}
+            </option>
+          )
+        )}
+
+      </select>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   Toggle Row
+========================================================= */
+
+function ToggleRow({
+  title,
+  description,
+  enabled,
+  onChange,
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-100 bg-gray-50/50 p-4">
+
+      {/* Text */}
+
+      <div className="min-w-0 flex-1">
+
+        <p className="text-sm font-semibold text-gray-900">
+          {title}
+        </p>
+
+        <p className="mt-1 text-xs leading-5 text-gray-500 sm:text-sm">
+          {description}
+        </p>
+
+      </div>
+
+
+      {/* Custom Toggle */}
+
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        aria-label={title}
+        onClick={onChange}
+        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full p-1 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+          enabled
+            ? 'bg-indigo-600'
+            : 'bg-gray-300'
+        }`}
+      >
+
+        <span
+          className={`pointer-events-none block h-5 w-5 rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out ${
+            enabled
+              ? 'translate-x-5'
+              : 'translate-x-0'
+          }`}
+        />
+
+      </button>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   Payment Gateway Card
+========================================================= */
+
+function GatewayCard({
+  name,
+  gateway,
+  settings,
+  onChange,
+}) {
+  return (
+    <div className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition duration-200 hover:border-gray-300 hover:shadow-sm">
+
+      {/* =====================================================
+          Gateway Header
+      ===================================================== */}
+
+      <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+
+        <div className="flex items-center justify-between gap-3">
+
+          {/* Gateway Name */}
+
+          <div className="flex min-w-0 items-center gap-2">
+
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white">
+
+              <CreditCard className="h-4 w-4 text-gray-600" />
+
+            </div>
+
+            <p className="truncate text-sm font-semibold text-gray-900">
+              {name}
+            </p>
+
+          </div>
+
+
+          {/* Enable Toggle */}
+
+          <GatewayToggle
+            enabled={settings.enabled}
+            onChange={(value) =>
+              onChange(
+                gateway,
+                'enabled',
+                value
+              )
+            }
+            label={`Enable ${name}`}
+          />
+
+        </div>
+
+
+        {/* Status */}
+
+        <div className="mt-3">
+
+          <span
+            className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${
+              settings.enabled
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {settings.enabled
+              ? 'Enabled'
+              : 'Disabled'}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      {/* =====================================================
+          Gateway Body
+      ===================================================== */}
+
+      <div className="flex-1 p-4">
+
+        <div className="grid grid-cols-1 gap-4">
+
+          {/* Environment */}
+
+          <EnvironmentRadio
+            gateway={gateway}
+            value={settings.environment}
+            onChange={(value) =>
+              onChange(
+                gateway,
+                'environment',
+                value
+              )
+            }
+          />
+
+
+          {/* Credentials */}
+
+          {renderCredentialFields(
+            gateway,
+            settings,
+            onChange
+          )}
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   Gateway Toggle
+========================================================= */
+
+function GatewayToggle({
+  enabled,
+  onChange,
+  label,
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-label={label}
+      onClick={() => onChange(!enabled)}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-1 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+        enabled
+          ? 'bg-indigo-600'
+          : 'bg-gray-300'
+      }`}
+    >
+
+      <span
+        className={`pointer-events-none block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+          enabled
+            ? 'translate-x-5'
+            : 'translate-x-0'
+        }`}
+      />
+
+    </button>
+  );
+}
+
+
+/* =========================================================
+   Environment Radio Button
+========================================================= */
+
+function EnvironmentRadio({
+  gateway,
+  value,
+  onChange,
+}) {
+  const options =
+    gateway === 'paypal'
+      ? [
+          {
+            value: 'sandbox',
+            label: 'Sandbox',
+          },
+          {
+            value: 'live',
+            label: 'Live',
+          },
+        ]
+      : [
+          {
+            value: 'test',
+            label: 'Test',
+          },
+          {
+            value: 'live',
+            label: 'Live',
+          },
+        ];
+
+  return (
+    <div>
+
+      <label className="mb-2 block text-sm font-medium text-gray-700">
+        Environment
+      </label>
+
+      <div className="flex flex-wrap items-center gap-4">
+
+        {options.map((option) => {
+
+          const isSelected =
+            value === option.value;
+
+          const isLive =
+            option.value === 'live';
+
+          return (
+            <label
+              key={option.value}
+              className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition ${
+                isSelected
+                  ? isLive
+                    ? 'border-green-300 bg-green-50'
+                    : 'border-indigo-300 bg-indigo-50'
+                  : 'border-gray-200 bg-white hover:bg-gray-50'
+              }`}
+            >
+
+              {/* Actual Radio */}
+
+              <input
+                type="radio"
+                name={`${gateway}-environment`}
+                value={option.value}
+                checked={isSelected}
+                onChange={() =>
+                  onChange(option.value)
+                }
+                className="sr-only"
+              />
+
+
+              {/* Custom Radio */}
+
+              <span
+                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                  isSelected
+                    ? isLive
+                      ? 'border-green-600'
+                      : 'border-indigo-600'
+                    : 'border-gray-300'
+                }`}
+              >
+
+                {isSelected && (
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      isLive
+                        ? 'bg-green-600'
+                        : 'bg-indigo-600'
+                    }`}
+                  />
+                )}
+
+              </span>
+
+
+              {/* Label */}
+
+              <span
+                className={`text-xs font-semibold sm:text-sm ${
+                  isSelected
+                    ? isLive
+                      ? 'text-green-700'
+                      : 'text-indigo-700'
+                    : 'text-gray-600'
+                }`}
+              >
+                {option.label}
+              </span>
+
+            </label>
+          );
+        })}
+
+      </div>
+
+
+      {/* Description */}
+
+      <p className="mt-2 text-[11px] leading-4 text-gray-500">
+
+        {value === 'live'
+          ? 'Live payments are enabled.'
+          : gateway === 'paypal'
+            ? 'Sandbox mode is enabled for testing.'
+            : 'Test mode is enabled for testing.'}
+
+      </p>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   Gateway Credential Fields
+========================================================= */
+
+function renderCredentialFields(
+  gateway,
+  settings,
+  onChange
+) {
+  const field = (
+    label,
+    key,
+    type = 'text',
+    placeholder = ''
+  ) => (
+    <InputField
+      label={label}
+      type={type}
+      value={settings[key] || ''}
+      onChange={(value) =>
+        onChange(
+          gateway,
+          key,
+          value
+        )
+      }
+      placeholder={placeholder}
+    />
+  );
+
+  switch (gateway) {
+
+    /* =====================================================
+       Stripe
+    ===================================================== */
+
+    case 'stripe':
+      return (
+        <>
+          {field(
+            'Public Key',
+            'publicKey',
+            'text',
+            'pk_test_...'
+          )}
+
+          {field(
+            'Secret Key',
+            'secretKey',
+            'password',
+            'sk_test_...'
+          )}
+
+          {field(
+            'Webhook Secret',
+            'webhookSecret',
+            'password',
+            'whsec_...'
+          )}
+        </>
+      );
+
+
+    /* =====================================================
+       Razorpay
+    ===================================================== */
+
+    case 'razorpay':
+      return (
+        <>
+          {field(
+            'Key ID',
+            'keyId',
+            'text',
+            'rzp_test_...'
+          )}
+
+          {field(
+            'Key Secret',
+            'keySecret',
+            'password',
+            'Razorpay secret'
+          )}
+
+          {field(
+            'Webhook Secret',
+            'webhookSecret',
+            'password',
+            'Webhook secret'
+          )}
+        </>
+      );
+
+
+    /* =====================================================
+       PayPal
+    ===================================================== */
+
+    case 'paypal':
+      return (
+        <>
+          {field(
+            'Client ID',
+            'clientId',
+            'text',
+            'PayPal Client ID'
+          )}
+
+          {field(
+            'Client Secret',
+            'clientSecret',
+            'password',
+            'PayPal Client Secret'
+          )}
+
+          {field(
+            'Webhook Secret',
+            'webhookSecret',
+            'password',
+            'Webhook Secret'
+          )}
+        </>
+      );
+
+
+    /* =====================================================
+       Paytm
+    ===================================================== */
+
+    case 'paytm':
+      return (
+        <>
+          {field(
+            'Merchant ID',
+            'merchantId',
+            'text',
+            'Paytm Merchant ID'
+          )}
+
+          {field(
+            'Merchant Key',
+            'merchantKey',
+            'password',
+            'Paytm Merchant Key'
+          )}
+
+          {field(
+            'Website',
+            'website',
+            'text',
+            'WEBSTAGING'
+          )}
+
+          {field(
+            'Webhook Secret',
+            'webhookSecret',
+            'password',
+            'Webhook Secret'
+          )}
+        </>
+      );
+
+
+    default:
+      return null;
+  }
 }

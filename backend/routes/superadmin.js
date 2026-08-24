@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
 const superAdminController = require('../controllers/superAdminController');
+const platformSettingsController = require('../controllers/platformSettingsController');
 
 const router = express.Router();
 
@@ -29,6 +30,9 @@ router.post('/subscriptions/:id/cancel', authMiddleware, superAdminMiddleware, s
 router.patch('/subscriptions/:id/auto-renew', authMiddleware, superAdminMiddleware, superAdminController.updateAutoRenew);
 
 router.get('/payments', authMiddleware, superAdminMiddleware, superAdminController.listPayments);
+
+router.get('/settings', authMiddleware, superAdminMiddleware, platformSettingsController.get);
+router.put('/settings', authMiddleware, superAdminMiddleware, platformSettingsController.update);
 
 router.get('/dashboard/stats', authMiddleware, superAdminMiddleware, superAdminController.getDashboardStats);
 router.get('/bookings/stats', authMiddleware, superAdminMiddleware, superAdminController.getBookingStats);

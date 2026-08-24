@@ -8,4 +8,10 @@ router.post('/login', authController.login);
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 
+router.post('/register/customer', authController.registerCustomer);
+router.post('/register/owner/validate', authController.validateOwnerRegistration);
+router.get('/register/owner/payment-gateways', authController.getOwnerPaymentGateways);
+router.post('/register/owner/payment-intent', authController.createOwnerPaymentIntent);
+router.post('/register/owner/confirm', authController.confirmOwnerPayment);
+
 module.exports = router;
