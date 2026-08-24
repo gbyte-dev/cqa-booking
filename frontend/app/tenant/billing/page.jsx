@@ -23,7 +23,11 @@ export default function TenantBillingPage() {
       router.replace('/login');
       return;
     }
-
+const currentUser = storage.getUser();
+if(currentUser && !['owner'].includes(currentUser.role)) {
+  router.replace('/tenant/dashboard');
+  return;
+}
     loadOrg();
   }, []);
 
@@ -35,7 +39,8 @@ export default function TenantBillingPage() {
       });
       const data = await res.json();
       if (data.success) setOrg(data.data);
-    } catch (error) {    } finally {
+    } catch (error) {
+    } finally {
       setLoading(false);
     }
   };

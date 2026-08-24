@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import{ storage } from '@/lib/storage';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -30,8 +31,9 @@ const menuSections = [
       },
       {
         label: 'Venues',
-        icon: Building2,
+        icon: Building2,        
         path: '/tenant/venues',
+        allowedRoles:['owner','manager'],
       },
       {
         label: 'Tables',
@@ -52,11 +54,13 @@ const menuSections = [
         label: 'Staff',
         icon: User,
         path: '/tenant/staff',
+        allowedRoles:['owner'],
       },
       {
         label: 'Reports',
         icon: TrendingUp,
         path: '/tenant/reports',
+        allowedRoles:['owner','manager'],
       },
     ],
   },
@@ -67,11 +71,13 @@ const menuSections = [
         label: 'Settings',
         icon: Settings,
         path: '/tenant/settings',
+        allowedRoles:['owner'],
       },
       {
         label: 'Billing',
         icon: CreditCard,
         path: '/tenant/billing',
+        allowedRoles:['owner'],
       },
     ],
   },
@@ -83,7 +89,12 @@ export default function TenantSidebar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-
+const role = storage.getUser()?.role;
+const visibleSections = menuSections.map(section =>({
+  ...section, items :section.items.filter(
+    (items)=> !items.allowedRoles || items.allowedRoles.includes(role)
+  ),
+})).filter((section)=> section.items.length > 0);
   const navigate = (path) => {
     router.push(path);
 
@@ -132,7 +143,7 @@ export default function TenantSidebar({
         </div>
 
         <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-[13px] max-[900px]:px-[10px] py-5 [&::-webkit-scrollbar]:w-[5px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-[10px] [&::-webkit-scrollbar-thumb]:bg-white/10">
-          {menuSections.map((section) => (
+          {visibleSections.map((section) => (
             <div
               className="mb-[23px]"
               key={section.title}

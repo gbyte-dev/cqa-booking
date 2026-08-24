@@ -2,7 +2,10 @@ const { v4: uuidv4 } = require('uuid');
 const TableDaybed = require('../models/TableDaybed');
 const Outlet = require('../models/Outlet');
 
-exports.findVenueForOrg = (venueId, organizationId) => {
+exports.findVenueForOrg = (venueId, organizationId, role, outletId) => {
+  if (['manager', 'staff'].includes(role) && outletId && venueId !== outletId) {
+    return Promise.resolve(null);
+  }
   return Outlet.findOne({
     where: { id: venueId, tenantId: organizationId }
   });
@@ -26,13 +29,17 @@ exports.listByVenue = (venueId) => {
   });
 };
 
-exports.findByIdForOrg = (id, organizationId) => {
+exports.findByIdForOrg = (id, organizationId, role, outletId) => {
+  const outletWhere = { tenantId: organizationId };
+  if(['manager', 'staff'].includes(role) && outletId) {
+    outletWhere.id = outletId;
+  }
   return TableDaybed.findOne({
     where: { id },
     include: [{
       model: Outlet,
       as: 'Outlet',
-      where: { tenantId: organizationId },
+      where: outletWhere,
       attributes: ['id']
     }]
   });

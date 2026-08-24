@@ -205,18 +205,22 @@ export default function TenantDashboard() {
 
                   <Link href="/tenant/customers" className="action-card">
                     <div className="action-icon"><AppIcon name="users" /></div>
-                    <div className="action-label">Add Customer</div>
+                    <div className="action-label">View Customer</div>
                   </Link>
 
-                  <Link href="/tenant/reports" className="action-card">
-                    <div className="action-icon"><AppIcon name="chart" /></div>
-                    <div className="action-label">View Reports</div>
-                  </Link>
+                  {['owner', 'manager'].includes(currentUser?.role) && (
+                    <Link href="/tenant/reports" className="action-card">
+                      <div className="action-icon"><AppIcon name="chart" /></div>
+                      <div className="action-label">View Reports</div>
+                    </Link>
+                  )}
 
+                  {currentUser?.role === 'owner' && (
                   <Link href="/tenant/settings" className="action-card">
                     <div className="action-icon"><AppIcon name="settings" /></div>
                     <div className="action-label">Settings</div>
                   </Link>
+                  )}
                 </div>
               </div>
             </div>

@@ -12,6 +12,7 @@ router.get('/stats', authMiddleware, bookingController.getStats);
 
 router.get('/', authMiddleware, bookingController.list);
 router.get('/:id', authMiddleware, bookingController.getOne);
+router.get('/:id/activity', authMiddleware, bookingController.getActivity);
 router.post('/:id/confirm', authMiddleware, bookingController.confirm);
 router.post('/:id/complete', authMiddleware, bookingController.complete);
 router.post('/:id/check-in', authMiddleware, bookingController.checkIn);

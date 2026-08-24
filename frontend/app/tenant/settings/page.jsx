@@ -32,12 +32,18 @@ export default function TenantSettingsPage() {
       return;
     }
 
+const currentUser = storage.getUser();
+if (currentUser && !['owner'].includes(currentUser.role)) {
+  router.replace('/tenant/dashboard');
+  return;
+}
     try {
       const local = localStorage.getItem('cqa-tenant-settings');
       if (local) {
         setSettings(prev => ({ ...prev, ...JSON.parse(local) }));
       }
-    } catch (error) {    } finally {
+    } catch (error) {
+    } finally {
       setLoading(false);
     }
   }, []);

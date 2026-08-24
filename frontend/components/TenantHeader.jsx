@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Menu,
@@ -22,6 +22,7 @@ export default function TenantHeader({
 }) {
   const router = useRouter();
   const [showProfile, setShowProfile] = useState(false);
+  const profileRef = useRef(null);
   const [theme, setTheme] = useState('light');
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
@@ -42,6 +43,17 @@ export default function TenantHeader({
     }
 
     setMounted(true);
+  }, []);
+
+  // Close the profile dropdown when clicking anywhere outside it.
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfile(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const toggleTheme = () => {
@@ -116,7 +128,7 @@ export default function TenantHeader({
           <span className="absolute right-[7px] top-[7px] h-[7px] w-[7px] rounded-full border-2 border-[var(--tenant-header-bg)] bg-[var(--tenant-danger)]" />
         </button>
 
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button
             className="flex min-h-[44px] max-[768px]:min-h-[38px] items-center gap-[9px] rounded-[var(--tenant-radius-md)] border border-[var(--tenant-border)] max-[768px]:border-0 bg-[var(--tenant-surface)] max-[768px]:bg-transparent px-[9px] py-[5px] max-[768px]:p-[2px] text-[var(--tenant-text)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:border-[var(--tenant-primary)] max-[768px]:hover:border-transparent"
             onClick={() => setShowProfile(!showProfile)}
@@ -129,7 +141,9 @@ export default function TenantHeader({
               <strong className="max-w-[130px] overflow-hidden text-ellipsis whitespace-nowrap text-xs font-bold text-[var(--tenant-text)]">
                 {mounted ? (user?.firstName || 'Tenant') : 'Tenant'}
               </strong>
-              <span className="mt-[3px] text-[10px] text-[var(--tenant-text-muted)]">Manager</span>
+              <span className="mt-[3px] text-[10px] text-[var(--tenant-text-muted)]">
+                {mounted ? (user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Team Member') : 'Team Member'}
+              </span>
             </div>
           </button>
 
@@ -165,25 +179,29 @@ export default function TenantHeader({
                 My Profile
               </button>
 
-              <button
-                className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
-                onClick={() => router.push('/tenant/settings')}
-              >
-                <span className="flex w-5 items-center justify-center">
-                  <Settings size={15} />
-                </span>
-                Settings
-              </button>
+              {user?.role === 'owner' && (
+                <>
+                  <button
+                    className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
+                    onClick={() => router.push('/tenant/settings')}
+                  >
+                    <span className="flex w-5 items-center justify-center">
+                      <Settings size={15} />
+                    </span>
+                    Settings
+                  </button>
 
-              <button
-                className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
-                onClick={() => router.push('/tenant/billing')}
-              >
-                <span className="flex w-5 items-center justify-center">
-                  <CreditCard size={15} />
-                </span>
-                Billing
-              </button>
+                  <button
+                    className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
+                    onClick={() => router.push('/tenant/billing')}
+                  >
+                    <span className="flex w-5 items-center justify-center">
+                      <CreditCard size={15} />
+                    </span>
+                    Billing
+                  </button>
+                </>
+              )}
 
               <div className="my-[6px] h-px bg-[var(--tenant-border)]" />
 

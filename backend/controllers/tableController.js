@@ -24,7 +24,7 @@ exports.create = async (req, res) => {
       });
     }
 
-    const venue = await tableService.findVenueForOrg(venueId, req.user.organizationId);
+    const venue = await tableService.findVenueForOrg(venueId, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!venue) {
       return res.status(404).json({
@@ -51,7 +51,7 @@ exports.create = async (req, res) => {
 // ===== GET TABLES BY VENUE =====
 exports.listByVenue = async (req, res) => {
   try {
-    const venue = await tableService.findVenueForOrg(req.params.venueId, req.user.organizationId);
+    const venue = await tableService.findVenueForOrg(req.params.venueId, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!venue) {
       return res.status(404).json({
@@ -78,7 +78,7 @@ exports.listByVenue = async (req, res) => {
 // ===== UPDATE TABLE =====
 exports.update = async (req, res) => {
   try {
-    const table = await tableService.findByIdForOrg(req.params.id, req.user.organizationId);
+    const table = await tableService.findByIdForOrg(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!table) {
       return res.status(404).json({
@@ -105,7 +105,7 @@ exports.update = async (req, res) => {
 // ===== DELETE TABLE =====
 exports.remove = async (req, res) => {
   try {
-    const table = await tableService.findByIdForOrg(req.params.id, req.user.organizationId);
+    const table = await tableService.findByIdForOrg(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!table) {
       return res.status(404).json({

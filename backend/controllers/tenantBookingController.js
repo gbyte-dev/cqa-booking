@@ -35,7 +35,7 @@ exports.checkAvailability = async (req, res) => {
       });
     }
 
-    const venue = await bookingService.findVenueForOrg(venueId, req.user.organizationId);
+    const venue = await bookingService.findVenueForOrg(venueId, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!venue) {
       return res.status(404).json({
@@ -123,7 +123,7 @@ exports.getStats = async (req, res) => {
       });
     }
 
-    const stats = await bookingService.getStats(organizationId);
+    const stats = await bookingService.getStats(organizationId, req.user.role, req.user.outletId);
 
     res.json({
       success: true,
@@ -161,7 +161,7 @@ exports.list = async (req, res) => {
       });
     }
 
-    const bookings = await bookingService.listByOrganization(organizationId);
+    const bookings = await bookingService.listByOrganization(organizationId, req.user.role, req.user.outletId);
     const data = bookings.map(toApiShape);
 
     console.log(`✅ Found ${data.length} bookings for org: ${organizationId}`);
@@ -184,7 +184,7 @@ exports.list = async (req, res) => {
 // ===== GET SINGLE BOOKING (TENANT - CHECK ORG) =====
 exports.getOne = async (req, res) => {
   try {
-    const booking = await bookingService.getById(req.params.id, req.user.organizationId);
+    const booking = await bookingService.getById(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!booking) {
       return res.status(404).json({
@@ -209,7 +209,7 @@ exports.getOne = async (req, res) => {
 // ===== CONFIRM BOOKING (TENANT) =====
 exports.confirm = async (req, res) => {
   try {
-    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId);
+    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!booking) {
       return res.status(404).json({
@@ -237,7 +237,7 @@ exports.confirm = async (req, res) => {
 // ===== COMPLETE BOOKING (TENANT) =====
 exports.complete = async (req, res) => {
   try {
-    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId);
+    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!booking) {
       return res.status(404).json({
@@ -246,7 +246,7 @@ exports.complete = async (req, res) => {
       });
     }
 
-    const result = await bookingService.complete(booking);
+    const result = await bookingService.complete(booking, req);
 
     res.json({
       success: true,
@@ -265,7 +265,7 @@ exports.complete = async (req, res) => {
 // ===== CHECK IN BOOKING (TENANT) =====
 exports.checkIn = async (req, res) => {
   try {
-    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId);
+    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!booking) {
       return res.status(404).json({ success: false, error: 'Booking not found' });
@@ -287,7 +287,7 @@ exports.checkIn = async (req, res) => {
 // ===== MARK NO-SHOW (TENANT) =====
 exports.markNoShow = async (req, res) => {
   try {
-    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId);
+    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!booking) {
       return res.status(404).json({ success: false, error: 'Booking not found' });
@@ -311,7 +311,7 @@ exports.cancel = async (req, res) => {
   try {
     const { reason } = req.body;
 
-    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId);
+    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
 
     if (!booking) {
       return res.status(404).json({
@@ -333,5 +333,34 @@ exports.cancel = async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+};
+
+// ===== GET BOOKING ACTIVITY / AUDIT TRAIL (TENANT) =====
+exports.getActivity = async (req, res) => {
+  try {
+    const booking = await bookingService.findForOrg(req.params.id, req.user.organizationId, req.user.role, req.user.outletId);
+
+    if (!booking) {
+      return res.status(404).json({ success: false, error: 'Booking not found' });
+    }
+
+    const logs = await bookingService.getActivity(req.params.id, req.user.organizationId);
+
+    const data = logs.map(log => {
+      const plain = log.toJSON ? log.toJSON() : log;
+      return {
+        action: plain.action,
+        performedBy: plain.User?.fullName || 'Unknown',
+        performedByRole: plain.User?.roleCode || null,
+        metadata: plain.newValues,
+        createdAt: plain.created_at
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Get booking activity error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 };
