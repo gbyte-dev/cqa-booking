@@ -2,19 +2,33 @@ const organizationService = require('../services/organizationService');
 const Subscription = require('../models/Subscription');
 const SubscriptionPlan = require('../models/SubscriptionPlan');
 
-const toApiShape = (tenant) => {
+// Real subscription data from the subscriptions/subscription_plans tables —
+// replaces the old hardcoded "$0" placeholder. Async because it looks up
+// the tenant's actual latest Subscription row.
+const toApiShape = async (tenant) => {
   if (!tenant) return null;
   const plain = tenant.toJSON ? tenant.toJSON() : tenant;
+
+  const subscription = await Subscription.findOne({
+    where: { tenantId: plain.id },
+    include: [{ model: SubscriptionPlan, as: 'Plan' }],
+    order: [['created_at', 'DESC']]
+  });
+
   return {
     ...plain,
-    timezone: 'UTC',
-    maxVenues: null,
     subscriptionStatus: plain.isActive ? 'active' : 'suspended',
-    Subscription: {
-      plan: plain.subscriptionTier || 'core',
-      monthlyPrice: 0,
-      status: plain.isActive ? 'active' : 'suspended'
-    }
+    Subscription: subscription
+      ? {
+          plan: subscription.Plan?.code || plain.subscriptionTier || 'core',
+          monthlyPrice: Number(subscription.amount),
+          status: subscription.status
+        }
+      : {
+          plan: plain.subscriptionTier || 'core',
+          monthlyPrice: 0,
+          status: plain.isActive ? 'active' : 'suspended'
+        }
   };
 };
 
@@ -24,7 +38,7 @@ exports.list = async (req, res) => {
     console.log('📊 [GET /organizations] Fetching all organizations...');
 
     const organizations = await organizationService.listAll();
-    const data = organizations.map(toApiShape);
+    const data = await Promise.all(organizations.map(toApiShape));
 
     console.log(`✅ Found ${data.length} organizations`);
 
@@ -60,7 +74,7 @@ exports.getOne = async (req, res) => {
 
     res.json({
       success: true,
-      data: toApiShape(org)
+      data: await toApiShape(org)
     });
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -100,7 +114,7 @@ exports.create = async (req, res) => {
 
     res.json({
       success: true,
-      data: toApiShape(createdOrg),
+      data: await toApiShape(createdOrg),
       message: 'Organization created successfully'
     });
   } catch (error) {
@@ -137,7 +151,7 @@ exports.update = async (req, res) => {
 
     res.json({
       success: true,
-      data: toApiShape(result.org),
+      data: await toApiShape(result.org),
       message: 'Organization updated successfully'
     });
   } catch (error) {
@@ -196,7 +210,7 @@ exports.suspend = async (req, res) => {
 
     res.json({
       success: true,
-      data: toApiShape(org),
+      data: await toApiShape(org),
       message: 'Organization suspended successfully'
     });
   } catch (error) {
@@ -226,7 +240,7 @@ exports.reactivate = async (req, res) => {
 
     res.json({
       success: true,
-      data: toApiShape(org),
+      data: await toApiShape(org),
       message: 'Organization reactivated successfully'
     });
   } catch (error) {
@@ -256,7 +270,7 @@ exports.getMine = async (req, res) => {
     res.json({
       success: true,
       data: {
-        ...toApiShape(org),
+        ...(await toApiShape(org)),
         Subscription: subscription
           ? {
               plan: subscription.Plan?.code || null,

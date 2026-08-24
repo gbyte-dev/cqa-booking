@@ -12,7 +12,23 @@ exports.register = async (req, res) => {
       });
     }
 
-    const { user, org, token } = await authService.register({ organizationName, organizationSlug, email, firstName, lastName, password });
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 8 characters long'
+      });
+    }
+
+    const result = await authService.register({ organizationName, organizationSlug, email, firstName, lastName, password });
+
+    if (result.error) {
+      return res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
+
+    const { user, org, token } = result;
 
     res.status(201).json({
       success: true,
@@ -58,6 +74,13 @@ exports.login = async (req, res) => {
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
+      });
+    }
+
+    if (result.suspended) {
+      return res.status(403).json({
+        success: false,
+        error: 'Your organization has been suspended. Please contact platform support.'
       });
     }
 

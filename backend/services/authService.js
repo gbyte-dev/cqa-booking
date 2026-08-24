@@ -14,6 +14,11 @@ const signToken = (user) => {
 };
 
 exports.register = async ({ organizationName, organizationSlug, email, firstName, lastName, password }) => {
+  const existingUser = await User.findOne({ where: { email } });
+  if (existingUser) {
+    return { error: 'An account with this email already exists' };
+  }
+
   const tenant = await Tenant.create({
     id: uuidv4(),
     name: organizationName,
@@ -50,6 +55,17 @@ exports.login = async ({ email, password }) => {
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
   if (!isPasswordValid) {
     return null;
+  }
+
+  // Block login for tenant-side users (owner/staff/manager) whose organization
+  // is suspended. super_admin is a platform-level role and must never be
+  // blocked by a tenant's status, even if its user row happens to carry a
+  // tenantId from legacy data.
+  if (user.tenantId && user.roleCode !== 'super_admin') {
+    const tenant = await Tenant.findByPk(user.tenantId);
+    if (tenant && !tenant.isActive) {
+      return { suspended: true };
+    }
   }
 
   const token = signToken(user);

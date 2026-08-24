@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const Tenant = require('../models/Tenant');
+const Subscription = require('../models/Subscription');
+const SubscriptionPlan = require('../models/SubscriptionPlan');
 
 exports.listAll = () => {
   return Tenant.findAll({
@@ -24,6 +26,21 @@ exports.create = async ({ name, slug, subscriptionTier }) => {
     subscriptionTier: subscriptionTier || 'core',
     isActive: true
   });
+
+  // Every organization must have a Subscription row from the moment it's
+  // created, so Monthly Fee is never a silent $0 for a valid, unrelated reason.
+  const plan = await SubscriptionPlan.findOne({ where: { code: subscriptionTier || 'core' } });
+  if (plan) {
+    await Subscription.create({
+      id: uuidv4(),
+      tenantId,
+      planId: plan.id,
+      status: 'active',
+      startDate: new Date(),
+      amount: plan.price,
+      currency: plan.currency
+    });
+  }
 
   return Tenant.findByPk(tenantId);
 };

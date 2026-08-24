@@ -33,6 +33,10 @@ exports.create = async (req, res) => {
       return res.status(400).json({ success: false, error: 'First name and email are required' });
     }
 
+    if (password && password.length < 8) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 8 characters long' });
+    }
+
     const result = await staffService.createStaff({
       tenantId: req.user.organizationId,
       firstName,

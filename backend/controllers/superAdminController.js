@@ -1,18 +1,34 @@
 const superAdminService = require('../services/superAdminService');
+const Subscription = require('../models/Subscription');
+const SubscriptionPlan = require('../models/SubscriptionPlan');
 
-const toApiShape = (tenant) => {
+// Real subscription data from the subscriptions/subscription_plans tables —
+// mirrors organizationController.js's toApiShape so this list matches the
+// Subscriptions page instead of showing a hardcoded $0.
+const toApiShape = async (tenant) => {
   if (!tenant) return null;
   const plain = tenant.toJSON ? tenant.toJSON() : tenant;
+
+  const subscription = await Subscription.findOne({
+    where: { tenantId: plain.id },
+    include: [{ model: SubscriptionPlan, as: 'Plan' }],
+    order: [['created_at', 'DESC']]
+  });
+
   return {
     ...plain,
-    timezone: 'UTC',
-    maxVenues: null,
     subscriptionStatus: plain.isActive ? 'active' : 'suspended',
-    Subscription: {
-      plan: plain.subscriptionTier || 'core',
-      monthlyPrice: 0,
-      status: plain.isActive ? 'active' : 'suspended'
-    }
+    Subscription: subscription
+      ? {
+          plan: subscription.Plan?.code || plain.subscriptionTier || 'core',
+          monthlyPrice: Number(subscription.amount),
+          status: subscription.status
+        }
+      : {
+          plan: plain.subscriptionTier || 'core',
+          monthlyPrice: 0,
+          status: plain.isActive ? 'active' : 'suspended'
+        }
   };
 };
 
@@ -45,7 +61,7 @@ exports.listOrganizations = async (req, res) => {
     console.log('📊 Fetching all organizations...');
 
     const organizations = await superAdminService.listOrganizations();
-    const data = organizations.map(toApiShape);
+    const data = await Promise.all(organizations.map(toApiShape));
 
     console.log(`✅ Found ${data.length} organizations`);
 
@@ -64,7 +80,7 @@ exports.getOrganization = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Organization not found' });
     }
 
-    res.json({ success: true, data: toApiShape(org) });
+    res.json({ success: true, data: await toApiShape(org) });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -78,7 +94,7 @@ exports.updateOrganization = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Organization not found' });
     }
 
-    res.json({ success: true, data: toApiShape(org) });
+    res.json({ success: true, data: await toApiShape(org) });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
