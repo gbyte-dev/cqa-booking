@@ -12,6 +12,7 @@ const TimeSlot = require('./TimeSlot');
 const Reservation = require('./Reservation');
 const Subscription = require('./Subscription');
 const SubscriptionPlan = require('./SubscriptionPlan');
+const AuditLog = require('./AuditLog');
 
 function setupAssociations() {
   console.log('🔗 Setting up model associations...');
@@ -72,6 +73,10 @@ function setupAssociations() {
   SubscriptionPlan.hasMany(Subscription, { foreignKey: 'planId', as: 'Subscriptions' });
   Subscription.belongsTo(SubscriptionPlan, { foreignKey: 'planId', as: 'Plan' });
 
+  // ===== USER ↔ AUDIT LOG =====
+  User.hasMany(AuditLog, { foreignKey: 'userId', as: 'AuditLogs' });
+  AuditLog.belongsTo(User, { foreignKey: 'userId', as: 'User' });
+
   console.log('✅ All associations set up successfully');
 }
 
@@ -86,5 +91,6 @@ module.exports = {
   TimeSlot,
   Reservation,
   Subscription,
-  SubscriptionPlan
+  SubscriptionPlan,
+  AuditLog
 };

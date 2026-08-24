@@ -19,9 +19,14 @@ exports.create = (organizationId, body) => {
   });
 };
 
-exports.listByOrganization = (organizationId) => {
+exports.listByOrganization = (organizationId, role, outletId) => {
+  const where = { tenantId: organizationId };
+  if (['manager', 'staff'].includes(role) && outletId) {
+    where.id = outletId;
+  }
+
   return Outlet.findAll({
-    where: { tenantId: organizationId },
+    where,
     order: [['created_at', 'DESC']],
     raw: false
   }).catch(err => {
@@ -29,6 +34,7 @@ exports.listByOrganization = (organizationId) => {
     return [];
   });
 };
+
 
 exports.getById = (id, organizationId) => {
   return Outlet.findOne({

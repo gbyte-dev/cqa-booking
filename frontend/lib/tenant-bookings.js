@@ -5,18 +5,18 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const API_URL = API_BASE
   ? `${API_BASE}/api/v1`
-  : 'http://localhost:5000/api/v1';
+  : 'http://localhost:5000/api/v1';
 
 // =========================================================
 // REQUEST HELPER
 // =========================================================
 
 async function fetchWithDebug(endpoint, options = {}) {
-  const url = `${API_URL}${endpoint}`;
+  const url = `${API_URL}${endpoint}`;
   try {
     const response = await fetch(url, options);
 
-    const data = await response.json();
+    const data = await response.json();
     if (!response.ok) {
       throw new Error(
         data?.error || `HTTP ${response.status}`
@@ -25,7 +25,7 @@ async function fetchWithDebug(endpoint, options = {}) {
 
     return data;
 
-  } catch (error) {
+  } catch (error) {
     throw error;
   }
 }
@@ -303,6 +303,49 @@ export async function markTenantBookingNoShow(
 
 
 // =========================================================
+// GET BOOKING ACTIVITY (who did what)
+// =========================================================
+
+export async function getTenantBookingActivity(
+  bookingId,
+  token
+) {
+
+  if (!token) {
+    throw new Error('No authentication token');
+  }
+
+  if (!bookingId) {
+    throw new Error('Booking ID is required');
+  }
+
+  try {
+    const response = await fetchWithDebug(
+      `/bookings/${bookingId}/activity`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    return {
+      success: true,
+      data: response.data || []
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: [],
+      error: error.message
+    };
+  }
+}
+
+
+// =========================================================
 // EXPORT
 // =========================================================
 
@@ -314,5 +357,6 @@ export default {
   completeTenantBooking,
   cancelTenantBooking,
   checkInTenantBooking,
-  markTenantBookingNoShow
+  markTenantBookingNoShow,
+  getTenantBookingActivity
 };

@@ -48,6 +48,17 @@ const User = sequelize.define('User', {
     allowNull: true,
     references: { model: 'outlets', key: 'id' },
     field: 'outlet_id'
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+    field: 'is_active'
+  },
+  avatarUrl: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'avatar_url'
   }
 }, {
   tableName: 'users',

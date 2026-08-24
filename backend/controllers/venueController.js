@@ -54,7 +54,7 @@ exports.list = async (req, res) => {
   try {
     console.log('🏢 [GET /venues] Fetching venues for org:', req.user.organizationId);
 
-    const venues = await venueService.listByOrganization(req.user.organizationId);
+    const venues = await venueService.listByOrganization(req.user.organizationId, req.user.role, req.user.outletId);
     const data = venues.map(toApiShape);
 
     console.log(`✅ Found ${data.length} venues`);

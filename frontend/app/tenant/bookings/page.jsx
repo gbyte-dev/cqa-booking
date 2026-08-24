@@ -12,7 +12,8 @@ import {
   getTenantBookingStats,
   confirmTenantBooking,
   completeTenantBooking,
-  cancelTenantBooking
+  cancelTenantBooking,
+  getTenantBookingActivity
 } from '@/lib/tenant-bookings';
 
 
@@ -31,6 +32,8 @@ export default function TenantBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   const [showDetails, setShowDetails] = useState(false);
+  const [activity, setActivity] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const [cancelReason, setCancelReason] = useState('');
@@ -53,7 +56,7 @@ export default function TenantBookingsPage() {
     if (
       !token ||
       !currentUser ||
-      !['tenant', 'manager', 'owner', 'admin'].includes(
+      !['manager', 'owner', 'staff'].includes(
         currentUser.role
       )
     ) {
@@ -90,7 +93,7 @@ export default function TenantBookingsPage() {
         setStats(statsResponse.data);
       }
 
-    } catch (error) {
+    } catch (error) {
     } finally {
 
       setLoading(false);
@@ -179,6 +182,24 @@ export default function TenantBookingsPage() {
     setSelectedBooking(booking);
     setCancelReason('');
     setShowCancelModal(true);
+  };
+
+
+  // =====================================================
+  // ACTIVITY (who did what)
+  // =====================================================
+
+  const loadActivity = async (bookingId) => {
+    setActivityLoading(true);
+    try {
+      const token = storage.getToken();
+      const response = await getTenantBookingActivity(bookingId, token);
+      setActivity(response.success ? response.data : []);
+    } catch (error) {
+      setActivity([]);
+    } finally {
+      setActivityLoading(false);
+    }
   };
 
 
@@ -755,6 +776,8 @@ export default function TenantBookingsPage() {
                                         true
                                       );
 
+                                      loadActivity(booking.id);
+
                                     }}
                                     title="View Details"
                                   >
@@ -1164,6 +1187,36 @@ export default function TenantBookingsPage() {
                   </div>
 
                 )}
+
+
+                <div className="detail-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+
+                  <span className="label">
+                    Activity History:
+                  </span>
+
+                  {activityLoading ? (
+                    <span className="value">Loading...</span>
+                  ) : activity.length === 0 ? (
+                    <span className="value">No actions recorded yet.</span>
+                  ) : (
+                    <div style={{ width: '100%' }}>
+                      {activity.map((log, i) => (
+                        <div key={i} style={{ fontSize: '13px', padding: '6px 0', borderBottom: i < activity.length - 1 ? '1px solid var(--tenant-border, #e5e7eb)' : 'none' }}>
+                          <strong>{log.performedBy}</strong>
+                          {log.performedByRole ? ` (${log.performedByRole})` : ''}
+                          {' — '}
+                          {log.action.replace('booking.', '').replace('_', ' ')}
+                          {' · '}
+                          <span style={{ color: 'var(--tenant-text-secondary, #667085)' }}>
+                            {new Date(log.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                </div>
 
               </div>
 

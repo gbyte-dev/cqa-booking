@@ -1,13 +1,17 @@
+
+const requireRole = require('../middleware/roleCheck');
+
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
 const venueController = require('../controllers/venueController');
 
 const router = express.Router();
 
-router.post('/', authMiddleware, venueController.create);
+
+router.post('/', authMiddleware,requireRole(['owner']), venueController.create);
 router.get('/', authMiddleware, venueController.list);
 router.get('/:id', authMiddleware, venueController.getOne);
-router.patch('/:id', authMiddleware, venueController.update);
-router.delete('/:id', authMiddleware, venueController.remove);
+router.patch('/:id', authMiddleware, requireRole(['owner']), venueController.update);
+router.delete('/:id', authMiddleware, requireRole(['owner']), venueController.remove);
 
 module.exports = router;

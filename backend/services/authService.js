@@ -57,6 +57,12 @@ exports.login = async ({ email, password }) => {
     return null;
   }
 
+  // Block login for a suspended individual account (Manager/Staff suspended
+  // by the Owner) — separate from the tenant-level suspension check below.
+  if (!user.isActive) {
+    return { suspended: true, reason: 'account' };
+  }
+
   // Block login for tenant-side users (owner/staff/manager) whose organization
   // is suspended. super_admin is a platform-level role and must never be
   // blocked by a tenant's status, even if its user row happens to carry a

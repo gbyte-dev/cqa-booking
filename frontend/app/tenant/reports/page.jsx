@@ -25,6 +25,13 @@ export default function TenantReportsPage() {
       return;
     }
 
+const currentUser = storage.getUser();
+if(currentUser && !['owner','manager'].includes(currentUser.role)) {
+  router.replace('/tenant/dashboard');
+  return;
+}  
+
+
     loadData();
   }, []);
 
@@ -40,7 +47,8 @@ export default function TenantReportsPage() {
 
       if (statsData.success) setStats(statsData.data);
       if (venuesData.success) setVenues(venuesData.data || []);
-    } catch (error) {    } finally {
+    } catch (error) {
+    } finally {
       setLoading(false);
     }
   };

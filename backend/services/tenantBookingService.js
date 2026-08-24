@@ -8,7 +8,10 @@ const GuestProfile = require('../models/GuestProfile');
 const { writeAudit } = require('../utils/audit');
 const { queueNotification } = require('../utils/notifications');
 
-exports.findVenueForOrg = (venueId, organizationId) => {
+exports.findVenueForOrg = (venueId, organizationId, role, outletId) => {
+  if (['manager','staff'].includes(role) && outletId && venueId !== outletId) {
+    return Promise.resolve(null);
+  }
   return Outlet.findOne({
     where: { id: venueId, tenantId: organizationId }
   });
@@ -69,7 +72,7 @@ exports.createBooking = async (req) => {
     numGuests
   } = req.body;
 
-  const venue = await exports.findVenueForOrg(venueId, req.user.organizationId);
+  const venue = await exports.findVenueForOrg(venueId, req.user.organizationId, req.user.role, req.user.outletId);
   if (!venue) {
     return { error: 'Venue not found', status: 404 };
   }
@@ -165,8 +168,10 @@ exports.createBooking = async (req) => {
   return { booking: reservation, guest, totalAmount };
 };
 
-exports.getStats = async (organizationId) => {
-  const outletIds = (await Outlet.findAll({ where: { tenantId: organizationId }, attributes: ['id'] })).map(o => o.id);
+exports.getStats = async (organizationId, role, outletId) => {
+  const outletIds = ['manager','staff'].includes(role) && outletId
+    ? [outletId]
+    : (await Outlet.findAll({ where: { tenantId: organizationId }, attributes: ['id'] })).map(o => o.id);
   const bookings = await Reservation.findAll({ where: { outletId: { [Op.in]: outletIds } } });
 
   return {
@@ -188,8 +193,10 @@ const LIST_INCLUDE = [
   { model: GuestProfile, as: 'GuestProfile', attributes: ['id', 'fullName', 'email', 'phone'], required: false }
 ];
 
-exports.listByOrganization = async (organizationId) => {
-  const outletIds = (await Outlet.findAll({ where: { tenantId: organizationId }, attributes: ['id'] })).map(o => o.id);
+exports.listByOrganization = async (organizationId, role, outletId) => {
+  const outletIds = ['manager','staff'].includes(role) && outletId
+    ? [outletId]
+    : (await Outlet.findAll({ where: { tenantId: organizationId }, attributes: ['id'] })).map(o => o.id);
   return Reservation.findAll({
     where: { outletId: { [Op.in]: outletIds } },
     include: LIST_INCLUDE,
@@ -198,17 +205,19 @@ exports.listByOrganization = async (organizationId) => {
   });
 };
 
-exports.getById = async (id, organizationId) => {
+exports.getById = async (id, organizationId, role, outletId) => {
   const reservation = await Reservation.findByPk(id, { include: LIST_INCLUDE });
   if (!reservation) return null;
+  if (['manager','staff'].includes(role) && outletId && reservation.outletId !== outletId) return null;
   const outlet = await Outlet.findOne({ where: { id: reservation.outletId, tenantId: organizationId } });
   if (!outlet) return null;
   return reservation;
 };
 
-exports.findForOrg = async (id, organizationId) => {
+exports.findForOrg = async (id, organizationId, role, outletId) => {
   const reservation = await Reservation.findByPk(id);
   if (!reservation) return null;
+  if (['manager','staff'].includes(role) && outletId && reservation.outletId !== outletId) return null;
   const outlet = await Outlet.findOne({ where: { id: reservation.outletId, tenantId: organizationId } });
   if (!outlet) return null;
   return reservation;
@@ -220,12 +229,13 @@ exports.confirm = async (booking, req) => {
   return { booking };
 };
 
-exports.complete = async (booking) => {
+exports.complete = async (booking, req) => {
   await booking.update({ status: 'completed' });
   if (booking.guestProfileId) {
     const guest = await GuestProfile.findByPk(booking.guestProfileId);
     if (guest) await guest.increment('totalVisitsCount');
   }
+  await writeAudit({ req, action: 'booking.completed', entityType: 'reservation', entityId: booking.id });
   return { booking };
 };
 
@@ -254,4 +264,14 @@ exports.cancel = async (booking, req, reason) => {
   });
   await writeAudit({ req, action: 'booking.cancelled', entityType: 'reservation', entityId: booking.id, metadata: { reason } });
   return booking;
+};
+
+exports.getActivity = async (bookingId, organizationId) => {
+  const AuditLog = require('../models/AuditLog');
+  const User = require('../models/User');
+  return AuditLog.findAll({
+    where: { entityType: 'reservation', entityId: bookingId, tenantId: organizationId },
+    include: [{ model: User, as: 'User', attributes: ['id', 'fullName', 'roleCode'], required: false }],
+    order: [['created_at', 'ASC']]
+  });
 };

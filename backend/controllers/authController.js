@@ -80,7 +80,9 @@ exports.login = async (req, res) => {
     if (result.suspended) {
       return res.status(403).json({
         success: false,
-        error: 'Your organization has been suspended. Please contact platform support.'
+        error: result.reason === 'account'
+          ? 'Your account has been suspended. Please contact your organization owner.'
+          : 'Your organization has been suspended. Please contact platform support.'
       });
     }
 
