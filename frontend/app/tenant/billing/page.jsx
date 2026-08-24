@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -19,7 +20,7 @@ export default function TenantBillingPage() {
     mountedRef.current = true;
 
     if (!token) {
-      router.replace('/tenant/login');
+      router.replace('/login');
       return;
     }
 
@@ -34,9 +35,7 @@ export default function TenantBillingPage() {
       });
       const data = await res.json();
       if (data.success) setOrg(data.data);
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -61,7 +60,7 @@ export default function TenantBillingPage() {
     <>
       <main className="billing-content">
             <div className="page-header">
-              <h2>💳 Billing</h2>
+              <h2><AppIcon name="creditCard" /> Billing</h2>
               <p>Your current subscription plan.</p>
             </div>
 

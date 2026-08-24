@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Building2, User, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { authAPI } from '@/lib/api';
 import { storage } from '@/lib/storage';
 
@@ -51,42 +52,38 @@ export default function RegisterPage() {
 
         router.push('/tenant/dashboard');
       } else {
-        setError(result.error || 'Registration failed.');
+        setError('We could not complete your registration. Please review your details and try again.');
       }
     } catch (err) {
-      setError(
-        err?.message
-          ? `Connection error: ${err.message}`
-          : 'Unable to connect to the server.'
-      );
+      setError("We couldn't create your account. Please check your details and try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="register-page">
+    <main className="flex min-h-dvh w-full items-center justify-center bg-[radial-gradient(circle_at_50%_0%,rgba(31,41,55,0.045),transparent_40%),#f6f7f9] p-[28px_20px] max-[600px]:p-[20px_14px] max-[360px]:p-[15px_10px] font-[Inter,-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] text-[#1f2933]">
 
-      <div className="register-wrapper">
+      <div className="flex w-full max-w-[500px] flex-col items-center">
 
         {/* Brand */}
-        <div className="register-brand">
-          <div className="brand-logo">C</div>
+        <div className="mb-5 max-[600px]:mb-[17px] flex items-center gap-[10px] text-lg font-bold tracking-[-0.3px] text-[#1d2731]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1d2731] text-lg font-extrabold text-white">C</div>
           <span>CQA Booking</span>
         </div>
 
         {/* Card */}
-        <div className="register-card">
+        <div className="w-full rounded-xl border border-[#e4e7ea] bg-white p-[32px_36px_28px] max-[600px]:rounded-[10px] max-[600px]:p-[27px_21px_24px] max-[360px]:p-[24px_17px_21px] shadow-[0_8px_30px_rgba(16,24,40,0.055)]">
 
           {/* Header */}
-          <div className="register-header">
-            <span className="register-label">
+          <div className="mb-[25px]">
+            <span className="mb-[9px] inline-block text-[10px] font-bold tracking-[1.4px] text-[#89939c]">
               GET STARTED
             </span>
 
-            <h1>Create your account</h1>
+            <h1 className="m-0 text-[26px] max-[600px]:text-2xl max-[360px]:text-[22px] font-bold leading-[1.2] tracking-[-0.7px] text-[#18212a]">Create your account</h1>
 
-            <p>
+            <p className="mt-2 mb-0 text-[13px] max-[600px]:text-xs leading-relaxed text-[#7b858e]">
               Set up your organization and start managing
               your venue with CQA Booking.
             </p>
@@ -94,8 +91,8 @@ export default function RegisterPage() {
 
           {/* Error */}
           {error && (
-            <div className="register-error">
-              <span className="error-symbol">!</span>
+            <div className="mb-5 flex items-center gap-[9px] rounded-[7px] border border-[#f1d0d0] bg-[#fff7f7] px-3 py-[11px] text-xs leading-[1.4] text-[#a33b3b]">
+              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[#a33b3b] text-[11px] font-bold text-white">!</span>
               <span>{error}</span>
             </div>
           )}
@@ -103,138 +100,100 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister}>
 
             {/* Organization */}
-            <div className="section-heading">
-              <div className="section-number">01</div>
+            <div className="mb-4 flex items-center gap-[11px]">
+              <div className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-[7px] bg-[#f0f2f4] text-[10px] font-bold text-[#69747e]">01</div>
 
               <div>
-                <h3>Organization details</h3>
-                <p>Tell us about your business</p>
+                <h3 className="m-0 text-xs max-[360px]:text-[11px] font-bold text-[#35404a]">Organization details</h3>
+                <p className="mt-[2px] mb-0 text-[10px] text-[#9aa2a9]">Tell us about your business</p>
               </div>
             </div>
 
-            <div className="field">
+            <div className="mb-4">
 
-              <label htmlFor="organizationName">
+              <label htmlFor="organizationName" className="mb-[7px] block text-xs font-semibold text-[#39444e]">
                 Organization name
               </label>
 
-              <div className="input-box">
+              <div className="relative w-full">
 
-                <span className="input-icon">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <path d="M3 21h18" />
-                    <path d="M5 21V6l7-3 7 3v15" />
-                    <path d="M9 21v-5h6v5" />
-                    <path d="M8 9h1" />
-                    <path d="M15 9h1" />
-                    <path d="M8 12h1" />
-                    <path d="M15 12h1" />
-                  </svg>
+                <span className="pointer-events-none absolute left-[13px] top-1/2 flex -translate-y-1/2 items-center text-[#8a949d]">
+                  <Building2 size={18} />
                 </span>
 
                 <input
                   id="organizationName"
                   type="text"
                   value={organizationName}
-                  onChange={(e) =>
-                    setOrganizationName(e.target.value)
-                  }
+                  onChange={(e) => setOrganizationName(e.target.value)}
                   placeholder="e.g. Pizza Palace"
                   autoComplete="organization"
                   required
+                  className="h-11 max-[360px]:h-[43px] w-full rounded-[7px] border border-[#d9dde1] bg-white px-10 text-[13px] text-[#202a33] outline-none transition-[border-color,box-shadow] duration-150 ease placeholder:text-[#a1a8af] focus:border-[#65717c] focus:shadow-[0_0_0_3px_rgba(29,39,49,0.06)]"
                 />
 
               </div>
             </div>
 
             {/* Owner */}
-            <div className="section-heading owner-heading">
-              <div className="section-number">02</div>
+            <div className="mb-4 mt-[25px] max-[600px]:mt-[23px] flex items-center gap-[11px]">
+              <div className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-[7px] bg-[#f0f2f4] text-[10px] font-bold text-[#69747e]">02</div>
 
               <div>
-                <h3>Account details</h3>
-                <p>Create your administrator account</p>
+                <h3 className="m-0 text-xs max-[360px]:text-[11px] font-bold text-[#35404a]">Account details</h3>
+                <p className="mt-[2px] mb-0 text-[10px] text-[#9aa2a9]">Create your administrator account</p>
               </div>
             </div>
 
             {/* Name */}
-            <div className="name-grid">
+            <div className="grid grid-cols-2 max-[600px]:grid-cols-1 gap-3 max-[600px]:gap-0">
 
-              <div className="field">
+              <div className="mb-4">
 
-                <label htmlFor="firstName">
+                <label htmlFor="firstName" className="mb-[7px] block text-xs font-semibold text-[#39444e]">
                   First name
                 </label>
 
-                <div className="input-box">
+                <div className="relative w-full">
 
-                  <span className="input-icon">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <circle cx="12" cy="8" r="3.5" />
-                      <path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5" />
-                    </svg>
+                  <span className="pointer-events-none absolute left-[13px] top-1/2 flex -translate-y-1/2 items-center text-[#8a949d]">
+                    <User size={18} />
                   </span>
 
                   <input
                     id="firstName"
                     type="text"
                     value={firstName}
-                    onChange={(e) =>
-                      setFirstName(e.target.value)
-                    }
+                    onChange={(e) => setFirstName(e.target.value)}
                     placeholder="John"
                     autoComplete="given-name"
                     required
+                    className="h-11 max-[360px]:h-[43px] w-full rounded-[7px] border border-[#d9dde1] bg-white px-10 text-[13px] text-[#202a33] outline-none transition-[border-color,box-shadow] duration-150 ease placeholder:text-[#a1a8af] focus:border-[#65717c] focus:shadow-[0_0_0_3px_rgba(29,39,49,0.06)]"
                   />
 
                 </div>
               </div>
 
-              <div className="field">
+              <div className="mb-4">
 
-                <label htmlFor="lastName">
+                <label htmlFor="lastName" className="mb-[7px] block text-xs font-semibold text-[#39444e]">
                   Last name
                 </label>
 
-                <div className="input-box">
+                <div className="relative w-full">
 
-                  <span className="input-icon">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <circle cx="12" cy="8" r="3.5" />
-                      <path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5" />
-                    </svg>
+                  <span className="pointer-events-none absolute left-[13px] top-1/2 flex -translate-y-1/2 items-center text-[#8a949d]">
+                    <User size={18} />
                   </span>
 
                   <input
                     id="lastName"
                     type="text"
                     value={lastName}
-                    onChange={(e) =>
-                      setLastName(e.target.value)
-                    }
+                    onChange={(e) => setLastName(e.target.value)}
                     placeholder="Doe"
                     autoComplete="family-name"
+                    className="h-11 max-[360px]:h-[43px] w-full rounded-[7px] border border-[#d9dde1] bg-white px-10 text-[13px] text-[#202a33] outline-none transition-[border-color,box-shadow] duration-150 ease placeholder:text-[#a1a8af] focus:border-[#65717c] focus:shadow-[0_0_0_3px_rgba(29,39,49,0.06)]"
                   />
 
                 </div>
@@ -243,153 +202,87 @@ export default function RegisterPage() {
             </div>
 
             {/* Email */}
-            <div className="field">
+            <div className="mb-4">
 
-              <label htmlFor="email">
+              <label htmlFor="email" className="mb-[7px] block text-xs font-semibold text-[#39444e]">
                 Email address
               </label>
 
-              <div className="input-box">
+              <div className="relative w-full">
 
-                <span className="input-icon">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <rect
-                      x="3"
-                      y="5"
-                      width="18"
-                      height="14"
-                      rx="2"
-                    />
-                    <path d="m3 7 9 6 9-6" />
-                  </svg>
+                <span className="pointer-events-none absolute left-[13px] top-1/2 flex -translate-y-1/2 items-center text-[#8a949d]">
+                  <Mail size={18} />
                 </span>
 
                 <input
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
                   autoComplete="email"
                   required
+                  className="h-11 max-[360px]:h-[43px] w-full rounded-[7px] border border-[#d9dde1] bg-white px-10 text-[13px] text-[#202a33] outline-none transition-[border-color,box-shadow] duration-150 ease placeholder:text-[#a1a8af] focus:border-[#65717c] focus:shadow-[0_0_0_3px_rgba(29,39,49,0.06)]"
                 />
 
               </div>
             </div>
 
             {/* Password */}
-            <div className="field password-field">
+            <div className="mb-[17px]">
 
-              <label htmlFor="password">
+              <label htmlFor="password" className="mb-[7px] block text-xs font-semibold text-[#39444e]">
                 Password
               </label>
 
-              <div className="input-box">
+              <div className="relative w-full">
 
-                <span className="input-icon">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <rect
-                      x="5"
-                      y="10"
-                      width="14"
-                      height="10"
-                      rx="2"
-                    />
-                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                  </svg>
+                <span className="pointer-events-none absolute left-[13px] top-1/2 flex -translate-y-1/2 items-center text-[#8a949d]">
+                  <Lock size={18} />
                 </span>
 
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) =>
-                    setPassword(e.target.value)
-                  }
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Create a secure password"
                   autoComplete="new-password"
                   required
+                  className="h-11 max-[360px]:h-[43px] w-full rounded-[7px] border border-[#d9dde1] bg-white px-10 text-[13px] text-[#202a33] outline-none transition-[border-color,box-shadow] duration-150 ease placeholder:text-[#a1a8af] focus:border-[#65717c] focus:shadow-[0_0_0_3px_rgba(29,39,49,0.06)]"
                 />
 
                 <button
                   type="button"
-                  className="show-password"
-                  onClick={() =>
-                    setShowPassword((prev) => !prev)
-                  }
-                  aria-label={
-                    showPassword
-                      ? 'Hide password'
-                      : 'Show password'
-                  }
+                  className="absolute right-[10px] top-1/2 flex -translate-y-1/2 items-center border-0 bg-transparent p-[5px] text-[#87919a] cursor-pointer hover:text-[#1d2731]"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M3 3l18 18" />
-                      <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
-                      <path d="M9.9 4.2A10.8 10.8 0 0 1 12 4c5.2 0 9 4.3 10 8a11.7 11.7 0 0 1-3.1 5.1" />
-                      <path d="M6.6 6.6A11.8 11.8 0 0 0 2 12c1 3.7 4.8 8 10 8a10.7 10.7 0 0 0 3.4-.6" />
-                    </svg>
-                  ) : (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z" />
-                      <circle cx="12" cy="12" r="2.8" />
-                    </svg>
-                  )}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
 
               </div>
 
-              <span className="password-hint">
+              <span className="mt-[6px] block text-[10px] text-[#9ba3aa]">
                 Use at least 8 characters.
               </span>
 
             </div>
 
             {/* Terms */}
-            <label className="terms">
+            <label className="relative mb-5 flex cursor-pointer items-start gap-2 text-[10.5px] leading-[1.5] text-[#737e87]">
 
-              <input type="checkbox" required />
+              <input type="checkbox" required className="peer pointer-events-none absolute opacity-0" />
 
-              <span className="terms-check"></span>
+              <span className="relative mt-px h-4 w-4 flex-none rounded-[4px] border border-[#c9ced3] bg-white after:absolute after:left-[2px] after:top-[-1px] after:text-xs after:font-bold after:text-white after:opacity-0 after:content-[''] peer-checked:border-[#1d2731] peer-checked:bg-[#1d2731] peer-checked:after:opacity-100"></span>
 
               <span>
                 I agree to the{' '}
-                <Link href="/terms">
+                <Link href="/terms" className="font-semibold text-[#3d4852] no-underline hover:underline">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy">
+                <Link href="/privacy" className="font-semibold text-[#3d4852] no-underline hover:underline">
                   Privacy Policy
                 </Link>
               </span>
@@ -399,29 +292,18 @@ export default function RegisterPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="register-btn"
+              className="flex h-[46px] max-[360px]:h-11 w-full items-center justify-center gap-2 rounded-[7px] border-0 bg-[#1d2731] text-[13px] font-semibold text-white cursor-pointer transition-[background-color,transform] duration-150 ease hover:bg-[#2b3945] hover:-translate-y-px active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-65"
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <span className="loader"></span>
+                  <span className="h-[15px] w-[15px] animate-[spin_0.7s_linear_infinite] rounded-full border-2 border-white/30 border-t-white"></span>
                   Creating account...
                 </>
               ) : (
                 <>
                   Create account
-
-                  <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m13 6 6 6-6 6" />
-                  </svg>
+                  <ArrowRight size={17} />
                 </>
               )}
             </button>
@@ -429,10 +311,10 @@ export default function RegisterPage() {
           </form>
 
           {/* Login */}
-          <div className="login-link">
+          <div className="mt-5 flex justify-center gap-[5px] text-xs text-[#8a949c]">
             <span>Already have an account?</span>
 
-            <Link href="/tenant/login">
+            <Link href="/login" className="font-semibold text-[#1d2731] no-underline hover:underline">
               Sign in
             </Link>
           </div>
@@ -440,488 +322,12 @@ export default function RegisterPage() {
         </div>
 
         {/* Footer */}
-        <div className="register-footer">
-          <span>© 2026 CQA Booking</span>
+        <div className="mt-[14px] flex w-full justify-between px-[3px] text-[10px] max-[600px]:text-[9px] text-[#a1a8ae]">
+          <span>Â© 2026 CQA Booking</span>
           <span>Secure registration</span>
         </div>
 
       </div>
-
-      <style jsx>{`
-
-        * {
-          box-sizing: border-box;
-        }
-
-        .register-page {
-          min-height: 100vh;
-          min-height: 100dvh;
-          width: 100%;
-          background:
-            radial-gradient(
-              circle at 50% 0%,
-              rgba(31, 41, 55, 0.045),
-              transparent 40%
-            ),
-            #f6f7f9;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 28px 20px;
-          color: #1f2933;
-          font-family:
-            Inter,
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            sans-serif;
-        }
-
-        .register-wrapper {
-          width: 100%;
-          max-width: 500px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-
-        /* BRAND */
-
-        .register-brand {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 20px;
-          color: #1d2731;
-          font-size: 18px;
-          font-weight: 700;
-          letter-spacing: -0.3px;
-        }
-
-        .brand-logo {
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
-          background: #1d2731;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          font-weight: 800;
-        }
-
-        /* CARD */
-
-        .register-card {
-          width: 100%;
-          background: #fff;
-          border: 1px solid #e4e7ea;
-          border-radius: 12px;
-          padding: 32px 36px 28px;
-          box-shadow:
-            0 8px 30px rgba(16, 24, 40, 0.055);
-        }
-
-        /* HEADER */
-
-        .register-header {
-          margin-bottom: 25px;
-        }
-
-        .register-label {
-          display: inline-block;
-          margin-bottom: 9px;
-          color: #89939c;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 1.4px;
-        }
-
-        .register-header h1 {
-          margin: 0;
-          color: #18212a;
-          font-size: 26px;
-          line-height: 1.2;
-          letter-spacing: -0.7px;
-          font-weight: 700;
-        }
-
-        .register-header p {
-          margin: 8px 0 0;
-          color: #7b858e;
-          font-size: 13px;
-          line-height: 1.6;
-        }
-
-        /* ERROR */
-
-        .register-error {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          padding: 11px 12px;
-          margin-bottom: 20px;
-          background: #fff7f7;
-          border: 1px solid #f1d0d0;
-          border-radius: 7px;
-          color: #a33b3b;
-          font-size: 12px;
-          line-height: 1.4;
-        }
-
-        .error-symbol {
-          width: 18px;
-          height: 18px;
-          flex-shrink: 0;
-          border-radius: 50%;
-          background: #a33b3b;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11px;
-          font-weight: 700;
-        }
-
-        /* SECTION */
-
-        .section-heading {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-          margin-bottom: 16px;
-        }
-
-        .owner-heading {
-          margin-top: 25px;
-        }
-
-        .section-number {
-          width: 27px;
-          height: 27px;
-          flex-shrink: 0;
-          border-radius: 7px;
-          background: #f0f2f4;
-          color: #69747e;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 10px;
-          font-weight: 700;
-        }
-
-        .section-heading h3 {
-          margin: 0;
-          color: #35404a;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .section-heading p {
-          margin: 2px 0 0;
-          color: #9aa2a9;
-          font-size: 10px;
-        }
-
-        /* FIELDS */
-
-        .field {
-          margin-bottom: 16px;
-        }
-
-        .field label {
-          display: block;
-          margin-bottom: 7px;
-          color: #39444e;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .name-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-
-        .input-box {
-          position: relative;
-          width: 100%;
-        }
-
-        .input-box input {
-          width: 100%;
-          height: 44px;
-          padding: 0 40px;
-          border: 1px solid #d9dde1;
-          border-radius: 7px;
-          background: #fff;
-          outline: none;
-          color: #202a33;
-          font-size: 13px;
-          transition:
-            border-color 0.15s ease,
-            box-shadow 0.15s ease;
-        }
-
-        .input-box input::placeholder {
-          color: #a1a8af;
-        }
-
-        .input-box input:focus {
-          border-color: #65717c;
-          box-shadow:
-            0 0 0 3px rgba(29, 39, 49, 0.06);
-        }
-
-        .input-icon {
-          position: absolute;
-          left: 13px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #8a949d;
-          display: flex;
-          pointer-events: none;
-        }
-
-        /* PASSWORD */
-
-        .password-field {
-          margin-bottom: 17px;
-        }
-
-        .password-hint {
-          display: block;
-          margin-top: 6px;
-          color: #9ba3aa;
-          font-size: 10px;
-        }
-
-        .show-password {
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          border: 0;
-          background: transparent;
-          padding: 5px;
-          color: #87919a;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-        }
-
-        .show-password:hover {
-          color: #1d2731;
-        }
-
-        /* TERMS */
-
-        .terms {
-          position: relative;
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          color: #737e87;
-          font-size: 10.5px;
-          line-height: 1.5;
-          cursor: pointer;
-          margin-bottom: 20px;
-        }
-
-        .terms input {
-          position: absolute;
-          opacity: 0;
-          pointer-events: none;
-        }
-
-        .terms-check {
-          width: 16px;
-          height: 16px;
-          flex: 0 0 16px;
-          margin-top: 1px;
-          border: 1px solid #c9ced3;
-          border-radius: 4px;
-          background: #fff;
-          position: relative;
-        }
-
-        .terms input:checked + .terms-check {
-          background: #1d2731;
-          border-color: #1d2731;
-        }
-
-        .terms input:checked + .terms-check::after {
-          content: "✓";
-          position: absolute;
-          left: 2px;
-          top: -1px;
-          color: #fff;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .terms a {
-          color: #3d4852;
-          font-weight: 600;
-          text-decoration: none;
-        }
-
-        .terms a:hover {
-          text-decoration: underline;
-        }
-
-        /* BUTTON */
-
-        .register-btn {
-          width: 100%;
-          height: 46px;
-          border: 0;
-          border-radius: 7px;
-          background: #1d2731;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          font-size: 13px;
-          font-weight: 650;
-          cursor: pointer;
-          transition:
-            background 0.15s ease,
-            transform 0.15s ease;
-        }
-
-        .register-btn:hover:not(:disabled) {
-          background: #2b3945;
-          transform: translateY(-1px);
-        }
-
-        .register-btn:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .register-btn:disabled {
-          opacity: 0.65;
-          cursor: not-allowed;
-        }
-
-        .loader {
-          width: 15px;
-          height: 15px;
-          border-radius: 50%;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top-color: #fff;
-          animation: rotate 0.7s linear infinite;
-        }
-
-        @keyframes rotate {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        /* LOGIN */
-
-        .login-link {
-          display: flex;
-          justify-content: center;
-          gap: 5px;
-          margin-top: 20px;
-          color: #8a949c;
-          font-size: 12px;
-        }
-
-        .login-link a {
-          color: #1d2731;
-          font-weight: 650;
-          text-decoration: none;
-        }
-
-        .login-link a:hover {
-          text-decoration: underline;
-        }
-
-        /* FOOTER */
-
-        .register-footer {
-          width: 100%;
-          display: flex;
-          justify-content: space-between;
-          margin-top: 14px;
-          padding: 0 3px;
-          color: #a1a8ae;
-          font-size: 10px;
-        }
-
-        /* MOBILE */
-
-        @media (max-width: 600px) {
-
-          .register-page {
-            padding: 20px 14px;
-            align-items: center;
-          }
-
-          .register-brand {
-            margin-bottom: 17px;
-          }
-
-          .register-card {
-            padding: 27px 21px 24px;
-            border-radius: 10px;
-          }
-
-          .register-header h1 {
-            font-size: 24px;
-          }
-
-          .register-header p {
-            font-size: 12px;
-          }
-
-          .name-grid {
-            grid-template-columns: 1fr;
-            gap: 0;
-          }
-
-          .owner-heading {
-            margin-top: 23px;
-          }
-
-          .register-footer {
-            font-size: 9px;
-          }
-        }
-
-        @media (max-width: 360px) {
-
-          .register-page {
-            padding: 15px 10px;
-          }
-
-          .register-card {
-            padding: 24px 17px 21px;
-          }
-
-          .register-header h1 {
-            font-size: 22px;
-          }
-
-          .section-heading h3 {
-            font-size: 11px;
-          }
-
-          .input-box input {
-            height: 43px;
-          }
-
-          .register-btn {
-            height: 44px;
-          }
-        }
-
-      `}</style>
 
     </main>
   );

@@ -5,29 +5,18 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const API_URL = API_BASE
   ? `${API_BASE}/api/v1`
-  : 'http://localhost:5000/api/v1';
-
-console.log('📋 Tenant Bookings API URL:', API_URL);
-
+  : 'http://localhost:5000/api/v1';
 
 // =========================================================
 // REQUEST HELPER
 // =========================================================
 
 async function fetchWithDebug(endpoint, options = {}) {
-  const url = `${API_URL}${endpoint}`;
-
-  console.log(
-    `📡 TENANT BOOKING API - ${options.method || 'GET'} ${endpoint}`
-  );
-
+  const url = `${API_URL}${endpoint}`;
   try {
     const response = await fetch(url, options);
 
-    const data = await response.json();
-
-    console.log(`✅ Status: ${response.status}`, data);
-
+    const data = await response.json();
     if (!response.ok) {
       throw new Error(
         data?.error || `HTTP ${response.status}`
@@ -36,12 +25,7 @@ async function fetchWithDebug(endpoint, options = {}) {
 
     return data;
 
-  } catch (error) {
-    console.error(
-      `❌ Tenant Booking API Error:`,
-      error.message
-    );
-
+  } catch (error) {
     throw error;
   }
 }

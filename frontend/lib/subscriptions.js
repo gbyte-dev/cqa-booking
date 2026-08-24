@@ -1,37 +1,23 @@
 // ===== API CONFIGURATION =====
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-const API_URL = API_BASE ? `${API_BASE}/api/v1` : 'http://localhost:5000/api/v1';
-
-console.log('💳 Subscriptions API URL:', API_URL);
-
+const API_URL = API_BASE ? `${API_BASE}/api/v1` : 'http://localhost:5000/api/v1';
 // ===== REQUEST HELPER =====
 async function fetchWithDebug(endpoint, options = {}) {
-  const url = `${API_URL}${endpoint}`;
-  
-  console.log(`\n📡 API REQUEST - ${options.method || 'GET'} ${endpoint}`);
-
+  const url = `${API_URL}${endpoint}`;
   try {
-    const response = await fetch(url, options);
-    console.log(`✅ Status: ${response.status}`);
-    
+    const response = await fetch(url, options);    
     const data = await response.json();
     
-    if (!response.ok) {
-      console.error(`❌ Error Response:`, data);
-      throw new Error(data?.error || `HTTP ${response.status}`);
+    if (!response.ok) {      throw new Error(data?.error || `HTTP ${response.status}`);
     }
     
     return data;
-  } catch (error) {
-    console.error(`❌ FETCH ERROR:`, error.message);
-    throw error;
+  } catch (error) {    throw error;
   }
 }
 
 // ===== GET ALL SUBSCRIPTIONS =====
-export async function getAllSubscriptions(token) {
-  console.log('\n💳 [getAllSubscriptions] Started');
-  
+export async function getAllSubscriptions(token) {  
   if (!token) throw new Error('No authentication token');
 
   return fetchWithDebug('/superadmin/subscriptions', {
@@ -44,9 +30,7 @@ export async function getAllSubscriptions(token) {
 }
 
 // ===== GET SUBSCRIPTION DETAILS =====
-export async function getSubscriptionDetails(subscriptionId, token) {
-  console.log('\n💳 [getSubscriptionDetails] Started with ID:', subscriptionId);
-  
+export async function getSubscriptionDetails(subscriptionId, token) {  
   if (!token) throw new Error('No authentication token');
   if (!subscriptionId) throw new Error('Subscription ID is required');
 
@@ -60,9 +44,7 @@ export async function getSubscriptionDetails(subscriptionId, token) {
 }
 
 // ===== CHANGE PLAN =====
-export async function changePlan(subscriptionId, plan, token) {
-  console.log('\n📊 [changePlan] Started with ID:', subscriptionId, 'Plan:', plan);
-  
+export async function changePlan(subscriptionId, plan, token) {  
   if (!token) throw new Error('No authentication token');
   if (!subscriptionId) throw new Error('Subscription ID is required');
   if (!plan) throw new Error('Plan is required');
@@ -78,9 +60,7 @@ export async function changePlan(subscriptionId, plan, token) {
 }
 
 // ===== CANCEL SUBSCRIPTION =====
-export async function cancelSubscription(subscriptionId, reason, token) {
-  console.log('\n❌ [cancelSubscription] Started with ID:', subscriptionId);
-  
+export async function cancelSubscription(subscriptionId, reason, token) {  
   if (!token) throw new Error('No authentication token');
   if (!subscriptionId) throw new Error('Subscription ID is required');
 
@@ -95,9 +75,7 @@ export async function cancelSubscription(subscriptionId, reason, token) {
 }
 
 // ===== UPDATE AUTO-RENEW =====
-export async function updateAutoRenew(subscriptionId, autoRenew, token) {
-  console.log('\n🔄 [updateAutoRenew] Started with ID:', subscriptionId);
-  
+export async function updateAutoRenew(subscriptionId, autoRenew, token) {  
   if (!token) throw new Error('No authentication token');
   if (!subscriptionId) throw new Error('Subscription ID is required');
 
@@ -112,9 +90,7 @@ export async function updateAutoRenew(subscriptionId, autoRenew, token) {
 }
 
 // ===== GET PAYMENTS =====
-export async function getPayments(subscriptionId, token) {
-  console.log('\n💰 [getPayments] Started for subscription:', subscriptionId);
-  
+export async function getPayments(subscriptionId, token) {  
   if (!token) throw new Error('No authentication token');
 
   return fetchWithDebug(`/superadmin/payments?subscriptionId=${subscriptionId}`, {
@@ -127,9 +103,7 @@ export async function getPayments(subscriptionId, token) {
 }
 
 // ===== GET SUBSCRIPTION STATS =====
-export async function getSubscriptionStats(token) {
-  console.log('\n📊 [getSubscriptionStats] Started');
-  
+export async function getSubscriptionStats(token) {  
   if (!token) throw new Error('No authentication token');
 
   return fetchWithDebug('/superadmin/subscriptions/stats', {

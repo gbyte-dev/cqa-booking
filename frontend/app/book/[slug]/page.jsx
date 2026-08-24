@@ -22,7 +22,7 @@ export default function PublicBookingPage({ params }) {
       setAvailable(result.data?.available || []);
       setMessage(`${result.data?.available?.length || 0} resources available`);
     } catch (error) {
-      setMessage(error.message);
+      setMessage('We could not check availability right now. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -36,29 +36,52 @@ export default function PublicBookingPage({ params }) {
       const result = await coreAPI.publicBooking(slug, { ...form, tableId: selectedTable || undefined });
       setMessage(`Reservation created: ${result.data.bookingId}`);
     } catch (error) {
-      setMessage(error.message);
+      setMessage('We could not complete your reservation. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main style={{ minHeight: '100vh', padding: '48px 20px', background: '#f4f1ea', color: '#18231f' }}>
-      <section style={{ maxWidth: 720, margin: '0 auto', background: '#fffdf8', padding: 32, border: '1px solid #d8d1c2', borderRadius: 8 }}>
-        <p style={{ color: '#a34f2b', letterSpacing: 1.5, fontSize: 12 }}>AVENTA CORE RESERVATIONS</p>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 42, margin: '8px 0 28px' }}>Reserve your table</h1>
-        <form onSubmit={checkAvailability} style={{ display: 'grid', gap: 14 }}>
+    <main className="min-h-screen bg-[#f4f1ea] px-5 py-12 text-[#18231f]">
+      <section className="mx-auto max-w-[720px] rounded-lg border border-[#d8d1c2] bg-[#fffdf8] p-8">
+        <p className="text-xs tracking-[1.5px] text-[#a34f2b]">AVENTA CORE RESERVATIONS</p>
+        <h1 className="mt-2 mb-7 font-serif text-[42px]">Reserve your table</h1>
+        <form onSubmit={checkAvailability} className="grid gap-3.5">
           <label>Date<input required type="date" name="bookingDate" value={form.bookingDate} onChange={update} /></label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="grid grid-cols-2 gap-3.5">
             <label>Start time<input required type="time" name="bookingStartTime" value={form.bookingStartTime} onChange={update} /></label>
             <label>End time<input required type="time" name="bookingEndTime" value={form.bookingEndTime} onChange={update} /></label>
           </div>
           <label>Guests<input required min="1" type="number" name="numGuests" value={form.numGuests} onChange={update} /></label>
           <button disabled={loading} type="submit">{loading ? 'Checking...' : 'Check availability'}</button>
         </form>
-        {available.length > 0 && <div style={{ marginTop: 24 }}><p>Select a resource</p><div style={{ display: 'grid', gap: 8 }}>{available.map(table => <button type="button" key={table.id} onClick={() => setSelectedTable(table.id)} style={{ textAlign: 'left', background: selectedTable === table.id ? '#dce8dc' : '#f6f2e8' }}>{table.name} · up to {table.capacity}</button>)}</div></div>}
-        {available.length > 0 && <form onSubmit={createBooking} style={{ display: 'grid', gap: 14, marginTop: 24 }}><input required name="customerName" placeholder="Your name" value={form.customerName} onChange={update} /><input type="email" name="customerEmail" placeholder="Email" value={form.customerEmail} onChange={update} /><input name="customerPhone" placeholder="Phone" value={form.customerPhone} onChange={update} /><button disabled={loading || !selectedTable} type="submit">Create reservation</button></form>}
-        {message && <p role="status" style={{ marginTop: 20, color: '#a34f2b' }}>{message}</p>}
+        {available.length > 0 && (
+          <div className="mt-6">
+            <p>Select a resource</p>
+            <div className="grid gap-2">
+              {available.map(table => (
+                <button
+                  type="button"
+                  key={table.id}
+                  onClick={() => setSelectedTable(table.id)}
+                  className={`text-left ${selectedTable === table.id ? 'bg-[#dce8dc]' : 'bg-[#f6f2e8]'}`}
+                >
+                  {table.name} · up to {table.capacity}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {available.length > 0 && (
+          <form onSubmit={createBooking} className="mt-6 grid gap-3.5">
+            <input required name="customerName" placeholder="Your name" value={form.customerName} onChange={update} />
+            <input type="email" name="customerEmail" placeholder="Email" value={form.customerEmail} onChange={update} />
+            <input name="customerPhone" placeholder="Phone" value={form.customerPhone} onChange={update} />
+            <button disabled={loading || !selectedTable} type="submit">Create reservation</button>
+          </form>
+        )}
+        {message && <p role="status" className="mt-5 text-[#a34f2b]">{message}</p>}
       </section>
     </main>
   );

@@ -1,17 +1,9 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-const API_URL = API_BASE ? `${API_BASE}/api/v1` : 'http://localhost:5000/api/v1';
-
-console.log('🏢 Tenant Venues API URL:', API_URL);
-
+const API_URL = API_BASE ? `${API_BASE}/api/v1` : 'http://localhost:5000/api/v1';
 async function fetchWithDebug(endpoint, options = {}) {
-  const url = `${API_URL}${endpoint}`;
-  
-  console.log(`\n📡 API REQUEST - ${options.method || 'GET'} ${endpoint}`);
-
+  const url = `${API_URL}${endpoint}`;
   try {
-    const response = await fetch(url, options);
-    console.log(`✅ Status: ${response.status}`);
-    
+    const response = await fetch(url, options);    
     let data = {};
     
     try {
@@ -19,17 +11,13 @@ async function fetchWithDebug(endpoint, options = {}) {
       if (text) {
         data = JSON.parse(text);
       }
-    } catch (parseErr) {
-      console.warn('Response parse error:', parseErr.message);
-      data = { success: true };
+    } catch (parseErr) {      data = { success: true };
     }
     
     // ✅ Always return data as-is, don't throw on bad status
     // Backend returns success: true even for "no data" cases
     return data;
-  } catch (error) {
-    console.error(`❌ FETCH ERROR:`, error.message);
-    
+  } catch (error) {    
     // ✅ Return graceful response instead of throwing
     return {
       success: true,
@@ -41,12 +29,8 @@ async function fetchWithDebug(endpoint, options = {}) {
 }
 
 // ===== GET ALL VENUES =====
-export async function getTenantVenues(token) {
-  console.log('\n🏢 [getTenantVenues] Started');
-  
-  if (!token) {
-    console.warn('No token provided');
-    return {
+export async function getTenantVenues(token) {  
+  if (!token) {    return {
       success: true,
       data: [],
       count: 0,
@@ -79,9 +63,7 @@ export async function getTenantVenues(token) {
         message: response.message || 'No venues found'
       };
     }
-  } catch (error) {
-    console.error('Error in getTenantVenues:', error.message);
-    return {
+  } catch (error) {    return {
       success: true,
       data: [],
       count: 0,
@@ -91,9 +73,7 @@ export async function getTenantVenues(token) {
 }
 
 // ===== GET SINGLE VENUE =====
-export async function getTenantVenue(venueId, token) {
-  console.log('\n🏢 [getTenantVenue] Started with ID:', venueId);
-  
+export async function getTenantVenue(venueId, token) {  
   if (!token) throw new Error('No authentication token');
   if (!venueId) throw new Error('Venue ID is required');
 
@@ -119,9 +99,7 @@ export async function getTenantVenue(venueId, token) {
         message: response.message || 'Venue not found'
       };
     }
-  } catch (error) {
-    console.error('Error in getTenantVenue:', error.message);
-    return {
+  } catch (error) {    return {
       success: true,
       data: null,
       message: 'Venue not found'
@@ -130,9 +108,7 @@ export async function getTenantVenue(venueId, token) {
 }
 
 // ===== CREATE VENUE =====
-export async function createTenantVenue(venueData, token) {
-  console.log('\n🏢 [createTenantVenue] Started');
-  
+export async function createTenantVenue(venueData, token) {  
   if (!token) throw new Error('No authentication token');
   if (!venueData.name) throw new Error('Venue name is required');
 
@@ -155,16 +131,12 @@ export async function createTenantVenue(venueData, token) {
     } else {
       throw new Error(response.message || 'Failed to create venue');
     }
-  } catch (error) {
-    console.error('Error in createTenantVenue:', error.message);
-    throw error;
+  } catch (error) {    throw error;
   }
 }
 
 // ===== UPDATE VENUE =====
-export async function updateTenantVenue(venueId, venueData, token) {
-  console.log('\n🏢 [updateTenantVenue] Started with ID:', venueId);
-  
+export async function updateTenantVenue(venueId, venueData, token) {  
   if (!token) throw new Error('No authentication token');
   if (!venueId) throw new Error('Venue ID is required');
 
@@ -187,16 +159,12 @@ export async function updateTenantVenue(venueId, venueData, token) {
     } else {
       throw new Error(response.message || 'Failed to update venue');
     }
-  } catch (error) {
-    console.error('Error in updateTenantVenue:', error.message);
-    throw error;
+  } catch (error) {    throw error;
   }
 }
 
 // ===== DELETE VENUE =====
-export async function deleteTenantVenue(venueId, token) {
-  console.log('\n🏢 [deleteTenantVenue] Started with ID:', venueId);
-  
+export async function deleteTenantVenue(venueId, token) {  
   if (!token) throw new Error('No authentication token');
   if (!venueId) throw new Error('Venue ID is required');
 
@@ -217,9 +185,7 @@ export async function deleteTenantVenue(venueId, token) {
     } else {
       throw new Error(response.message || 'Failed to delete venue');
     }
-  } catch (error) {
-    console.error('Error in deleteTenantVenue:', error.message);
-    throw error;
+  } catch (error) {    throw error;
   }
 }
 

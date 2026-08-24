@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { storage } from '@/lib/storage';
 
-import './dashboard.css';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -21,7 +21,7 @@ export default function TenantDashboard() {
 
   useEffect(() => {
     if (!token || !currentUser) {
-      router.push('/tenant/login');
+      router.push('/login');
       return;
     }
     setUser(currentUser);
@@ -36,9 +36,7 @@ export default function TenantDashboard() {
       });
       const data = await res.json();
       if (data.success) setBookings(data.data || []);
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -84,12 +82,12 @@ export default function TenantDashboard() {
   };
 
   const statusIcon = (status) => ({
-    confirmed: '✅ Confirmed',
-    pending: '⏳ Pending',
-    checked_in: '🔵 Checked In',
-    completed: '✔️ Completed',
-    cancelled: '❌ Cancelled',
-    no_show: '🚫 No Show'
+    confirmed: 'Confirmed',
+    pending: 'Pending',
+    checked_in: 'Checked In',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    no_show: 'No Show'
   }[status] || status);
 
   if (loading) {
@@ -107,7 +105,7 @@ export default function TenantDashboard() {
             {/* Stats Section */}
             <div className="dashboard-header">
               <div className="welcome-section">
-                <h2>👋 Welcome back, {user?.firstName}!</h2>
+                <h2 className="flex items-center gap-2"><AppIcon name="hand" /> Welcome back, {user?.firstName}!</h2>
                 <p>Here's what's happening with your bookings today.</p>
               </div>
             </div>
@@ -117,7 +115,7 @@ export default function TenantDashboard() {
               <div className="stat-card">
                 <div className="stat-top">
                   <span className="stat-label">Today's Bookings</span>
-                  <span className="stat-icon">📋</span>
+                  <span className="stat-icon"><AppIcon name="bookings" /></span>
                 </div>
                 <div className="stat-value">{todaysBookings.length}</div>
                 <div className="stat-footer">
@@ -128,7 +126,7 @@ export default function TenantDashboard() {
               <div className="stat-card">
                 <div className="stat-top">
                   <span className="stat-label">Total Guests Today</span>
-                  <span className="stat-icon">👥</span>
+                  <span className="stat-icon"><AppIcon name="users" /></span>
                 </div>
                 <div className="stat-value">{totalGuestsToday}</div>
                 <div className="stat-footer">
@@ -139,7 +137,7 @@ export default function TenantDashboard() {
               <div className="stat-card">
                 <div className="stat-top">
                   <span className="stat-label">Confirmed Today</span>
-                  <span className="stat-icon">✅</span>
+                  <span className="stat-icon"><AppIcon name="checkCircle" /></span>
                 </div>
                 <div className="stat-value">{confirmedToday}</div>
                 <div className="stat-footer">
@@ -150,7 +148,7 @@ export default function TenantDashboard() {
               <div className="stat-card">
                 <div className="stat-top">
                   <span className="stat-label">Total Bookings</span>
-                  <span className="stat-icon">📊</span>
+                  <span className="stat-icon"><AppIcon name="chart" /></span>
                 </div>
                 <div className="stat-value">{bookings.length}</div>
                 <div className="stat-footer">
@@ -164,7 +162,7 @@ export default function TenantDashboard() {
               {/* Upcoming Bookings */}
               <div className="panel">
                 <div className="panel-header">
-                  <h3>📅 Upcoming Bookings</h3>
+                  <h3><AppIcon name="calendar" /> Upcoming Bookings</h3>
                   <Link href="/tenant/bookings" className="view-all">View All</Link>
                 </div>
 
@@ -181,7 +179,7 @@ export default function TenantDashboard() {
                         <div className="booking-info">
                           <div className="customer-name">{b.customerName || 'N/A'}</div>
                           <div className="booking-details">
-                            {b.Table?.name || 'No table'} • {b.numGuests} Guests • {b.Venue?.name || 'Venue'}
+                            {b.Table?.name || 'No table'} â€¢ {b.numGuests} Guests â€¢ {b.Venue?.name || 'Venue'}
                           </div>
                         </div>
                         <div className={`booking-status ${b.bookingStatus}`}>
@@ -196,27 +194,27 @@ export default function TenantDashboard() {
               {/* Quick Actions */}
               <div className="quick-actions-panel">
                 <div className="panel-header">
-                  <h3>⚡ Quick Actions</h3>
+                  <h3><AppIcon name="zap" /> Quick Actions</h3>
                 </div>
 
                 <div className="actions-grid">
                   <Link href="/tenant/bookings" className="action-card">
-                    <div className="action-icon">➕</div>
+                    <div className="action-icon"><AppIcon name="add" /></div>
                     <div className="action-label">New Booking</div>
                   </Link>
 
                   <Link href="/tenant/customers" className="action-card">
-                    <div className="action-icon">👥</div>
+                    <div className="action-icon"><AppIcon name="users" /></div>
                     <div className="action-label">Add Customer</div>
                   </Link>
 
                   <Link href="/tenant/reports" className="action-card">
-                    <div className="action-icon">📊</div>
+                    <div className="action-icon"><AppIcon name="chart" /></div>
                     <div className="action-label">View Reports</div>
                   </Link>
 
                   <Link href="/tenant/settings" className="action-card">
-                    <div className="action-icon">⚙️</div>
+                    <div className="action-icon"><AppIcon name="settings" /></div>
                     <div className="action-label">Settings</div>
                   </Link>
                 </div>
@@ -227,7 +225,7 @@ export default function TenantDashboard() {
             <div className="analytics-section">
               <div className="panel">
                 <div className="panel-header">
-                  <h3>📈 Weekly Analytics</h3>
+                  <h3><AppIcon name="chart" /> Weekly Analytics</h3>
                   <select className="period-select">
                     <option>This Week</option>
                     <option>Last Week</option>

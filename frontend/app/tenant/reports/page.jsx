@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,7 +21,7 @@ export default function TenantReportsPage() {
     mountedRef.current = true;
 
     if (!token) {
-      router.replace('/tenant/login');
+      router.replace('/login');
       return;
     }
 
@@ -39,9 +40,7 @@ export default function TenantReportsPage() {
 
       if (statsData.success) setStats(statsData.data);
       if (venuesData.success) setVenues(venuesData.data || []);
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -60,7 +59,7 @@ export default function TenantReportsPage() {
       <main className="reports-content">
             <div className="page-header">
               <div>
-                <h2>📈 Reports</h2>
+                <h2><AppIcon name="chart" /> Reports</h2>
                 <p>Booking performance across your venues.</p>
               </div>
             </div>
@@ -100,7 +99,7 @@ export default function TenantReportsPage() {
 
               {venues.length === 0 ? (
                 <div className="empty-state">
-                  <p>No venues yet — add one to start seeing performance data.</p>
+                  <p>No venues yet â€” add one to start seeing performance data.</p>
                 </div>
               ) : (
                 <div className="venue-list">

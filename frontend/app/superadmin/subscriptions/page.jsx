@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +14,6 @@ import {
   getPayments,
   getSubscriptionStats,
 } from '@/lib/subscriptions';
-import './subscriptions.css';
 
 export default function SubscriptionsPage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function SubscriptionsPage() {
   // Check auth
   useEffect(() => {
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
-      router.push('/superadmin/login');
+      router.push('/login');
       return;
     }
     setUser(currentUser);
@@ -62,9 +63,7 @@ export default function SubscriptionsPage() {
       if (statsResponse.success) {
         setStats(statsResponse.data);
       }
-    } catch (error) {
-      console.error('Load error:', error);
-      alert('❌ Error loading subscriptions: ' + error.message);
+    } catch (error) {      notify('Error loading subscriptions: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -81,9 +80,7 @@ export default function SubscriptionsPage() {
       if (response.success) {
         setPayments(response.data || []);
       }
-    } catch (error) {
-      console.error('Error loading payments:', error);
-    } finally {
+    } catch (error) {    } finally {
       setDetailsLoading(false);
     }
   };
@@ -105,7 +102,7 @@ export default function SubscriptionsPage() {
   // Change plan
   const handleChangePlan = async () => {
     if (selectedPlan === selectedSubscription.plan) {
-      alert('⚠️ Please select a different plan');
+      notify('Please select a different plan');
       return;
     }
 
@@ -113,12 +110,12 @@ export default function SubscriptionsPage() {
     try {
       const response = await changePlan(selectedSubscription.id, selectedPlan, token);
       if (response.success) {
-        alert('✅ ' + response.message);
+        notify('' + response.message);
         setShowPlanModal(false);
         await loadData();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setPlanLoading(false);
     }
@@ -134,7 +131,7 @@ export default function SubscriptionsPage() {
   // Cancel subscription
   const handleCancelSubscription = async () => {
     if (!cancelReason.trim()) {
-      alert('⚠️ Please provide a reason for cancellation');
+      notify('Please provide a reason for cancellation');
       return;
     }
 
@@ -142,12 +139,12 @@ export default function SubscriptionsPage() {
     try {
       const response = await cancelSubscription(selectedSubscription.id, cancelReason, token);
       if (response.success) {
-        alert('✅ Subscription cancelled successfully');
+        notify('Subscription cancelled successfully');
         setShowCancelModal(false);
         await loadData();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setCancelLoading(false);
     }
@@ -158,11 +155,11 @@ export default function SubscriptionsPage() {
     try {
       const response = await updateAutoRenew(subscription.id, !subscription.autoRenew, token);
       if (response.success) {
-        alert(`✅ Auto-renew ${!subscription.autoRenew ? 'enabled' : 'disabled'}`);
+        notify(`Auto-renew ${!subscription.autoRenew ? 'enabled' : 'disabled'}`);
         await loadData();
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     }
   };
 
@@ -244,7 +241,7 @@ export default function SubscriptionsPage() {
             {/* Plan Distribution */}
             {stats && stats.byPlan && (
               <div className="plan-distribution">
-                <h3>📊 Plan Distribution</h3>
+                <h3><AppIcon name="chart" /> Plan Distribution</h3>
                 <div className="distribution-chart">
                   {stats.byPlan.map((planData) => (
                     <div key={planData.plan} className="plan-bar">
@@ -300,7 +297,7 @@ export default function SubscriptionsPage() {
                           </td>
                           <td>
                             <span className={`status ${subscription.status}`}>
-                              {subscription.status === 'active' ? '✅ Active' : '❌ Cancelled'}
+                              {subscription.status === 'active' ? 'Active' : 'Cancelled'}
                             </span>
                           </td>
                           <td>{formatCurrency(subscription.monthlyPrice)}</td>
@@ -310,7 +307,7 @@ export default function SubscriptionsPage() {
                               onClick={() => handleToggleAutoRenew(subscription)}
                               title="Toggle auto-renew"
                             >
-                              {subscription.autoRenew ? '🔄' : '⏸️'}
+                              {subscription.autoRenew ? '' : ''}
                             </button>
                           </td>
                           <td>{formatDate(subscription.startDate)}</td>
@@ -322,7 +319,7 @@ export default function SubscriptionsPage() {
                                 onClick={() => handleViewDetails(subscription)}
                                 title="View Details"
                               >
-                                📋
+                                <AppIcon name="bookings" />
                               </button>
                               {subscription.status === 'active' && (
                                 <>
@@ -331,14 +328,14 @@ export default function SubscriptionsPage() {
                                     onClick={() => handleUpgradePlan(subscription)}
                                     title="Change Plan"
                                   >
-                                    📈
+                                    <AppIcon name="chart" />
                                   </button>
                                   <button
                                     className="action-btn cancel-btn"
                                     onClick={() => handleCancelClick(subscription)}
                                     title="Cancel"
                                   >
-                                    ❌
+                                    <AppIcon name="cancel" />
                                   </button>
                                 </>
                               )}
@@ -358,8 +355,8 @@ export default function SubscriptionsPage() {
         <div className="modal-overlay" onClick={handleCloseDetails}>
           <div className="modal details-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>📋 Subscription Details</h2>
-              <button className="close-btn" onClick={handleCloseDetails}>✕</button>
+              <h2><AppIcon name="bookings" /> Subscription Details</h2>
+              <button className="close-btn" onClick={handleCloseDetails}><AppIcon name="close" /></button>
             </div>
 
             {detailsLoading ? (
@@ -407,7 +404,7 @@ export default function SubscriptionsPage() {
 
                 {/* Payment History */}
                 <div className="payment-history">
-                  <h3>💰 Payment History</h3>
+                  <h3 className="flex items-center gap-2"><AppIcon name="money" /> Payment History</h3>
                   {payments.length === 0 ? (
                     <p>No payments found</p>
                   ) : (
@@ -420,7 +417,7 @@ export default function SubscriptionsPage() {
                           </div>
                           <div className="payment-status">
                             <span className={`status-badge ${payment.paymentStatus}`}>
-                              {payment.paymentStatus === 'completed' ? '✅' : '⏳'} {payment.paymentStatus}
+                              {payment.paymentStatus === 'completed' ? '' : ''} {payment.paymentStatus}
                             </span>
                           </div>
                         </div>
@@ -439,8 +436,8 @@ export default function SubscriptionsPage() {
         <div className="modal-overlay" onClick={() => setShowPlanModal(false)}>
           <div className="modal plan-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>📈 Change Plan</h2>
-              <button className="close-btn" onClick={() => setShowPlanModal(false)}>✕</button>
+              <h2><AppIcon name="chart" /> Change Plan</h2>
+              <button className="close-btn" onClick={() => setShowPlanModal(false)}><AppIcon name="close" /></button>
             </div>
 
             <div className="plan-options">
@@ -467,9 +464,9 @@ export default function SubscriptionsPage() {
                     </div>
                     <div className="plan-price">{formatCurrency(prices[plan])}/month</div>
                     <div className="plan-features">
-                      <div>🏢 {features[plan].venues} venues</div>
-                      <div>👥 {features[plan].staff} staff</div>
-                      <div>📋 {features[plan].bookings} bookings/day</div>
+                      <div><AppIcon name="building" /> {features[plan].venues} venues</div>
+                      <div><AppIcon name="users" /> {features[plan].staff} staff</div>
+                      <div><AppIcon name="bookings" /> {features[plan].bookings} bookings/day</div>
                     </div>
                     <div className="plan-radio">
                       <input
@@ -498,7 +495,7 @@ export default function SubscriptionsPage() {
                 onClick={handleChangePlan}
                 disabled={planLoading}
               >
-                {planLoading ? 'Processing...' : '✅ Change Plan'}
+                {planLoading ? 'Processing...' : 'Change Plan'}
               </button>
             </div>
           </div>
@@ -510,8 +507,8 @@ export default function SubscriptionsPage() {
         <div className="modal-overlay" onClick={() => setShowCancelModal(false)}>
           <div className="modal cancel-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>❌ Cancel Subscription</h2>
-              <button className="close-btn" onClick={() => setShowCancelModal(false)}>✕</button>
+              <h2><AppIcon name="cancel" /> Cancel Subscription</h2>
+              <button className="close-btn" onClick={() => setShowCancelModal(false)}><AppIcon name="close" /></button>
             </div>
 
             <div className="cancel-content">
@@ -519,7 +516,7 @@ export default function SubscriptionsPage() {
                 Are you sure you want to cancel the subscription for{' '}
                 <strong>{selectedSubscription.Organization?.name}</strong>?
               </p>
-              <p className="warning">⚠️ This will suspend the organization immediately.</p>
+              <p className="warning"><AppIcon name="alert" /> This will suspend the organization immediately.</p>
 
               <div className="form-group">
                 <label>Reason for Cancellation *</label>
@@ -545,7 +542,7 @@ export default function SubscriptionsPage() {
                   onClick={handleCancelSubscription}
                   disabled={cancelLoading}
                 >
-                  {cancelLoading ? 'Cancelling...' : '❌ Cancel Subscription'}
+                  {cancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
                 </button>
               </div>
             </div>

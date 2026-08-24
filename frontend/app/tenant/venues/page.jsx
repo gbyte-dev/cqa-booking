@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { confirmAction, notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,7 +11,6 @@ import {
   updateTenantVenue,
   deleteTenantVenue
 } from '@/lib/tenant-venues';
-import './venues.css';
 
 export default function TenantVenuesPage() {
   const router = useRouter();
@@ -46,7 +47,7 @@ export default function TenantVenuesPage() {
 
   useEffect(() => {
     if (!token || !currentUser) {
-      router.push('/tenant/login');
+      router.push('/login');
       return;
     }
     setUser(currentUser);
@@ -59,11 +60,9 @@ export default function TenantVenuesPage() {
       if (response.success) {
         setVenues(response.data || []);
       } else {
-        alert('❌ Failed to load venues');
+        notify('Failed to load venues');
       }
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -137,33 +136,38 @@ export default function TenantVenuesPage() {
       }
 
       if (response.success) {
-        alert('✅ Venue ' + (selectedVenue ? 'updated' : 'created') + ' successfully');
+        notify('Venue ' + (selectedVenue ? 'updated' : 'created') + ' successfully');
         setShowForm(false);
         await loadVenues();
       } else {
-        alert('❌ Error: ' + response.error);
+        notify('Error: ' + response.error);
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDelete = async (venueId) => {
-    if (!confirm('Are you sure you want to delete this venue?')) return;
+    if (!(await confirmAction({
+      title: 'Delete venue?',
+      text: 'This venue will be permanently removed.',
+      confirmText: 'Delete venue',
+      danger: true,
+    }))) return;
 
     setDeleteConfirm(venueId);
     try {
       const response = await deleteTenantVenue(venueId, token);
       if (response.success) {
-        alert('✅ Venue deleted successfully');
+        notify('Venue deleted successfully');
         await loadVenues();
       } else {
-        alert('❌ Error: ' + response.error);
+        notify('Error: ' + response.error);
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setDeleteConfirm(null);
     }
@@ -183,20 +187,20 @@ export default function TenantVenuesPage() {
       <main className="venues-content">
             <div className="venues-header">
               <div>
-                <h2>🏢 Manage Your Venues</h2>
+                <h2><AppIcon name="building" /> Manage Your Venues</h2>
                 <p>Add, edit, and manage your restaurant venues</p>
               </div>
               <button className="btn-add-venue" onClick={handleAddVenue}>
-                ➕ Add Venue
+                <AppIcon name="add" /> Add Venue
               </button>
             </div>
 
             {venues.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">🏢</div>
+                <div className="empty-icon"><AppIcon name="building" /></div>
                 <p>No venues yet. Create your first venue!</p>
                 <button className="btn-add-venue" onClick={handleAddVenue}>
-                  ➕ Create Venue
+                  <AppIcon name="add" /> Create Venue
                 </button>
               </div>
             ) : (
@@ -207,7 +211,7 @@ export default function TenantVenuesPage() {
                       {venue.coverImageUrl ? (
                         <img src={venue.coverImageUrl} alt={venue.name} />
                       ) : (
-                        <div className="no-image">📷</div>
+                        <div className="no-image"><AppIcon name="camera" /></div>
                       )}
                     </div>
 
@@ -246,14 +250,14 @@ export default function TenantVenuesPage() {
                           className="btn-edit"
                           onClick={() => handleEditVenue(venue)}
                         >
-                          ✏️ Edit
+                          <AppIcon name="edit" /> Edit
                         </button>
                         <button
                           className="btn-delete"
                           onClick={() => handleDelete(venue.id)}
                           disabled={deleteConfirm === venue.id}
                         >
-                          {deleteConfirm === venue.id ? '⏳...' : '🗑️ Delete'}
+                          {deleteConfirm === venue.id ? '...' : 'Delete'}
                         </button>
                       </div>
                     </div>
@@ -268,8 +272,8 @@ export default function TenantVenuesPage() {
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal venues-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{selectedVenue ? '✏️ Edit Venue' : '➕ Add New Venue'}</h2>
-              <button className="close-btn" onClick={() => setShowForm(false)}>✕</button>
+              <h2>{selectedVenue ? 'Edit Venue' : 'Add New Venue'}</h2>
+              <button className="close-btn" onClick={() => setShowForm(false)}><AppIcon name="close" /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="venue-form">

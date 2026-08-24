@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -23,7 +24,7 @@ export default function SuperAdminSettingsPage() {
 
   useEffect(() => {
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
-      router.push('/superadmin/login');
+      router.push('/login');
       return;
     }
     loadSettings();
@@ -35,9 +36,7 @@ export default function SuperAdminSettingsPage() {
       if (local) {
         setSettings({ ...settings, ...JSON.parse(local) });
       }
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -52,11 +51,11 @@ export default function SuperAdminSettingsPage() {
       localStorage.setItem('cqa-platform-settings', JSON.stringify(settings));
       setTimeout(() => {
         setSaving(false);
-        alert('✅ Settings saved successfully');
+        notify('Settings saved successfully');
       }, 500);
     } catch (error) {
       setSaving(false);
-      alert('❌ Error saving settings: ' + error.message);
+      notify('Error saving settings: ' + error.message);
     }
   };
 
@@ -121,11 +120,11 @@ export default function SuperAdminSettingsPage() {
                     value={settings.currency}
                     onChange={(e) => handleChange('currency', e.target.value)}
                   >
-                    <option value="USD">USD — US Dollar</option>
-                    <option value="EUR">EUR — Euro</option>
-                    <option value="GBP">GBP — British Pound</option>
-                    <option value="INR">INR — Indian Rupee</option>
-                    <option value="AUD">AUD — Australian Dollar</option>
+                    <option value="USD">USD â€” US Dollar</option>
+                    <option value="EUR">EUR â€” Euro</option>
+                    <option value="GBP">GBP â€” British Pound</option>
+                    <option value="INR">INR â€” Indian Rupee</option>
+                    <option value="AUD">AUD â€” Australian Dollar</option>
                   </select>
                 </div>
 

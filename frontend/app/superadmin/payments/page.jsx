@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -19,7 +20,7 @@ export default function SuperAdminPaymentsPage() {
 
   useEffect(() => {
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
-      router.push('/superadmin/login');
+      router.push('/login');
       return;
     }
     loadPayments();
@@ -43,9 +44,7 @@ export default function SuperAdminPaymentsPage() {
           totalAmount: total
         });
       }
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -147,7 +146,7 @@ export default function SuperAdminPaymentsPage() {
 
               {filteredPayments.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">💳</div>
+                  <div className="empty-icon"><AppIcon name="creditCard" /></div>
                   <p>No payments found</p>
                 </div>
               ) : (
@@ -179,7 +178,7 @@ export default function SuperAdminPaymentsPage() {
                           <td>{payment.paymentMethod || 'N/A'}</td>
                           <td>
                             <span className={`status-badge ${payment.paymentStatus === 'completed' ? 'completed' : payment.paymentStatus === 'failed' ? 'failed' : 'pending'}`}>
-                              {payment.paymentStatus === 'completed' ? '✅ Completed' : payment.paymentStatus === 'failed' ? '❌ Failed' : payment.paymentStatus === 'refunded' ? '↩ Refunded' : '⏳ Pending'}
+                              {payment.paymentStatus === 'completed' ? 'Completed' : payment.paymentStatus === 'failed' ? 'Failed' : payment.paymentStatus === 'refunded' ? 'Refunded' : 'Pending'}
                             </span>
                           </td>
                           <td>{formatDate(payment.createdAt)}</td>

@@ -1,4 +1,5 @@
-'use client';
+﻿'use client';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -25,7 +26,7 @@ export default function SuperAdminProfilePage() {
 
   useEffect(() => {
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
-      router.push('/superadmin/login');
+      router.push('/login');
       return;
     }
 
@@ -50,11 +51,11 @@ export default function SuperAdminProfilePage() {
       storage.setUser(updated);
       setTimeout(() => {
         setSaving(false);
-        alert('✅ Profile updated successfully');
+        notify('Profile updated successfully');
       }, 500);
     } catch (error) {
       setSaving(false);
-      alert('❌ Error saving profile: ' + error.message);
+      notify('Error saving profile: ' + error.message);
     }
   };
 

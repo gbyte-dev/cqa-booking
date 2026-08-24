@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -13,7 +15,6 @@ import {
   cancelTenantBooking
 } from '@/lib/tenant-bookings';
 
-import './bookings.css';
 
 
 export default function TenantBookingsPage() {
@@ -56,7 +57,7 @@ export default function TenantBookingsPage() {
         currentUser.role
       )
     ) {
-      router.push('/tenant/login');
+      router.push('/login');
       return;
     }
 
@@ -89,13 +90,7 @@ export default function TenantBookingsPage() {
         setStats(statsResponse.data);
       }
 
-    } catch (error) {
-
-      console.error(
-        'Tenant bookings load error:',
-        error
-      );
-
+    } catch (error) {
     } finally {
 
       setLoading(false);
@@ -123,14 +118,14 @@ export default function TenantBookingsPage() {
 
       if (response.success) {
 
-        alert('✅ Booking confirmed');
+        notify('Booking confirmed');
 
         await loadData(token);
       }
 
     } catch (error) {
 
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
 
     } finally {
 
@@ -159,14 +154,14 @@ export default function TenantBookingsPage() {
 
       if (response.success) {
 
-        alert('✅ Booking completed');
+        notify('Booking completed');
 
         await loadData(token);
       }
 
     } catch (error) {
 
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
 
     } finally {
 
@@ -195,7 +190,7 @@ export default function TenantBookingsPage() {
 
     if (!cancelReason.trim()) {
 
-      alert('⚠️ Please provide a reason');
+      notify('Please provide a reason');
 
       return;
     }
@@ -215,7 +210,7 @@ export default function TenantBookingsPage() {
 
       if (response.success) {
 
-        alert('✅ Booking cancelled');
+        notify('Booking cancelled');
 
         setShowCancelModal(false);
 
@@ -224,7 +219,7 @@ export default function TenantBookingsPage() {
 
     } catch (error) {
 
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
 
     } finally {
 
@@ -273,27 +268,27 @@ export default function TenantBookingsPage() {
 
       confirmed: {
         class: 'confirmed',
-        text: '✅ Confirmed'
+        text: 'Confirmed'
       },
 
       pending: {
         class: 'pending',
-        text: '⏳ Pending'
+        text: 'Pending'
       },
 
       cancelled: {
         class: 'cancelled',
-        text: '❌ Cancelled'
+        text: 'Cancelled'
       },
 
       completed: {
         class: 'completed',
-        text: '✔️ Completed'
+        text: 'Completed'
       },
 
       checked_in: {
         class: 'checked-in',
-        text: '📍 Checked In'
+        text: 'Checked In'
       }
 
     };
@@ -570,7 +565,7 @@ export default function TenantBookingsPage() {
                 <div className="empty-state">
 
                   <div className="empty-icon">
-                    📋
+                    <AppIcon name="bookings" />
                   </div>
 
                   <p>
@@ -763,7 +758,7 @@ export default function TenantBookingsPage() {
                                     }}
                                     title="View Details"
                                   >
-                                    👁️
+                                    <AppIcon name="eye" />
                                   </button>
 
 
@@ -784,7 +779,7 @@ export default function TenantBookingsPage() {
                                       }
                                       title="Confirm"
                                     >
-                                      ✅
+                                      <AppIcon name="checkCircle" />
                                     </button>
 
                                   )}
@@ -807,7 +802,7 @@ export default function TenantBookingsPage() {
                                       }
                                       title="Complete"
                                     >
-                                      ✔️
+                                      <AppIcon name="check" />
                                     </button>
 
                                   )}
@@ -834,7 +829,7 @@ export default function TenantBookingsPage() {
                                       }
                                       title="Cancel"
                                     >
-                                      ❌
+                                      <AppIcon name="cancel" />
                                     </button>
 
                                   )}
@@ -887,7 +882,7 @@ export default function TenantBookingsPage() {
             <div className="modal-header">
 
               <h2>
-                📋 Booking Details
+                <AppIcon name="bookings" /> Booking Details
               </h2>
 
               <button
@@ -896,7 +891,7 @@ export default function TenantBookingsPage() {
                   setShowDetails(false)
                 }
               >
-                ✕
+                <AppIcon name="close" />
               </button>
 
             </div>
@@ -910,7 +905,7 @@ export default function TenantBookingsPage() {
               <div className="details-section">
 
                 <h3>
-                  👤 Customer Information
+                  <AppIcon name="user" /> Customer Information
                 </h3>
 
                 <div className="detail-row">
@@ -953,7 +948,7 @@ export default function TenantBookingsPage() {
               <div className="details-section">
 
                 <h3>
-                  🏢 Venue Information
+                  <AppIcon name="building" /> Venue Information
                 </h3>
 
                 <div className="detail-row">
@@ -1002,7 +997,7 @@ export default function TenantBookingsPage() {
               <div className="details-section">
 
                 <h3>
-                  🪑 Table Information
+                  <AppIcon name="table" /> Table Information
                 </h3>
 
                 <div className="detail-row">
@@ -1039,7 +1034,7 @@ export default function TenantBookingsPage() {
               <div className="details-section">
 
                 <h3>
-                  📅 Booking Details
+                  <AppIcon name="calendar" /> Booking Details
                 </h3>
 
 
@@ -1205,7 +1200,7 @@ export default function TenantBookingsPage() {
             <div className="modal-header">
 
               <h2>
-                ❌ Cancel Booking
+                <AppIcon name="cancel" /> Cancel Booking
               </h2>
 
               <button
@@ -1214,7 +1209,7 @@ export default function TenantBookingsPage() {
                   setShowCancelModal(false)
                 }
               >
-                ✕
+                <AppIcon name="close" />
               </button>
 
             </div>
@@ -1237,7 +1232,7 @@ export default function TenantBookingsPage() {
 
               <p className="booking-info">
 
-                📅{' '}
+                <AppIcon name="calendar" />{' '}
                 {formatDate(
                   selectedBooking.bookingDate
                 )}
@@ -1250,7 +1245,7 @@ export default function TenantBookingsPage() {
 
                 <br />
 
-                🏢{' '}
+                <AppIcon name="building" />{' '}
                 {selectedBooking.Venue?.name}
 
               </p>
@@ -1299,7 +1294,7 @@ export default function TenantBookingsPage() {
                 >
                   {actionLoading
                     ? 'Cancelling...'
-                    : '❌ Cancel Booking'}
+                    : 'Cancel Booking'}
                 </button>
 
               </div>

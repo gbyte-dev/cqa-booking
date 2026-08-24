@@ -1,37 +1,23 @@
 // ===== API CONFIGURATION =====
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-const API_URL = API_BASE ? `${API_BASE}/api/v1` : 'http://localhost:5000/api/v1';
-
-console.log('👥 Users API URL:', API_URL);
-
+const API_URL = API_BASE ? `${API_BASE}/api/v1` : 'http://localhost:5000/api/v1';
 // ===== REQUEST HELPER =====
 async function fetchWithDebug(endpoint, options = {}) {
-  const url = `${API_URL}${endpoint}`;
-  
-  console.log(`\n📡 API REQUEST - ${options.method || 'GET'} ${endpoint}`);
-
+  const url = `${API_URL}${endpoint}`;
   try {
-    const response = await fetch(url, options);
-    console.log(`✅ Status: ${response.status}`);
-    
+    const response = await fetch(url, options);    
     const data = await response.json();
     
-    if (!response.ok) {
-      console.error(`❌ Error Response:`, data);
-      throw new Error(data?.error || `HTTP ${response.status}`);
+    if (!response.ok) {      throw new Error(data?.error || `HTTP ${response.status}`);
     }
     
     return data;
-  } catch (error) {
-    console.error(`❌ FETCH ERROR:`, error.message);
-    throw error;
+  } catch (error) {    throw error;
   }
 }
 
 // ===== GET ALL USERS (CUSTOMERS) =====
-export async function getAllCustomers(token) {
-  console.log('\n👥 [getAllCustomers] Started');
-  
+export async function getAllCustomers(token) {  
   if (!token) throw new Error('No authentication token');
 
   return fetchWithDebug('/users/customers', {
@@ -44,9 +30,7 @@ export async function getAllCustomers(token) {
 }
 
 // ===== GET CUSTOMER BY ID =====
-export async function getCustomerById(id, token) {
-  console.log('\n👥 [getCustomerById] Started with ID:', id);
-  
+export async function getCustomerById(id, token) {  
   if (!token) throw new Error('No authentication token');
   if (!id) throw new Error('User ID is required');
 
@@ -60,9 +44,7 @@ export async function getCustomerById(id, token) {
 }
 
 // ===== GET CUSTOMER BOOKINGS =====
-export async function getCustomerBookings(userId, token) {
-  console.log('\n📋 [getCustomerBookings] Started with User ID:', userId);
-  
+export async function getCustomerBookings(userId, token) {  
   if (!token) throw new Error('No authentication token');
   if (!userId) throw new Error('User ID is required');
 
@@ -76,9 +58,7 @@ export async function getCustomerBookings(userId, token) {
 }
 
 // ===== UPDATE CUSTOMER =====
-export async function updateCustomer(id, data, token) {
-  console.log('\n✏️ [updateCustomer] Started with ID:', id);
-  
+export async function updateCustomer(id, data, token) {  
   if (!token) throw new Error('No authentication token');
   if (!id) throw new Error('User ID is required');
 
@@ -93,9 +73,7 @@ export async function updateCustomer(id, data, token) {
 }
 
 // ===== DELETE CUSTOMER =====
-export async function deleteCustomer(id, token) {
-  console.log('\n🗑️ [deleteCustomer] Started with ID:', id);
-  
+export async function deleteCustomer(id, token) {  
   if (!token) throw new Error('No authentication token');
   if (!id) throw new Error('User ID is required');
 
@@ -109,9 +87,7 @@ export async function deleteCustomer(id, token) {
 }
 
 // ===== SUSPEND CUSTOMER =====
-export async function suspendCustomer(id, token) {
-  console.log('\n🔒 [suspendCustomer] Started with ID:', id);
-  
+export async function suspendCustomer(id, token) {  
   if (!token) throw new Error('No authentication token');
   if (!id) throw new Error('User ID is required');
 
@@ -125,9 +101,7 @@ export async function suspendCustomer(id, token) {
 }
 
 // ===== REACTIVATE CUSTOMER =====
-export async function reactivateCustomer(id, token) {
-  console.log('\n✅ [reactivateCustomer] Started with ID:', id);
-  
+export async function reactivateCustomer(id, token) {  
   if (!token) throw new Error('No authentication token');
   if (!id) throw new Error('User ID is required');
 

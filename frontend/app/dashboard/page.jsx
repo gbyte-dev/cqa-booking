@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { storage } from '@/lib/storage';
+import { getRoleRedirectPath } from '@/lib/roleRedirect';
 
 export default function DashboardRedirectPage() {
   const router = useRouter();
@@ -12,39 +13,16 @@ export default function DashboardRedirectPage() {
     const user = storage.getUser();
 
     if (!token || !user) {
-      router.replace('/tenant/login');
+      router.replace('/login');
       return;
     }
 
-    if (user.role === 'superadmin') {
-      router.replace('/superadmin/dashboard');
-    } else {
-      router.replace('/tenant/dashboard');
-    }
+    router.replace(getRoleRedirectPath(user.role));
   }, [router]);
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#f5f7fb',
-      color: '#667085',
-      fontFamily: 'Inter, sans-serif',
-      fontSize: '13px',
-      gap: '14px'
-    }}>
-      <div style={{
-        width: '40px',
-        height: '40px',
-        border: '3px solid #e5e7eb',
-        borderTopColor: '#667eea',
-        borderRadius: '50%',
-        animation: 'spin 0.7s linear infinite'
-      }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3.5 bg-[#f5f7fb] font-sans text-[13px] text-[#667085]">
+      <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#e5e7eb] border-t-[#667eea]" />
       <p>Redirecting to your dashboard...</p>
     </div>
   );

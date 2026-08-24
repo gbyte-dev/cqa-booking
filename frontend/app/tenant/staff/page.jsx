@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
+import AppIcon from '@/components/AppIcon';
+import { notify } from '@/lib/alerts';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { storage } from '@/lib/storage';
-import './staff.css';
 
 export default function TenantStaffPage() {
   const router = useRouter();
@@ -24,18 +25,18 @@ export default function TenantStaffPage() {
   const token = storage.getToken();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-  // ✅ Load once on mount only
+  // Load once on mount only
   useEffect(() => {
     if (mountedRef.current) return;
     mountedRef.current = true;
 
     if (!token) {
-      router.replace('/tenant/login');
+      router.replace('/login');
       return;
     }
 
     loadStaff();
-  }, []); // ✅ Empty dependency array
+  }, []); // Empty dependency array
 
   const loadStaff = async () => {
     setLoading(true);
@@ -48,9 +49,7 @@ export default function TenantStaffPage() {
       if (data.success) {
         setStaff(data.data || []);
       }
-    } catch (error) {
-      console.error('Load error:', error);
-    } finally {
+    } catch (error) {    } finally {
       setLoading(false);
     }
   };
@@ -70,7 +69,7 @@ export default function TenantStaffPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('✅ Staff member added successfully');
+        notify('Staff member added successfully');
         setShowForm(false);
         setFormData({
           firstName: '',
@@ -81,10 +80,10 @@ export default function TenantStaffPage() {
         });
         loadStaff();
       } else {
-        alert('❌ Error: ' + (data.error || 'Failed to add staff'));
+        notify('Error: ' + (data.error || 'Failed to add staff'));
       }
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      notify('Error: ' + error.message);
     } finally {
       setFormLoading(false);
     }
@@ -107,11 +106,11 @@ export default function TenantStaffPage() {
           <main className="staff-content">
             <div className="page-header">
               <div>
-                <h2>👥 Manage Staff</h2>
+                <h2><AppIcon name="users" /> Manage Staff</h2>
                 <p>Add and manage your team members.</p>
               </div>
               <button className="add-btn" onClick={() => setShowForm(true)}>
-                ➕ Add Staff
+                <AppIcon name="add" /> Add Staff
               </button>
             </div>
 
@@ -123,10 +122,10 @@ export default function TenantStaffPage() {
 
               {staff.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">👤</div>
+                  <div className="empty-icon"><AppIcon name="user" /></div>
                   <p>No staff members found</p>
                   <button className="add-btn" onClick={() => setShowForm(true)}>
-                    ➕ Add First Staff
+                    <AppIcon name="add" /> Add First Staff
                   </button>
                 </div>
               ) : (
@@ -162,7 +161,7 @@ export default function TenantStaffPage() {
                           </td>
                           <td>
                             <span className={`status-badge ${member.status === 'active' ? 'active' : 'inactive'}`}>
-                              {member.status === 'active' ? '✅ Active' : '⛔ Inactive'}
+                              {member.status === 'active' ? 'Active' : 'Inactive'}
                             </span>
                           </td>
                           <td>{member.created_at ? new Date(member.created_at).toLocaleDateString() : 'N/A'}</td>
@@ -180,8 +179,8 @@ export default function TenantStaffPage() {
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>➕ Add Staff Member</h2>
-              <button className="close-btn" onClick={() => setShowForm(false)}>✕</button>
+              <h2><AppIcon name="add" /> Add Staff Member</h2>
+              <button className="close-btn" onClick={() => setShowForm(false)}><AppIcon name="close" /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="staff-form">
@@ -244,7 +243,7 @@ export default function TenantStaffPage() {
                   Cancel
                 </button>
                 <button type="submit" className="btn-submit" disabled={formLoading}>
-                  {formLoading ? '⏳ Adding...' : '➕ Add Staff'}
+                  {formLoading ? 'Adding...' : 'Add Staff'}
                 </button>
               </div>
             </form>
