@@ -7,8 +7,6 @@ import { useRouter } from 'next/navigation';
 import { storage } from '@/lib/storage';
 import {
   getAllOrganizations,
-  createOrganization,
-  updateOrganization,
   deleteOrganization,
   suspendOrganization,
   reactivateOrganization,
@@ -19,17 +17,6 @@ export default function OrganizationsPage() {
   const [user, setUser] = useState(null);
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [formMode, setFormMode] = useState('add');
-  const [selectedOrg, setSelectedOrg] = useState(null);
-  const [formLoading, setFormLoading] = useState(false);
-  const [formError, setFormError] = useState('');
-  const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    timezone: 'UTC',
-    maxVenues: 1,
-  });
 
   const token = storage.getToken();
   const currentUser = storage.getUser();
@@ -57,94 +44,6 @@ export default function OrganizationsPage() {
       notify('Error loading organizations: ' + error.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Handle Add Click
-  const handleAddClick = () => {
-    setFormMode('add');
-    setSelectedOrg(null);
-    setFormData({
-      name: '',
-      slug: '',
-      timezone: 'UTC',
-      maxVenues: 1,
-    });
-    setFormError('');
-    setShowForm(true);
-  };
-
-  // Handle Edit Click
-  const handleEditClick = (org) => {
-    setFormMode('edit');
-    setSelectedOrg(org);
-    setFormData({
-      name: org.name,
-      slug: org.slug,
-      timezone: org.timezone,
-      maxVenues: org.maxVenues,
-    });
-    setFormError('');
-    setShowForm(true);
-  };
-
-  // Handle Close Form
-  const handleCloseForm = () => {
-    setShowForm(false);
-    setFormError('');
-  };
-
-  // Handle Form Change
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'maxVenues' ? parseInt(value) : value,
-    });
-  };
-
-  // Handle Submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormError('');
-    setFormLoading(true);
-
-    try {
-      if (!formData.name.trim()) {
-        setFormError('Organization name is required');
-        setFormLoading(false);
-        return;
-      }
-
-      if (!formData.slug.trim()) {
-        setFormError('Slug is required');
-        setFormLoading(false);
-        return;
-      }
-
-      let response;
-
-      if (formMode === 'add') {
-        response = await createOrganization(formData, token);
-      } else {
-        response = await updateOrganization(selectedOrg.id, formData, token);
-      }
-
-      if (response.success) {
-        notify(
-          formMode === 'add'
-            ? 'Organization created successfully'
-            : 'Organization updated successfully'
-        );
-        handleCloseForm();
-        await loadOrganizations();
-      } else {
-        setFormError(response.error || 'Something went wrong');
-      }
-    } catch (error) {
-      setFormError(error.message);
-    } finally {
-      setFormLoading(false);
     }
   };
 
@@ -231,9 +130,6 @@ export default function OrganizationsPage() {
                   View and manage all registered organizations on the platform.
                 </p>
               </div>
-              <button className="add-btn" onClick={handleAddClick}>
-                <AppIcon name="add" /> Add Organization
-              </button>
             </div>
 
             <div className="panel">
@@ -246,12 +142,6 @@ export default function OrganizationsPage() {
                 <div className="empty-state">
                   <div className="empty-icon"><AppIcon name="building" /></div>
                   <p>No organizations found</p>
-                  <button
-                    className="empty-action-btn"
-                    onClick={handleAddClick}
-                  >
-                    <AppIcon name="add" /> Create First Organization
-                  </button>
                 </div>
               ) : (
                 <div className="table-container">
@@ -260,11 +150,11 @@ export default function OrganizationsPage() {
                       <tr>
                         <th>Organization</th>
                         {/* <th>Slug</th> */}
-                        <th>Timezone</th>
+                        {/* <th>Timezone</th> */}
                         <th>Plan</th>
                         <th>Status</th>
                         <th>Monthly Fee</th>
-                        <th>Max Venues</th>
+                        {/* <th>Max Venues</th> */}
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -272,11 +162,7 @@ export default function OrganizationsPage() {
                       {organizations.map((org) => (
                         <tr key={org.id}>
                           <td>
-                            <div
-                              className="org-cell"
-                              onClick={() => handleEditClick(org)}
-                              style={{ cursor: 'pointer' }}
-                            >
+                            <div className="org-cell">
                               <div className="org-avatar">
                                 {getInitial(org.name)}
                               </div>
@@ -291,7 +177,7 @@ export default function OrganizationsPage() {
                           {/* <td>
                             <code className="slug-badge">{org.slug}</code>
                           </td> */}
-                          <td>{org.timezone}</td>
+                          {/* <td>{org.timezone}</td> */}
                           <td>{org.Subscription?.plan || 'No Plan'}</td>
                           <td>
                             <span
@@ -313,16 +199,9 @@ export default function OrganizationsPage() {
                               )}
                             </strong>
                           </td>
-                          <td>{org.maxVenues}</td>
+                          {/* <td>{org.maxVenues}</td> */}
                           <td>
                             <div className="action-buttons">
-                              <button
-                                className="action-btn edit-btn"
-                                onClick={() => handleEditClick(org)}
-                                title="Edit"
-                              >
-                                <AppIcon name="edit" />
-                              </button>
                               {org.subscriptionStatus === 'active' ? (
                                 <button
                                   className="action-btn suspend-btn"
@@ -357,111 +236,6 @@ export default function OrganizationsPage() {
               )}
             </div>
       </main>
-
-      {/* FORM MODAL */}
-      {showForm && (
-        <div className="modal-overlay" onClick={handleCloseForm}>
-          <div
-            className="modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-header">
-              <h2>
-                {formMode === 'add'
-                  ? 'Add Organization'
-                  : 'Edit Organization'}
-              </h2>
-              <button className="close-btn" onClick={handleCloseForm}>
-                <AppIcon name="close" />
-              </button>
-            </div>
-
-            {formError && (
-              <div className="form-error"><AppIcon name="cancel" /> {formError}</div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Organization Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleFormChange}
-                  placeholder="e.g., Pizza Palace"
-                  required
-                  disabled={formLoading}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Slug *</label>
-                <input
-                  type="text"
-                  name="slug"
-                  value={formData.slug}
-                  onChange={handleFormChange}
-                  placeholder="e.g., pizza-palace"
-                  required
-                  disabled={formLoading}
-                />
-                <small>Unique identifier for the organization</small>
-              </div>
-
-              <div className="form-group">
-                <label>Timezone</label>
-                <select
-                  name="timezone"
-                  value={formData.timezone}
-                  onChange={handleFormChange}
-                  disabled={formLoading}
-                >
-                  <option value="UTC">UTC</option>
-                  <option value="America/New_York">America/New_York</option>
-                  <option value="Europe/London">Europe/London</option>
-                  <option value="Asia/Tokyo">Asia/Tokyo</option>
-                  <option value="Asia/Kolkata">Asia/Kolkata</option>
-                  <option value="Australia/Sydney">Australia/Sydney</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Max Venues</label>
-                <input
-                  type="number"
-                  name="maxVenues"
-                  value={formData.maxVenues}
-                  onChange={handleFormChange}
-                  min="1"
-                  disabled={formLoading}
-                />
-              </div>
-
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn-cancel"
-                  onClick={handleCloseForm}
-                  disabled={formLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn-submit"
-                  disabled={formLoading}
-                >
-                  {formLoading
-                    ? 'Processing...'
-                    : formMode === 'add'
-                    ? 'Create'
-                    : 'Update'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </>
   );
 }
