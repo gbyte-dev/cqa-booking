@@ -168,7 +168,7 @@ export default function TenantDashboard() {
 
                 <div className="bookings-list">
                   {upcomingBookings.length === 0 ? (
-                    <div className="booking-item"><span>No upcoming bookings.</span></div>
+                    <div className="empty-bookings"><span>No upcoming bookings.</span></div>
                   ) : (
                     upcomingBookings.map(b => (
                       <div className="booking-item" key={b.id}>

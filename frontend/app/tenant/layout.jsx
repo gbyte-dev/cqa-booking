@@ -19,6 +19,7 @@ const titles = {
   '/tenant/reports': 'Reports',
   '/tenant/settings': 'Settings',
   '/tenant/billing': 'Billing',
+  '/tenant/profile': 'My Profile',
 };
 
 export default function TenantLayout({ children }) {

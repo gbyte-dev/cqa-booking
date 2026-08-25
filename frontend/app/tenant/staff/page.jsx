@@ -1,6 +1,6 @@
 'use client';
 import AppIcon from '@/components/AppIcon';
-import { notify } from '@/lib/alerts';
+import { notify, confirmAction } from '@/lib/alerts';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,7 @@ export default function TenantStaffPage() {
   const router = useRouter();
   const mountedRef = useRef(false);
 
-  const [activeTab, setActiveTab] = useState('staff'); // 'staff' | 'managers'
+  const [activeTab, setActiveTab] = useState('managers'); // 'managers' | 'staff'
 
   const [staff, setStaff] = useState([]);
   const [managers, setManagers] = useState([]);
@@ -21,6 +21,9 @@ export default function TenantStaffPage() {
   const [showStaffForm, setShowStaffForm] = useState(false);
   const [showManagerForm, setShowManagerForm] = useState(false);
   const [managerDetail, setManagerDetail] = useState(null);
+
+  const [editTarget, setEditTarget] = useState(null); // the member being edited (has .role)
+  const [editFormData, setEditFormData] = useState({ firstName: '', lastName: '', phone: '', outletId: '', managerId: '' });
 
   const [staffFormData, setStaffFormData] = useState({
     firstName: '', lastName: '', email: '', phone: '', managerId: ''
@@ -196,7 +199,124 @@ export default function TenantStaffPage() {
     }
   };
 
+  const handleEditClick = (member) => {
+    setEditTarget(member);
+    if (member.role === 'manager') {
+      setEditFormData({ firstName: member.firstName || '', lastName: member.lastName || '', phone: member.phone || '', outletId: member.venueId || '', managerId: '' });
+    } else {
+      // Staff: reassignment happens by picking a manager (venue is derived
+      // from that manager), same as at creation time.
+      const currentManager = managers.find(m => m.fullName === member.managerName);
+      setEditFormData({ firstName: member.firstName || '', lastName: member.lastName || '', phone: member.phone || '', outletId: '', managerId: currentManager?.id || '' });
+    }
+  };
+
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    try {
+      let outletId = editFormData.outletId;
+      if (editTarget.role === 'staff') {
+        const manager = managers.find(m => m.id === editFormData.managerId);
+        if (!manager || !manager.outletId) {
+          notify('Please choose a manager with an assigned venue.');
+          setFormLoading(false);
+          return;
+        }
+        outletId = manager.outletId;
+      }
+
+      const response = await fetch(`${API_URL}/api/v1/staff/${editTarget.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          firstName: editFormData.firstName,
+          lastName: editFormData.lastName,
+          phone: editFormData.phone,
+          outletId
+        })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        notify('Updated successfully');
+        setEditTarget(null);
+        loadStaff(managerFilter || undefined);
+        loadManagers();
+      } else {
+        notify('Error: ' + (data.error || 'Failed to update'));
+      }
+    } catch (error) {
+      notify('Error: ' + error.message);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleSuspendToggle = async (member) => {
+    const suspending = member.status === 'active';
+    const confirmed = await confirmAction({
+      title: `${suspending ? 'Suspend' : 'Reactivate'} ${member.firstName} ${member.lastName}?`,
+      text: suspending
+        ? 'They will no longer be able to log in until reactivated.'
+        : 'They will be able to log in again.',
+      confirmText: suspending ? 'Suspend' : 'Reactivate',
+      danger: suspending
+    });
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/staff/${member.id}/${suspending ? 'suspend' : 'reactivate'}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        notify(suspending ? 'Suspended' : 'Reactivated');
+        loadStaff(managerFilter || undefined);
+        loadManagers();
+      } else {
+        notify('Error: ' + (data.error || 'Action failed'));
+      }
+    } catch (error) {
+      notify('Error: ' + error.message);
+    }
+  };
+
+  const handleDelete = async (member) => {
+    const confirmed = await confirmAction({
+      title: `Delete ${member.firstName} ${member.lastName}?`,
+      text: 'This action cannot be undone.',
+      confirmText: 'Delete',
+      danger: true
+    });
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/staff/${member.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        notify('Deleted successfully');
+        loadStaff(managerFilter || undefined);
+        loadManagers();
+      } else {
+        notify('Error: ' + (data.error || 'Delete failed'));
+      }
+    } catch (error) {
+      notify('Error: ' + error.message);
+    }
+  };
+
   const getInitial = (name = '') => name?.charAt(0)?.toUpperCase() || 'S';
+
+  // The Staff tab shows only role='staff' rows — Managers get their own
+  // tab, and Owner is never listed here. The `/api/v1/staff` endpoint
+  // returns all of owner/manager/staff together, so this filter is what
+  // actually separates the two tabs' content.
+  const staffOnly = staff.filter(member => member.role === 'staff');
 
   if (loading) {
     return (
@@ -229,16 +349,16 @@ export default function TenantStaffPage() {
         {/* TABS */}
         <div className="tabs">
           <button
-            className={`tab-btn ${activeTab === 'staff' ? 'active' : ''}`}
-            onClick={() => setActiveTab('staff')}
-          >
-            Staff
-          </button>
-          <button
             className={`tab-btn ${activeTab === 'managers' ? 'active' : ''}`}
             onClick={() => setActiveTab('managers')}
           >
             Managers
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'staff' ? 'active' : ''}`}
+            onClick={() => setActiveTab('staff')}
+          >
+            Staff
           </button>
         </div>
 
@@ -257,11 +377,11 @@ export default function TenantStaffPage() {
                     <option key={m.id} value={m.id}>{m.fullName} — {m.venueName || 'No venue'}</option>
                   ))}
                 </select>
-                <span>{staff.length} total</span>
+                <span>{staffOnly.length} total</span>
               </div>
             </div>
 
-            {staff.length === 0 ? (
+            {staffOnly.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon"><AppIcon name="user" /></div>
                 <p>No staff members found</p>
@@ -280,10 +400,11 @@ export default function TenantStaffPage() {
                       <th>Manager</th>
                       <th>Status</th>
                       <th>Joined</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {staff.map(member => (
+                    {staffOnly.map(member => (
                       <tr key={member.id}>
                         <td>
                           <div className="member-cell">
@@ -297,13 +418,26 @@ export default function TenantStaffPage() {
                         </td>
                         <td>{member.email || 'N/A'}</td>
                         <td>{member.venueName ? <span className="venue-badge">{member.venueName}</span> : '—'}</td>
-                        <td>{member.managerName || '—'}</td>
+                        <td>{member.managerName || (member.venueName ? <span style={{ color: 'var(--tenant-text-secondary, #667085)' }}>{member.venueName} (unmanaged)</span> : '—')}</td>
                         <td>
                           <span className={`status-badge ${member.status === 'active' ? 'active' : 'inactive'}`}>
                             {member.status === 'active' ? 'Active' : 'Inactive'}
                           </span>
                         </td>
                         <td>{member.created_at ? new Date(member.created_at).toLocaleDateString() : 'N/A'}</td>
+                        <td>
+                          <div className="row-actions">
+                            <button className="view-btn" onClick={() => handleEditClick(member)} title="Edit">
+                              <AppIcon name="edit" />
+                            </button>
+                            <button className="view-btn" onClick={() => handleSuspendToggle(member)} title={member.status === 'active' ? 'Suspend' : 'Reactivate'}>
+                              <AppIcon name={member.status === 'active' ? 'lock' : 'checkCircle'} />
+                            </button>
+                            <button className="view-btn danger" onClick={() => handleDelete(member)} title="Delete">
+                              <AppIcon name="trash" />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -363,9 +497,20 @@ export default function TenantStaffPage() {
                         </td>
                         <td>{manager.created_at ? new Date(manager.created_at).toLocaleDateString() : 'N/A'}</td>
                         <td>
-                          <button className="view-btn" onClick={() => openManagerDetail(manager)} title="View Details">
-                            <AppIcon name="eye" />
-                          </button>
+                          <div className="row-actions">
+                            <button className="view-btn" onClick={() => openManagerDetail(manager)} title="View Details">
+                              <AppIcon name="eye" />
+                            </button>
+                            <button className="view-btn" onClick={() => handleEditClick(manager)} title="Edit">
+                              <AppIcon name="edit" />
+                            </button>
+                            <button className="view-btn" onClick={() => handleSuspendToggle(manager)} title={manager.status === 'active' ? 'Suspend' : 'Reactivate'}>
+                              <AppIcon name={manager.status === 'active' ? 'lock' : 'checkCircle'} />
+                            </button>
+                            <button className="view-btn danger" onClick={() => handleDelete(manager)} title="Delete">
+                              <AppIcon name="trash" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -571,6 +716,94 @@ export default function TenantStaffPage() {
         </div>
       )}
 
+      {/* EDIT MODAL (Staff or Manager) */}
+      {editTarget && (
+        <div className="modal-overlay" onClick={() => setEditTarget(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2><AppIcon name="edit" /> Edit {editTarget.role === 'manager' ? 'Manager' : 'Staff'}</h2>
+              <button className="close-btn" onClick={() => setEditTarget(null)}><AppIcon name="close" /></button>
+            </div>
+
+            <form onSubmit={handleUpdateSubmit} className="staff-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>First Name *</label>
+                  <input
+                    type="text"
+                    value={editFormData.firstName}
+                    onChange={(e) => setEditFormData({ ...editFormData, firstName: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Last Name</label>
+                  <input
+                    type="text"
+                    value={editFormData.lastName}
+                    onChange={(e) => setEditFormData({ ...editFormData, lastName: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Email (cannot be changed)</label>
+                <input type="email" value={editTarget.email || ''} disabled />
+              </div>
+
+              <div className="form-group">
+                <label>Phone</label>
+                <input
+                  type="tel"
+                  value={editFormData.phone}
+                  onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                  placeholder="+91..."
+                />
+              </div>
+
+              {editTarget.role === 'manager' ? (
+                <div className="form-group">
+                  <label>Venue *</label>
+                  <select
+                    value={editFormData.outletId}
+                    onChange={(e) => setEditFormData({ ...editFormData, outletId: e.target.value })}
+                    required
+                  >
+                    <option value="">Select a venue</option>
+                    {venues.map((venue) => (
+                      <option key={venue.id} value={venue.id}>{venue.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label>Assign under Manager *</label>
+                  <select
+                    value={editFormData.managerId}
+                    onChange={(e) => setEditFormData({ ...editFormData, managerId: e.target.value })}
+                    required
+                  >
+                    <option value="">Select a manager</option>
+                    {managers.map((m) => (
+                      <option key={m.id} value={m.id}>{m.fullName} — {m.venueName || 'No venue'}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="form-actions">
+                <button type="button" className="btn-cancel" onClick={() => setEditTarget(null)} disabled={formLoading}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-submit" disabled={formLoading}>
+                  {formLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .staff-content { flex: 1; padding: 28px; overflow-y: auto; }
         .loading-state { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--tenant-text-secondary, #667085); }
@@ -610,8 +843,10 @@ export default function TenantStaffPage() {
         .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
         .status-badge.active { background: var(--tenant-success-bg, #dcfce7); color: var(--tenant-success, #16a34a); }
         .status-badge.inactive { background: var(--tenant-danger-bg, #fee2e2); color: var(--tenant-danger, #dc3545); }
+        .row-actions { display: flex; gap: 6px; }
         .view-btn { width: 32px; height: 32px; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 7px; background: var(--tenant-surface, #fff); color: var(--tenant-text-secondary, #667085); cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; }
         .view-btn:hover { background: var(--tenant-primary-light, #eef1ff); color: var(--tenant-primary, #667eea); border-color: var(--tenant-primary, #667eea); }
+        .view-btn.danger:hover { background: var(--tenant-danger-bg, #fee2e2); color: var(--tenant-danger, #dc3545); border-color: var(--tenant-danger, #dc3545); }
         .empty-state { padding: 60px 20px; text-align: center; color: var(--tenant-text-secondary, #667085); }
         .empty-icon { font-size: 34px; margin-bottom: 12px; }
 

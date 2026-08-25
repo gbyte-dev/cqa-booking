@@ -13,6 +13,12 @@ import {
   Settings,
   CreditCard,
   LogOut,
+  CalendarPlus,
+  CalendarCheck,
+  LogIn,
+  UserX,
+  XCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import { storage } from '@/lib/storage';
 
@@ -27,11 +33,27 @@ export default function TenantHeader({
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotif, setShowNotif] = useState(false);
+  const notifRef = useRef(null);
 
   // ONLY: Set user/organization/theme after mount
   useEffect(() => {
     setUser(storage.getUser());
     setOrganization(storage.getOrganization?.());
+
+    const token = storage.getToken();
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    if (token) {
+      fetch(`${apiUrl}/api/v1/profile/me`, { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) setAvatarUrl(data.data.avatarUrl ? `${apiUrl}${data.data.avatarUrl}` : null);
+        })
+        .catch(() => {});
+    }
 
     const savedTheme = localStorage.getItem('tenant-theme');
     if (savedTheme === 'dark' || savedTheme === 'light') {
@@ -45,16 +67,76 @@ export default function TenantHeader({
     setMounted(true);
   }, []);
 
-  // Close the profile dropdown when clicking anywhere outside it.
+  // Live booking-activity feed for the bell — polled (no websocket infra
+  // yet), read from the same audit trail the booking page's Activity
+  // History uses. Unread count is derived from a per-user "last seen"
+  // timestamp kept in localStorage, so it survives refresh but never
+  // touches the backend.
+  useEffect(() => {
+    const token = storage.getToken();
+    if (!token) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+    const fetchFeed = () => {
+      fetch(`${apiUrl}/api/v1/notifications/feed`, { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.success) return;
+          setNotifications(data.data || []);
+          const lastSeen = localStorage.getItem('tenant-notif-last-seen');
+          const lastSeenTime = lastSeen ? new Date(lastSeen).getTime() : 0;
+          const unread = (data.data || []).filter((n) => new Date(n.createdAt).getTime() > lastSeenTime).length;
+          setUnreadCount(unread);
+        })
+        .catch(() => {});
+    };
+
+    fetchFeed();
+    const interval = setInterval(fetchFeed, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Close the profile / notification dropdowns when clicking anywhere outside them.
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfile(false);
       }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setShowNotif(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleBellClick = () => {
+    setShowNotif((prev) => !prev);
+    if (!showNotif) {
+      localStorage.setItem('tenant-notif-last-seen', new Date().toISOString());
+      setUnreadCount(0);
+    }
+  };
+
+  const NOTIF_META = {
+    'booking.created': { label: 'New booking created', icon: CalendarPlus, color: 'var(--tenant-primary)' },
+    'booking.confirmed': { label: 'Booking confirmed', icon: CheckCircle2, color: '#16a34a' },
+    'booking.checked_in': { label: 'Guest checked in', icon: LogIn, color: '#0891b2' },
+    'booking.no_show': { label: 'Guest marked no-show', icon: UserX, color: 'var(--tenant-danger)' },
+    'booking.cancelled': { label: 'Booking cancelled', icon: XCircle, color: 'var(--tenant-danger)' },
+    'booking.completed': { label: 'Booking completed', icon: CalendarCheck, color: '#16a34a' }
+  };
+
+  const formatRelativeTime = (dateStr) => {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -99,17 +181,6 @@ export default function TenantHeader({
       </div>
 
       <div className="flex shrink-0 items-center gap-[10px] max-[768px]:gap-[6px] max-[480px]:gap-[3px]">
-        <div className="relative flex h-10 w-[270px] max-[1100px]:w-[220px] max-[900px]:w-[190px] max-[768px]:hidden items-center">
-          <input
-            type="text"
-            placeholder="Search bookings, customers..."
-            className="h-10 w-full rounded-[var(--tenant-radius-sm)] border border-[var(--tenant-border)] bg-[var(--tenant-surface)] pl-[13px] pr-[38px] text-xs text-[var(--tenant-text)] outline-none transition-all duration-200 placeholder:text-[var(--tenant-text-muted)] focus:border-[var(--tenant-primary)] focus:shadow-[0_0_0_3px_var(--tenant-primary-light)]"
-          />
-          <span className="pointer-events-none absolute right-3 flex items-center text-[var(--tenant-text-muted)]">
-            <Search size={14} />
-          </span>
-        </div>
-
         <button
           type="button"
           className={`${iconBtnClasses} hover:-translate-y-px active:scale-95`}
@@ -120,21 +191,88 @@ export default function TenantHeader({
           {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
         </button>
 
-        <button
-          className={`${iconBtnClasses} relative text-[var(--tenant-text-secondary)]`}
-          title="Notifications"
-        >
-          <Bell size={17} />
-          <span className="absolute right-[7px] top-[7px] h-[7px] w-[7px] rounded-full border-2 border-[var(--tenant-header-bg)] bg-[var(--tenant-danger)]" />
-        </button>
+        <div className="relative" ref={notifRef}>
+          <button
+            type="button"
+            className={`${iconBtnClasses} relative text-[var(--tenant-text-secondary)]`}
+            title="Notifications"
+            onClick={handleBellClick}
+          >
+            <Bell size={17} />
+            {unreadCount > 0 && (
+              <span className="absolute right-[5px] top-[5px] flex h-[16px] min-w-[16px] items-center justify-center rounded-full border-2 border-[var(--tenant-header-bg)] bg-[var(--tenant-danger)] px-[3px] text-[9px] font-bold leading-none text-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {showNotif && (
+            <div className="absolute right-0 max-[600px]:right-[-40px] top-[calc(100%+9px)] z-[300] w-[330px] max-[600px]:w-[min(330px,calc(100vw-24px))] rounded-[var(--tenant-radius-md)] border border-[var(--tenant-border)] bg-[var(--tenant-surface)] shadow-[var(--tenant-shadow-lg)] animate-[tenant-dropdown-in_0.15s_ease]">
+              <div className="flex items-center justify-between border-b border-[var(--tenant-border)] px-4 py-3">
+                <strong className="text-[13px] font-bold text-[var(--tenant-text)]">Booking Activity</strong>
+                {notifications.length > 0 && (
+                  <span className="text-[10px] text-[var(--tenant-text-muted)]">{notifications.length} recent</span>
+                )}
+              </div>
+
+              <div className="max-h-[340px] overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
+                    <Bell size={22} className="text-[var(--tenant-text-muted)]" />
+                    <span className="text-xs text-[var(--tenant-text-muted)]">No booking activity yet</span>
+                  </div>
+                ) : (
+                  notifications.map((n) => {
+                    const meta = NOTIF_META[n.action] || { label: n.action, icon: Bell, color: 'var(--tenant-text-secondary)' };
+                    const Icon = meta.icon;
+                    return (
+                      <div
+                        key={n.id}
+                        className="flex items-start gap-3 border-b border-[var(--tenant-border-light)] px-4 py-3 transition-colors duration-150 last:border-b-0 hover:bg-[var(--tenant-surface-hover)]"
+                      >
+                        <span
+                          className="mt-[1px] flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                          style={{ backgroundColor: `${meta.color}1a`, color: meta.color }}
+                        >
+                          <Icon size={15} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="m-0 text-xs font-semibold text-[var(--tenant-text)]">{meta.label}</p>
+                          <p className="m-0 mt-[3px] text-[11px] text-[var(--tenant-text-secondary)]">
+                            by {n.performedBy}{n.performedByRole ? ` (${n.performedByRole})` : ''}
+                          </p>
+                        </div>
+                        <span className="shrink-0 whitespace-nowrap text-[10px] text-[var(--tenant-text-muted)]">
+                          {formatRelativeTime(n.createdAt)}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <button
+                type="button"
+                className="w-full border-t border-[var(--tenant-border)] px-4 py-[10px] text-center text-[11px] font-semibold text-[var(--tenant-primary)] transition-colors duration-150 hover:bg-[var(--tenant-surface-hover)]"
+                onClick={() => { setShowNotif(false); router.push('/tenant/bookings'); }}
+              >
+                View all bookings
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="relative" ref={profileRef}>
           <button
             className="flex min-h-[44px] max-[768px]:min-h-[38px] items-center gap-[9px] rounded-[var(--tenant-radius-md)] border border-[var(--tenant-border)] max-[768px]:border-0 bg-[var(--tenant-surface)] max-[768px]:bg-transparent px-[9px] py-[5px] max-[768px]:p-[2px] text-[var(--tenant-text)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:border-[var(--tenant-primary)] max-[768px]:hover:border-transparent"
             onClick={() => setShowProfile(!showProfile)}
           >
-            <div className="flex h-[34px] w-[34px] max-[480px]:h-[31px] max-[480px]:w-[31px] max-[360px]:h-[29px] max-[360px]:w-[29px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-[13px] font-bold text-white">
-              {mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'}
+            <div className="flex h-[34px] w-[34px] max-[480px]:h-[31px] max-[480px]:w-[31px] max-[360px]:h-[29px] max-[360px]:w-[29px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-[13px] font-bold text-white">
+              {mounted && avatarUrl ? (
+                <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+              ) : (
+                mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'
+              )}
             </div>
 
             <div className="flex min-w-[90px] max-[768px]:hidden flex-col items-start leading-[1.2]">
@@ -150,8 +288,12 @@ export default function TenantHeader({
           {showProfile && (
             <div className="absolute right-0 max-[600px]:right-[-3px] top-[calc(100%+9px)] z-[300] w-[270px] max-[600px]:w-[min(270px,calc(100vw-24px))] rounded-[var(--tenant-radius-md)] border border-[var(--tenant-border)] bg-[var(--tenant-surface)] p-2 shadow-[var(--tenant-shadow-lg)] animate-[tenant-dropdown-in_0.15s_ease]">
               <div className="flex items-center gap-[10px] p-[10px]">
-                <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-[15px] font-bold text-white">
-                  {mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'}
+                <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-[15px] font-bold text-white">
+                  {mounted && avatarUrl ? (
+                    <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'
+                  )}
                 </div>
 
                 <div className="flex min-w-0 flex-col">

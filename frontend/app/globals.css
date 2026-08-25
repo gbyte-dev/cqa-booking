@@ -12780,6 +12780,18 @@ html[data-theme="dark"] .booking-item:hover {
   background: var(--tenant-surface-hover);
 }
 
+.empty-bookings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  padding: 20px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--tenant-text-secondary);
+  font-size: 13px;
+}
+
 
 /* Booking time */
 
