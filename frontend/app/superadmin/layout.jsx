@@ -28,8 +28,8 @@ export default function SuperAdminLayout({ children }) {
   const router = useRouter();
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Route guard, re-run on every mount (including via browser Back after
-  // logout) so a stale page can never remain visible without a valid session.
+  // Route guard, re-run on every mount and pathname change.
+  // Prevents protected pages from remaining visible without a valid session.
   useEffect(() => {
     const token = storage.getToken();
     const user = storage.getUser();
@@ -38,10 +38,12 @@ export default function SuperAdminLayout({ children }) {
       router.replace(buildLoginUrl(pathname));
       return;
     }
+
     if (user.role !== 'superadmin') {
       router.replace('/login');
       return;
     }
+
     setAuthChecked(true);
   }, [pathname, router]);
 
@@ -49,6 +51,58 @@ export default function SuperAdminLayout({ children }) {
     window.scrollTo(0, 0);
   }, [pathname]);
 
+  // Session-invalidation guard.
+  // Forces an immediate logout if the account becomes suspended,
+  // inactive, deleted, or the authentication token becomes invalid.
+  useEffect(() => {
+    if (window.__suspendGuardInstalled) return;
+
+    window.__suspendGuardInstalled = true;
+
+    const SESSION_INVALID_MESSAGES = [
+      'organization has been suspended',
+      'User account is inactive or suspended',
+      'Invalid token',
+    ];
+
+    const originalFetch = window.fetch;
+
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+
+      if (response.status === 403 || response.status === 401) {
+        const clone = response.clone();
+
+        clone
+          .json()
+          .then((data) => {
+            const errorMessage =
+              typeof data?.error === 'string' ? data.error : '';
+
+            if (
+              SESSION_INVALID_MESSAGES.some((msg) =>
+                errorMessage.includes(msg)
+              )
+            ) {
+              storage.clear();
+              window.location.href = '/login';
+            }
+          })
+          .catch(() => {});
+      }
+
+      return response;
+    };
+
+    return () => {
+      // Restore original fetch when the layout is unmounted.
+      window.fetch = originalFetch;
+      window.__suspendGuardInstalled = false;
+    };
+  }, []);
+
+  // Wait until authentication is checked before rendering
+  // protected Super Admin content.
   if (!authChecked) {
     return <div className="min-h-screen bg-[var(--sa-bg)]" />;
   }

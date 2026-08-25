@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import{ storage } from '@/lib/storage';
 import {
   LayoutDashboard,
@@ -31,9 +32,9 @@ const menuSections = [
       },
       {
         label: 'Venues',
-        icon: Building2,        
+        icon: Building2,
         path: '/tenant/venues',
-        allowedRoles:['owner','manager'],
+        allowedRoles:['owner'],
       },
       {
         label: 'Tables',
@@ -89,7 +90,17 @@ export default function TenantSidebar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-const role = storage.getUser()?.role;
+  const [role, setRole] = useState(null);
+
+  // localStorage isn't available during SSR, so the role — and therefore
+  // which nav items are visible — must only be read after mount. Reading
+  // it synchronously during render caused a server/client markup mismatch
+  // (fewer items filtered server-side than client-side), which React
+  // reported as a hydration error on whichever icon landed in the gap.
+  useEffect(() => {
+    setRole(storage.getUser()?.role || null);
+  }, []);
+
 const visibleSections = menuSections.map(section =>({
   ...section, items :section.items.filter(
     (items)=> !items.allowedRoles || items.allowedRoles.includes(role)

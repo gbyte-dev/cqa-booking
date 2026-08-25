@@ -1,0 +1,126 @@
+
+> frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.33:3000
+✓ Ready in 31.2s
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of D:\cqa-project\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * D:\cqa-project\frontend\package-lock.json
+
+✓ Running next.config.ts took 3.0s
+⚠ Turbopack's filesystem cache has been deleted because we previously detected an internal error in Turbopack. Builds or page loads may be slower as a result.
+⚠ Slow filesystem detected. The benchmark took 479ms. If \\?\D:\cqa-project\frontend\.next\dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+
+○ Compiling /superadmin/organizations ...
+ GET / 200 in 56s (next.js: 51s, application-code: 5.0s)
+ GET /tenant/tables 200 in 56s (next.js: 48s, application-code: 8.6s)
+ GET /superadmin/organizations 200 in 29.3s (next.js: 20.2s, application-code: 9.1s)
+ GET /tenant/tables 200 in 56s (next.js: 48s, application-code: 8.5s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tenant/ta..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" className="h-full ant...">
+                          <body
+                            className="min-h-full flex flex-col"
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /tenant/tables 200 in 2.5s (next.js: 2.1s, application-code: 358ms)
+ GET /tenant/tables 200 in 297ms (next.js: 97ms, application-code: 200ms)
+ GET /tenant/tables 200 in 516ms (next.js: 307ms, application-code: 209ms)
+○ Compiling /login ...
+ GET /login 200 in 40s (next.js: 39.9s, application-code: 403ms)
+ GET /tenant/dashboard 200 in 1352ms (next.js: 1234ms, application-code: 117ms)
+ GET /tenant/dashboard 200 in 63ms (next.js: 13ms, application-code: 51ms)
+○ Compiling /tenant/bookings ...
+ GET /tenant/bookings 200 in 36.2s (next.js: 36.1s, application-code: 59ms)
+ GET /tenant/bookings 200 in 23.5s (next.js: 23.4s, application-code: 101ms)
+ GET /superadmin/dashboard 200 in 20.7s (next.js: 20.5s, application-code: 170ms)
+ GET /tenant/dashboard 200 in 113ms (next.js: 47ms, application-code: 67ms)
+ GET /tenant/tables 200 in 265ms (next.js: 195ms, application-code: 70ms)
+ GET /tenant/customers 200 in 946ms (next.js: 914ms, application-code: 32ms)
+ GET /tenant/dashboard 200 in 39ms (next.js: 13ms, application-code: 26ms)
+ GET /tenant/profile 200 in 1070ms (next.js: 1036ms, application-code: 34ms)
+ GET /superadmin/organizations 200 in 2.6s (next.js: 2.5s, application-code: 154ms)
+○ Compiling /tenant/venues ...
+✓ Finished filesystem cache database compaction in 14.8s
+ GET /tenant/venues 200 in 7.5s (next.js: 7.5s, application-code: 43ms)
+✓ Compiled in 5.2s
+ GET /superadmin/organizations 200 in 285ms (next.js: 69ms, application-code: 216ms)
+ GET /tenant/venues 200 in 525ms (next.js: 166ms, application-code: 359ms)
+ GET /tenant/profile 200 in 235ms (next.js: 40ms, application-code: 195ms)
+ GET /tenant/tables 200 in 131ms (next.js: 43ms, application-code: 88ms)
+✓ Compiled in 8.4s
+ GET /tenant/venues 200 in 396ms (next.js: 44ms, application-code: 352ms)
+ GET /superadmin/organizations 200 in 406ms (next.js: 215ms, application-code: 191ms)
+ GET /tenant/profile 200 in 414ms (next.js: 273ms, application-code: 141ms)
+ GET /tenant/tables 200 in 215ms (next.js: 160ms, application-code: 55ms)
+✓ Compiled in 1669ms
+ GET /tenant/profile 200 in 246ms (next.js: 29ms, application-code: 217ms)
+ GET /tenant/tables 200 in 266ms (next.js: 39ms, application-code: 227ms)
+ GET /tenant/venues 200 in 270ms (next.js: 100ms, application-code: 169ms)
+ GET /superadmin/organizations 200 in 156ms (next.js: 28ms, application-code: 128ms)
+ GET /login 200 in 481ms (next.js: 111ms, application-code: 369ms)
+ GET /tenant/dashboard 200 in 182ms (next.js: 121ms, application-code: 61ms)
+ GET /tenant/tables 200 in 46ms (next.js: 15ms, application-code: 31ms)
+ GET /tenant/bookings 200 in 104ms (next.js: 69ms, application-code: 35ms)
+ GET /tenant/dashboard 200 in 61ms (next.js: 11ms, application-code: 50ms)
+ GET /tenant/customers 200 in 1623ms (next.js: 1568ms, application-code: 55ms)
+ GET /tenant/customers 200 in 249ms (next.js: 12ms, application-code: 237ms)
+ GET /login 200 in 2.1s (next.js: 1676ms, application-code: 394ms)
+ GET /login 200 in 171ms (next.js: 19ms, application-code: 151ms)
+ GET /tenant/dashboard 200 in 177ms (next.js: 44ms, application-code: 133ms)
+ GET /tenant/customers 200 in 86ms (next.js: 27ms, application-code: 60ms)
+ GET /tenant/customers 200 in 101ms (next.js: 24ms, application-code: 77ms)
+ GET /login 200 in 109ms (next.js: 25ms, application-code: 84ms)
+ GET /login 200 in 60ms (next.js: 8ms, application-code: 51ms)
+ GET /tenant/dashboard 200 in 554ms (next.js: 476ms, application-code: 78ms)
+ GET /login 200 in 140ms (next.js: 44ms, application-code: 96ms)
+ GET /tenant/dashboard 200 in 864ms (next.js: 664ms, application-code: 200ms)
+ GET /login 200 in 59ms (next.js: 17ms, application-code: 42ms)
+ GET /login 200 in 54ms (next.js: 13ms, application-code: 41ms)
+ GET /tenant/dashboard 200 in 384ms (next.js: 301ms, application-code: 83ms)
+ GET /tenant/profile 200 in 1745ms (next.js: 1681ms, application-code: 64ms)
+ GET /tenant/dashboard 200 in 44ms (next.js: 9ms, application-code: 35ms)
+ GET /tenant/dashboard 200 in 92ms (next.js: 15ms, application-code: 77ms)
+ GET /login 200 in 108ms (next.js: 16ms, application-code: 92ms)
+ GET /superadmin/dashboard 200 in 3.7s (next.js: 3.6s, application-code: 107ms)
+ GET /superadmin/organizations 200 in 2.0s (next.js: 1939ms, application-code: 102ms)
+○ Compiling /superadmin/bookings ...
+ GET /superadmin/bookings 200 in 55s (next.js: 54s, application-code: 784ms)
+ GET /register 200 in 12.7s (next.js: 11.9s, application-code: 814ms)
+○ Compiling /tenant/register ...
+ GET /tenant/register 200 in 11.5s (next.js: 11.5s, application-code: 50ms)

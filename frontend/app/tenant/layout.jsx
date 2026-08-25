@@ -24,19 +24,23 @@ const titles = {
   '/tenant/reports': 'Reports',
   '/tenant/settings': 'Settings',
   '/tenant/billing': 'Billing',
+  '/tenant/profile': 'My Profile',
 };
 
 export default function TenantLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const [authState, setAuthState] = useState('checking'); // checking | ok | unverified
 
-  const isStandalone = STANDALONE_PATHS.some(p => pathname?.startsWith(p));
+  const [authState, setAuthState] = useState('checking');
 
-  // Route guard: re-checked on every mount (including back/forward navigation,
-  // since these are client components that re-run their effects) so logging
-  // out and hitting Back can't leave a protected tenant page visible.
+  const isStandalone = STANDALONE_PATHS.some((path) =>
+    pathname?.startsWith(path)
+  );
+
+  // Route guard.
+  // Re-check authentication on every pathname change so protected
+  // tenant pages cannot remain accessible after logout or session changes.
   useEffect(() => {
     if (isStandalone) {
       setAuthState('ok');
@@ -52,8 +56,6 @@ export default function TenantLayout({ children }) {
     }
 
     if (!TENANT_ROLES.includes(user.role)) {
-      // Wrong role for this area (e.g. a customer or super_admin token) — not
-      // a redirect-preserving case, just bounce to the login gate.
       router.replace('/login');
       return;
     }
@@ -66,13 +68,62 @@ export default function TenantLayout({ children }) {
     setAuthState('ok');
   }, [pathname, isStandalone, router]);
 
-  // Since the sidebar/header no longer remount per page (single persistent
-  // layout), the browser doesn't naturally reset scroll position between
-  // tenant pages the way full page loads used to — force it here.
+  // Reset scroll position whenever the tenant page changes.
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
 
+  // Session-invalidation guard.
+  // Handles cases where an already logged-in user's account or tenant
+  // becomes invalid after the page has already loaded.
+  useEffect(() => {
+    if (window.__tenantSuspendGuardInstalled) return;
+
+    window.__tenantSuspendGuardInstalled = true;
+
+    const SESSION_INVALID_MESSAGES = [
+      'organization has been suspended',
+      'User account is inactive or suspended',
+      'Invalid token',
+    ];
+
+    const originalFetch = window.fetch;
+
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+
+      if (response.status === 403 || response.status === 401) {
+        const clone = response.clone();
+
+        clone
+          .json()
+          .then((data) => {
+            const errorMessage =
+              typeof data?.error === 'string' ? data.error : '';
+
+            if (
+              SESSION_INVALID_MESSAGES.some((message) =>
+                errorMessage.includes(message)
+              )
+            ) {
+              storage.clear();
+              window.location.href = '/login';
+            }
+          })
+          .catch(() => {});
+      }
+
+      return response;
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+      window.__tenantSuspendGuardInstalled = false;
+    };
+  }, []);
+
+  // Standalone tenant pages do not require authentication,
+  // sidebar, or header.
   if (isStandalone) {
     return (
       <div className="min-h-screen bg-[var(--tenant-bg)] text-[var(--tenant-text)] transition-colors duration-200">
@@ -81,12 +132,15 @@ export default function TenantLayout({ children }) {
     );
   }
 
+  // Wait until authentication has been checked.
   if (authState === 'checking') {
     return <div className="min-h-screen bg-[var(--tenant-bg)]" />;
   }
 
+  // Block the tenant dashboard until email verification is completed.
   if (authState === 'unverified') {
     const user = storage.getUser();
+
     return <VerifyEmailScreen email={user?.email || ''} />;
   }
 

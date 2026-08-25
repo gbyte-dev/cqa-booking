@@ -21,6 +21,7 @@ const organizationsRoutes = require('./routes/organizations');
 const usersRoutes = require('./routes/users');
 const customersRoutes = require('./routes/customers');
 const staffRoutes = require('./routes/staff');
+const profileRoutes = require('./routes/profile');
 const paymentsRoutes = require('./routes/payments');
 const promotionsRoutes = require('./routes/promotions');
 const notificationsRoutes = require('./routes/notifications');
@@ -58,6 +59,9 @@ app.use('/api/v1/payments/webhooks', paymentWebhookRoutes);
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use('/uploads', express.static(require('path').join(__dirname, 'uploads'), {
+  setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+}));
 
 // Static uploads (e.g. customer avatars) — served as plain files, no directory listing.
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -113,6 +117,9 @@ console.log('✅ Customers routes registered');
 app.use('/api/v1/staff', staffRoutes);
 console.log('✅ Staff routes registered');
 
+app.use('/api/v1/profile', profileRoutes);
+console.log('✅ Profile routes registered');
+
 app.use('/api/v1/payments', paymentsRoutes);
 app.use('/api/v1/promotions', promotionsRoutes);
 app.use('/api/v1/notifications', notificationsRoutes);
@@ -148,6 +155,9 @@ app.use((req, res) => {
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('❌ Error:', err);
+  if (err.name === 'MulterError' || /Only image files/.test(err.message || '')) {
+    return res.status(400).json({ success: false, error: err.message });
+  }
   res.status(500).json({
     success: false,
     error: err.message || 'Internal server error'

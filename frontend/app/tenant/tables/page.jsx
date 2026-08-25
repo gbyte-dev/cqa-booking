@@ -1,6 +1,6 @@
 ﻿'use client';
 import AppIcon from '@/components/AppIcon';
-import { notify } from '@/lib/alerts';
+import { notify, confirmAction } from '@/lib/alerts';
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,7 @@ export default function TenantTablesPage() {
   const [tables, setTables] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState('all');
   const [showForm, setShowForm] = useState(false);
+  const [editingTableId, setEditingTableId] = useState(null);
   const [formData, setFormData] = useState({
     venueId: '',
     name: '',
@@ -27,6 +28,8 @@ export default function TenantTablesPage() {
   const [loading, setLoading] = useState(true);
 
   const token = storage.getToken();
+  const currentUser = storage.getUser();
+  const canManageTables = currentUser?.role === 'owner' || currentUser?.role === 'manager';
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   // Load once on mount only
@@ -70,6 +73,7 @@ export default function TenantTablesPage() {
   };
 
   const handleAddClick = () => {
+    setEditingTableId(null);
     setFormData({
       venueId: venues[0]?.id || '',
       name: '',
@@ -82,12 +86,54 @@ export default function TenantTablesPage() {
     setShowForm(true);
   };
 
+  const handleEditClick = (table) => {
+    setEditingTableId(table.id);
+    setFormData({
+      venueId: table.venueId || '',
+      name: table.name || '',
+      capacity: table.capacity || 4,
+      location: table.location || '',
+      minGuests: table.minGuests || 1,
+      maxGuests: table.maxGuests || table.capacity || 4,
+      status: table.status || 'available'
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (table) => {
+    if (!(await confirmAction({
+      title: `Delete ${table.name}?`,
+      text: 'This table will be permanently removed.',
+      confirmText: 'Delete table',
+      danger: true
+    }))) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/tables/${table.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        notify('Table deleted successfully');
+        loadData();
+      } else {
+        notify('Error: ' + (data.error || 'Failed to delete table'));
+      }
+    } catch (error) {
+      notify('Error: ' + error.message);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/v1/tables`, {
-        method: 'POST',
+      const url = editingTableId
+        ? `${API_URL}/api/v1/tables/${editingTableId}`
+        : `${API_URL}/api/v1/tables`;
+      const response = await fetch(url, {
+        method: editingTableId ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -97,8 +143,9 @@ export default function TenantTablesPage() {
       const data = await response.json();
 
       if (data.success) {
-        notify('Table added successfully');
+        notify(editingTableId ? 'Table updated successfully' : 'Table added successfully');
         setShowForm(false);
+        setEditingTableId(null);
         setFormData({
           venueId: venues[0]?.id || '',
           name: '',
@@ -110,7 +157,7 @@ export default function TenantTablesPage() {
         });
         loadData();
       } else {
-        notify('Error: ' + (data.error || 'Failed to create table'));
+        notify('Error: ' + (data.error || 'Failed to save table'));
       }
     } catch (error) {
       notify('Error: ' + error.message);
@@ -140,9 +187,11 @@ export default function TenantTablesPage() {
                 <h2><AppIcon name="table" /> Manage Tables</h2>
                 <p>Add and organize tables across your venues.</p>
               </div>
-              <button className="add-btn" onClick={handleAddClick}>
-                <AppIcon name="add" /> Add Table
-              </button>
+              {canManageTables && (
+                <button className="add-btn" onClick={handleAddClick}>
+                  <AppIcon name="add" /> Add Table
+                </button>
+              )}
             </div>
 
             <div className="filters-section">
@@ -163,9 +212,11 @@ export default function TenantTablesPage() {
               <div className="empty-state">
                 <div className="empty-icon"><AppIcon name="table" /></div>
                 <p>No tables found</p>
-                <button className="add-btn" onClick={handleAddClick}>
-                  <AppIcon name="add" /> Add First Table
-                </button>
+                {canManageTables && (
+                  <button className="add-btn" onClick={handleAddClick}>
+                    <AppIcon name="add" /> Add First Table
+                  </button>
+                )}
               </div>
             ) : (
               <div className="tables-grid">
@@ -199,6 +250,27 @@ export default function TenantTablesPage() {
                     <div className="table-venue">
                       <AppIcon name="building" /> {table.Venue?.name || 'Venue'}
                     </div>
+
+                    {canManageTables && (
+                      <div className="table-card-actions">
+                        <button
+                          type="button"
+                          className="table-icon-btn"
+                          title="Edit table"
+                          onClick={() => handleEditClick(table)}
+                        >
+                          <AppIcon name="edit" />
+                        </button>
+                        <button
+                          type="button"
+                          className="table-icon-btn delete"
+                          title="Delete table"
+                          onClick={() => handleDelete(table)}
+                        >
+                          <AppIcon name="trash" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -207,11 +279,11 @@ export default function TenantTablesPage() {
 
       {/* FORM MODAL */}
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
+        <div className="modal-overlay" onClick={() => { setShowForm(false); setEditingTableId(null); }}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><AppIcon name="add" /> Add Table</h2>
-              <button className="close-btn" onClick={() => setShowForm(false)}><AppIcon name="close" /></button>
+              <h2><AppIcon name="add" /> {editingTableId ? 'Edit Table' : 'Add Table'}</h2>
+              <button className="close-btn" onClick={() => { setShowForm(false); setEditingTableId(null); }}><AppIcon name="close" /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="table-form">
@@ -283,11 +355,13 @@ export default function TenantTablesPage() {
               </div>
 
               <div className="form-actions">
-                <button type="button" className="btn-cancel" onClick={() => setShowForm(false)} disabled={formLoading}>
+                <button type="button" className="btn-cancel" onClick={() => { setShowForm(false); setEditingTableId(null); }} disabled={formLoading}>
                   Cancel
                 </button>
                 <button type="submit" className="btn-submit" disabled={formLoading}>
-                  {formLoading ? 'Adding...' : 'Add Table'}
+                  {formLoading
+                    ? (editingTableId ? 'Saving...' : 'Adding...')
+                    : (editingTableId ? 'Save Changes' : 'Add Table')}
                 </button>
               </div>
             </form>
@@ -326,6 +400,10 @@ export default function TenantTablesPage() {
         .table-meta span { color: var(--tenant-text-muted, #98a2b3); font-size: 11px; }
         .table-location { margin-top: 12px; color: var(--tenant-text-secondary, #667085); font-size: 12px; }
         .table-venue { margin-top: 4px; color: var(--tenant-text-muted, #98a2b3); font-size: 11px; }
+        .table-card-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--tenant-border-light, #edf0f4); }
+        .table-icon-btn { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--tenant-border, #e5e7eb); border-radius: 8px; background: var(--tenant-surface, #fff); color: var(--tenant-text-secondary, #667085); cursor: pointer; transition: all 0.2s ease; }
+        .table-icon-btn:hover { border-color: var(--tenant-primary, #667eea); color: var(--tenant-primary, #667eea); background: var(--tenant-primary-light, #eef1ff); }
+        .table-icon-btn.delete:hover { border-color: var(--tenant-danger, #dc3545); color: var(--tenant-danger, #dc3545); background: var(--tenant-danger-bg, #fee2e2); }
         .empty-state { padding: 60px 20px; text-align: center; color: var(--tenant-text-secondary, #667085); }
         .empty-icon { font-size: 34px; margin-bottom: 12px; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: flex; align-items: center; justify-content: center; z-index: 300; backdrop-filter: blur(3px); }

@@ -145,17 +145,18 @@ export default function OrganizationsPage() {
                 </div>
               ) : (
                 <div className="table-container">
-                  <table className="organizations-table">
+                  <table className="organizations-table" style={{ tableLayout: 'fixed' }}>
                     <thead>
                       <tr>
-                        <th>Organization</th>
+                        <th style={{ width: '16.66%' }}>Organization</th>
+                        <th className="text-center" style={{ width: '16.66%' }}>Email</th>
                         {/* <th>Slug</th> */}
                         {/* <th>Timezone</th> */}
-                        <th>Plan</th>
-                        <th>Status</th>
-                        <th>Monthly Fee</th>
+                        <th className="text-center" style={{ width: '16.66%' }}>Plan</th>
+                        <th className="text-center" style={{ width: '16.66%' }}>Status</th>
+                        <th className="text-center" style={{ width: '16.66%' }}>Monthly Fee</th>
                         {/* <th>Max Venues</th> */}
-                        <th>Actions</th>
+                        <th className="text-center" style={{ width: '16.66%' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -169,17 +170,18 @@ export default function OrganizationsPage() {
                               <div>
                                 <div className="org-name">{org.name}</div>
                                 <div className="org-id">
-                                  {org.id.substring(0, 8)}...
+                                  {org.ownerName || `${org.id.substring(0, 8)}...`}
                                 </div>
                               </div>
                             </div>
                           </td>
+                          <td className="text-center">{org.ownerEmail || '—'}</td>
                           {/* <td>
                             <code className="slug-badge">{org.slug}</code>
                           </td> */}
                           {/* <td>{org.timezone}</td> */}
-                          <td>{org.Subscription?.plan || 'No Plan'}</td>
-                          <td>
+                          <td className="text-center">{org.Subscription?.plan || 'No Plan'}</td>
+                          <td className="text-center">
                             <span
                               className={`status ${
                                 org.subscriptionStatus === 'active'
@@ -192,7 +194,7 @@ export default function OrganizationsPage() {
                                 : 'Suspended'}
                             </span>
                           </td>
-                          <td>
+                          <td className="text-center">
                             <strong>
                               {formatCurrency(
                                 org.Subscription?.monthlyPrice || 0
@@ -200,8 +202,8 @@ export default function OrganizationsPage() {
                             </strong>
                           </td>
                           {/* <td>{org.maxVenues}</td> */}
-                          <td>
-                            <div className="action-buttons">
+                          <td className="text-center">
+                            <div className="action-buttons" style={{ justifyContent: 'center' }}>
                               {org.subscriptionStatus === 'active' ? (
                                 <button
                                   className="action-btn suspend-btn"

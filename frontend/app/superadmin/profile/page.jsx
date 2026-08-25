@@ -3,15 +3,11 @@ import { notify } from '@/lib/alerts';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import { storage } from '@/lib/storage';
 
 export default function SuperAdminProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [profile, setProfile] = useState({
@@ -22,41 +18,60 @@ export default function SuperAdminProfilePage() {
   });
 
   const token = storage.getToken();
-  const currentUser = storage.getUser();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
+    const currentUser = storage.getUser();
     if (!token || !currentUser || currentUser.role !== 'superadmin') {
       router.push('/login');
       return;
     }
 
-    setProfile({
-      firstName: currentUser.firstName || 'Super',
-      lastName: currentUser.lastName || 'Admin',
-      email: currentUser.email || '',
-      role: currentUser.role || 'superadmin',
-    });
-
-    setLoading(false);
+    fetch(`${API_URL}/api/v1/profile/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setProfile({
+            firstName: data.data.firstName || '',
+            lastName: data.data.lastName || '',
+            email: data.data.email || '',
+            role: data.data.role || 'superadmin',
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const handleChange = (field, value) => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = { ...currentUser, ...profile };
-      storage.setUser(updated);
-      setTimeout(() => {
-        setSaving(false);
+      const response = await fetch(`${API_URL}/api/v1/profile/me`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ firstName: profile.firstName, lastName: profile.lastName })
+      });
+      const data = await response.json();
+      if (data.success) {
+        const currentUser = storage.getUser();
+        if (currentUser) {
+          storage.setUser({ ...currentUser, firstName: data.data.firstName, lastName: data.data.lastName });
+        }
+        // Header lives outside this page and only reads the stored user once
+        // on mount, so it needs an explicit nudge to pick up the new name.
+        window.dispatchEvent(new Event('app-profile-updated'));
         notify('Profile updated successfully');
-      }, 500);
+      } else {
+        notify(data.error || 'Failed to update profile');
+      }
     } catch (error) {
-      setSaving(false);
-      notify('Error saving profile: ' + error.message);
+      notify('Failed to update profile');
     }
+    setSaving(false);
   };
 
   if (loading) {
@@ -72,83 +87,74 @@ export default function SuperAdminProfilePage() {
 
   return (
     <div className="profile-page">
-      <div className="profile-layout">
-        <SuperAdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <div className="profile-main-wrapper">
-          <Header title="My Profile" onMenuClick={() => setSidebarOpen(true)} />
-
-          <main className="profile-content">
-            <div className="page-header">
-              <div>
-                <h2>My Profile</h2>
-                <p>Manage your administrator account details.</p>
-              </div>
-            </div>
-
-            <div className="panel">
-              <div className="panel-header">
-                <h3>Account Information</h3>
-                <span>Personal details</span>
-              </div>
-
-              <div className="profile-body">
-                <div className="avatar-row">
-                  <div className="avatar-large">
-                    {profile.firstName?.charAt(0)?.toUpperCase() || 'S'}
-                  </div>
-                  <div>
-                    <strong>{profile.firstName} {profile.lastName}</strong>
-                    <span className="role-badge">Super Administrator</span>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>First Name</label>
-                    <input
-                      type="text"
-                      value={profile.firstName}
-                      onChange={(e) => handleChange('firstName', e.target.value)}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Last Name</label>
-                    <input
-                      type="text"
-                      value={profile.lastName}
-                      onChange={(e) => handleChange('lastName', e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Role</label>
-                  <input type="text" value="Super Administrator" disabled />
-                </div>
-              </div>
-            </div>
-
-            <div className="save-bar">
-              <button className="save-btn" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </main>
-
-          <Footer />
+      <main className="profile-content">
+        <div className="page-header">
+          <div>
+            <h2>My Profile</h2>
+            <p>Manage your administrator account details.</p>
+          </div>
         </div>
-      </div>
+
+        <div className="panel">
+          <div className="panel-header">
+            <h3>Account Information</h3>
+            <span>Personal details</span>
+          </div>
+
+          <div className="profile-body">
+            <div className="avatar-row">
+              <div className="avatar-large">
+                {profile.firstName?.charAt(0)?.toUpperCase() || 'S'}
+              </div>
+              <div>
+                <strong>{profile.firstName} {profile.lastName}</strong>
+                <span className="role-badge">Super Administrator</span>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  value={profile.firstName}
+                  onChange={(e) => handleChange('firstName', e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  value={profile.lastName}
+                  onChange={(e) => handleChange('lastName', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Email Address</label>
+              <input
+                type="email"
+                value={profile.email}
+                disabled
+                title="Email cannot be changed here"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Role</label>
+              <input type="text" value="Super Administrator" disabled />
+            </div>
+          </div>
+        </div>
+
+        <div className="save-bar">
+          <button className="save-btn" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </main>
 
       <style jsx>{`
         * { box-sizing: border-box; }
