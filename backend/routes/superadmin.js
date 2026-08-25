@@ -33,6 +33,7 @@ router.get('/payments', authMiddleware, superAdminMiddleware, superAdminControll
 
 router.get('/settings', authMiddleware, superAdminMiddleware, platformSettingsController.get);
 router.put('/settings', authMiddleware, superAdminMiddleware, platformSettingsController.update);
+router.post('/settings/smtp/test', authMiddleware, superAdminMiddleware, platformSettingsController.testSmtp);
 
 router.get('/dashboard/stats', authMiddleware, superAdminMiddleware, superAdminController.getDashboardStats);
 router.get('/bookings/stats', authMiddleware, superAdminMiddleware, superAdminController.getBookingStats);

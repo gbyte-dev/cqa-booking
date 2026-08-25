@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -10,6 +10,8 @@ import {
 import { authAPI } from '@/lib/api';
 import { storage } from '@/lib/storage';
 import PaymentStep from './PaymentStep';
+import VerifyEmailScreen from '@/components/VerifyEmailScreen';
+import { notifyPaymentSuccess, notifyError } from '@/lib/alerts';
 
 const STEP_LABELS = ['Account', 'Business', 'Outlet', 'Plan', 'Payment'];
 
@@ -394,6 +396,19 @@ export default function OwnerRegisterWizard() {
   const [selectedProvider, setSelectedProvider] = useState('');
   const [checkoutSession, setCheckoutSession] = useState(null);
   const [checkoutStarting, setCheckoutStarting] = useState(false);
+  const [verification, setVerification] = useState(null);
+
+  // 'idle' | 'success' | 'failed' — drives the explicit payment result panel
+  // shown on step 5 once the gateway has returned a final outcome.
+  const [paymentStatus, setPaymentStatus] = useState('idle');
+
+  // Guards against duplicate submissions: some gateway widgets (Paytm's
+  // APP_CLOSED handler, PayPal's onApprove, a fast double-click) can invoke
+  // their callback more than once for a single checkout attempt. Refs are
+  // used instead of state so the check is synchronous and not subject to
+  // stale closures across re-renders.
+  const paymentInFlightRef = useRef(false);
+  const checkoutStartingRef = useRef(false);
 
   /* =========================================================
      RESTORE DRAFT
@@ -883,6 +898,8 @@ export default function OwnerRegisterWizard() {
       setGateways([]);
       setGatewaysFetched(false);
       setSelectedProvider('');
+      setPaymentStatus('idle');
+      paymentInFlightRef.current = false;
     }
 
     setStep((s) => Math.max(1, s - 1));
@@ -892,14 +909,59 @@ export default function OwnerRegisterWizard() {
      FINISH REGISTRATION
   ========================================================= */
 
-  const finishRegistration = ({ user, organization, token }) => {
+  const finishRegistration = ({
+    user,
+    organization,
+    token,
+    needsVerification,
+    email,
+    warning,
+  }) => {
+    try {
+      sessionStorage.removeItem(DRAFT_KEY);
+    } catch {
+      // Ignore storage cleanup failure.
+    }
+
+    /*
+    * IMPORTANT:
+    *
+    * Do NOT save token before email verification.
+    */
+    if (needsVerification) {
+      const verificationEmail =
+        email ||
+        user?.email ||
+        draft?.owner?.email ||
+        '';
+
+      setVerification({
+        email: verificationEmail.trim().toLowerCase(),
+        warning: warning || null,
+      });
+
+      return;
+    }
+
+    /*
+    * Only authenticated users receive/store JWT.
+    */
+    if (!token || !user) {
+      setError(
+        'Registration completed, but the login session could not be created. Please sign in manually.'
+      );
+
+      return;
+    }
+
     storage.setToken(token);
     storage.setUser(user);
-    storage.setOrganization(organization);
 
-    sessionStorage.removeItem(DRAFT_KEY);
+    if (organization) {
+      storage.setOrganization(organization);
+    }
 
-    router.push('/tenant/dashboard');
+    router.replace('/tenant/dashboard');
   };
 
   /* =========================================================
@@ -907,6 +969,14 @@ export default function OwnerRegisterWizard() {
   ========================================================= */
 
   const startCheckout = async () => {
+    // Duplicate-submission guard: ignore re-entrant calls (fast double-click,
+    // duplicate key/enter events) while a checkout request is already in
+    // flight. checkoutStartingRef is checked synchronously — the
+    // checkoutStarting state alone can lag one render behind rapid clicks.
+    if (checkoutStartingRef.current) {
+      return;
+    }
+
     setError('');
 
     // Final frontend validation before API call.
@@ -949,6 +1019,7 @@ export default function OwnerRegisterWizard() {
       return;
     }
 
+    checkoutStartingRef.current = true;
     setCheckoutStarting(true);
 
     try {
@@ -985,21 +1056,25 @@ export default function OwnerRegisterWizard() {
       if (!res.success) {
         setError(res.error || 'Could not start checkout. Please try again.');
 
+        checkoutStartingRef.current = false;
         setCheckoutStarting(false);
         return;
       }
 
       if (!res.data?.requiresPayment) {
+        checkoutStartingRef.current = false;
         finishRegistration(res.data);
         return;
       }
 
       setCheckoutSession(res.data);
 
+      checkoutStartingRef.current = false;
       setCheckoutStarting(false);
     } catch {
       setError('Could not start checkout. Please try again.');
 
+      checkoutStartingRef.current = false;
       setCheckoutStarting(false);
     }
   };
@@ -1009,7 +1084,18 @@ export default function OwnerRegisterWizard() {
   ========================================================= */
 
   const handlePaid = async (fields) => {
+    // Duplicate-submission guard: gateway widgets can call onPaid more than
+    // once for the same checkout (e.g. Paytm's APP_CLOSED handler firing
+    // again, a user re-triggering an approved PayPal flow). Only the first
+    // call is allowed to reach the confirmation endpoint; the ref is
+    // released once we have a final success/failure outcome.
+    if (paymentInFlightRef.current) {
+      return;
+    }
+    paymentInFlightRef.current = true;
+
     setError('');
+    setPaymentStatus('idle');
 
     try {
       const res = await authAPI.confirmOwnerPayment({
@@ -1019,18 +1105,55 @@ export default function OwnerRegisterWizard() {
       });
 
       if (res.success) {
-        finishRegistration(res.data);
+        setPaymentStatus('success');
+
+        const paymentId =
+          fields.razorpay_payment_id ||
+          fields.paymentIntentId ||
+          fields.orderId ||
+          checkoutSession?.reference ||
+          null;
+
+        notifyPaymentSuccess({
+          amount: selectedPlan?.price,
+          currency: selectedPlan?.currency,
+          paymentId,
+          tenantName: res.data?.organization?.name || draft.business.name,
+        });
+
+        // Give the user a moment to see the confirmation before navigating
+        // away / swapping to the verification screen.
+        setTimeout(() => {
+          finishRegistration(res.data);
+        }, 700);
       } else {
+        setPaymentStatus('failed');
         setError(
           res.error || 'Registration could not be completed. Please contact support if you were charged.'
         );
+        notifyError(
+          res.error || 'Registration could not be completed. Please contact support if you were charged.',
+          'Payment could not be confirmed'
+        );
 
         setSubmitting(false);
+        paymentInFlightRef.current = false;
+        // Drop the stale checkout session so the user gets a fresh one
+        // (and a "Try again" affordance) instead of retrying against a
+        // session that may already be consumed on the gateway/server side.
+        setCheckoutSession(null);
       }
     } catch {
+      setPaymentStatus('failed');
       setError('Registration could not be completed. Please contact support if you were charged.');
+      notifyError(
+        'Registration could not be completed. Please contact support if you were charged.',
+        'Payment could not be confirmed'
+      );
 
       setSubmitting(false);
+      paymentInFlightRef.current = false;
+      setCheckoutSession(null);
     }
   };
 
@@ -1047,6 +1170,10 @@ export default function OwnerRegisterWizard() {
   /* =========================================================
      RENDER
   ========================================================= */
+
+  if (verification) {
+    return <VerifyEmailScreen email={verification.email} warning={verification.warning} />;
+  }
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#080b14] p-10 font-[Inter,Arial,Helvetica,sans-serif] max-[768px]:min-h-[100dvh] max-[768px]:p-5 max-[480px]:items-start max-[480px]:p-3 max-[480px]:pt-[18px] max-[360px]:p-2 max-[360px]:pt-3">
@@ -1604,7 +1731,55 @@ export default function OwnerRegisterWizard() {
                   </div>
                 )}
 
-                {checkoutSession ? (
+                {paymentStatus === 'success' && (
+                  <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-[rgba(110,231,183,0.25)] bg-[rgba(16,185,129,0.08)] p-4">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(16,185,129,0.18)] text-[#6ee7b7]">
+                      <Check size={16} />
+                    </div>
+                    <div>
+                      <p className="m-0 text-[12px] font-semibold text-[#dce1ea]">Payment successful</p>
+                      <p className="m-0 text-[11px] text-[#818ca0]">Finishing your registration...</p>
+                    </div>
+                  </div>
+                )}
+
+                {paymentStatus === 'failed' && !checkoutSession && (
+                  <div className="mb-5">
+                    <div className="mb-3 flex gap-[11px] rounded-[10px] border border-[rgba(248,113,113,0.18)] bg-[rgba(239,68,68,0.06)] p-3 text-[#fca5a5]">
+                      <div className="flex h-[21px] w-[21px] flex-shrink-0 items-center justify-center rounded-full bg-[rgba(239,68,68,0.15)] text-[11px] font-extrabold">
+                        !
+                      </div>
+                      <div>
+                        <p className="m-0 text-[11px] font-semibold leading-[1.5]">Payment failed</p>
+                        <p className="m-0 text-[11px] leading-[1.5]">
+                          Your registration could not be completed. If you were charged, contact support before retrying.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentStatus('idle');
+                        setError('');
+                        startCheckout();
+                      }}
+                      disabled={checkoutStarting}
+                      className={payButtonClass}
+                    >
+                      {checkoutStarting ? (
+                        <>
+                          <span className="h-[15px] w-[15px] animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                          Retrying...
+                        </>
+                      ) : (
+                        'Try again'
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {paymentStatus === 'failed' && !checkoutSession ? null : checkoutSession ? (
                   <PaymentStep
                     session={checkoutSession}
                     publicKey={selectedGatewayPublicKey}

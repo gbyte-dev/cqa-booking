@@ -1,9 +1,11 @@
 const express = require('express');
 const requireRole = require('../middleware/roleCheck');
 const authMiddleware = require('../middleware/auth');
+const requireVerifiedEmail = require('../middleware/requireVerifiedEmail');
 const staffController = require('../controllers/staffController');
 
 const router = express.Router();
+router.use(authMiddleware, requireVerifiedEmail);
 
 // MUST BE BEFORE any '/:id' style route if one is ever added — 'managers'
 // would otherwise be misread as an :id.

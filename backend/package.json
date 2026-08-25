@@ -23,6 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.11.0",
     "mysql2": "^3.23.3",
+    "nodemailer": "^7.0.13",
     "paytmchecksum": "^1.5.1",
     "razorpay": "^2.9.8",
     "sequelize": "^6.37.8",

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   User,
@@ -17,11 +16,9 @@ import {
 } from 'lucide-react';
 
 import { authAPI } from '@/lib/api';
-import { storage } from '@/lib/storage';
+import VerifyEmailScreen from '@/components/VerifyEmailScreen';
 
 export default function CustomerRegisterPage() {
-  const router = useRouter();
-
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -31,6 +28,7 @@ export default function CustomerRegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [verification, setVerification] = useState(null);
 
   /* ============================================
      REGISTER
@@ -39,12 +37,38 @@ export default function CustomerRegisterPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     setError('');
 
+    const normalizedFullName = fullName.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
+
+    if (!normalizedFullName) {
+      setError('Full name is required.');
+      return;
+    }
+
+    if (normalizedFullName.length < 2) {
+      setError('Full name must be at least 2 characters.');
+      return;
+    }
+
+    if (!normalizedEmail) {
+      setError('Email address is required.');
+      return;
+    }
+
     if (password.length < 8) {
       setError('Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (password.length > 128) {
+      setError('Password must not exceed 128 characters.');
       return;
     }
 
@@ -57,32 +81,46 @@ export default function CustomerRegisterPage() {
 
     try {
       const result = await authAPI.registerCustomer({
-        fullName: fullName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
+        fullName: normalizedFullName,
+        email: normalizedEmail,
+        phone: normalizedPhone,
         password,
         confirmPassword,
       });
 
-      if (result.success) {
-        storage.setToken(result.data.token);
-        storage.setUser(result.data.user);
-
-        router.push('/');
-      } else {
+      if (!result?.success) {
         setError(
-          result.error ||
+          result?.error ||
             'We could not create your account. Please review your details and try again.'
         );
+
+        return;
       }
-    } catch {
+
+      const verificationEmail =
+        result?.data?.email || normalizedEmail;
+
+      setVerification({
+        email: verificationEmail,
+        warning: result?.data?.warning || null,
+      });
+    } catch (error) {
+      console.error(
+        'Customer registration frontend error:',
+        error
+      );
+
       setError(
-        "We couldn't create your account. Please check your details and try again."
+        "We couldn't create your account. Please try again."
       );
     } finally {
       setLoading(false);
     }
   };
+
+  if (verification) {
+    return <VerifyEmailScreen email={verification.email} warning={verification.warning} />;
+  }
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#080b14] p-10 font-[Inter,Arial,Helvetica,sans-serif] max-[768px]:min-h-[100dvh] max-[768px]:p-5 max-[480px]:items-start max-[480px]:p-3 max-[480px]:pt-[18px] max-[360px]:p-2 max-[360px]:pt-3">

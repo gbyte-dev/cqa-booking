@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SuperAdminSidebar from '@/components/SuperAdminSidebar';
+import { storage } from '@/lib/storage';
+import { buildLoginUrl } from '@/lib/redirect';
 
 const titles = {
   '/superadmin/dashboard': 'Super Admin',
@@ -23,10 +25,33 @@ const titles = {
 export default function SuperAdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Route guard, re-run on every mount (including via browser Back after
+  // logout) so a stale page can never remain visible without a valid session.
+  useEffect(() => {
+    const token = storage.getToken();
+    const user = storage.getUser();
+
+    if (!token || !user) {
+      router.replace(buildLoginUrl(pathname));
+      return;
+    }
+    if (user.role !== 'superadmin') {
+      router.replace('/login');
+      return;
+    }
+    setAuthChecked(true);
+  }, [pathname, router]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
+  if (!authChecked) {
+    return <div className="min-h-screen bg-[var(--sa-bg)]" />;
+  }
 
   return (
     <div className="min-h-screen bg-[var(--sa-bg)] text-[var(--sa-text)]">

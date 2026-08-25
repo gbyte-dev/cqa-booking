@@ -40,3 +40,17 @@ export async function updatePlatformSettings(token, data) {
     body: JSON.stringify(data)
   });
 }
+
+// ===== SEND TEST SMTP EMAIL =====
+export async function sendTestSmtpEmail(token, testEmail) {
+  if (!token) throw new Error('No authentication token');
+
+  return fetchWithDebug('/superadmin/settings/smtp/test', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ testEmail })
+  });
+}

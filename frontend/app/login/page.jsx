@@ -1,15 +1,37 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
 import { storage } from '@/lib/storage';
 import { getRoleRedirectPath } from '@/lib/roleRedirect';
+import { resolvePostLoginPath } from '@/lib/redirect';
 import { Mail, Lock, Eye, EyeOff, Check, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import VerifyEmailScreen from '@/components/VerifyEmailScreen';
 
+// useSearchParams() (used below to read ?redirect=) requires a Suspense
+// boundary during static prerendering, otherwise `next build` fails on this page.
 export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[#080b14] font-[Inter,Arial,sans-serif] text-[#98a2b3]">
+          <div className="h-[38px] w-[38px] animate-spin rounded-full border-[3px] border-white/[0.12] border-t-[#818cf8]" />
+        </div>
+      }
+    >
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Only ever a same-origin internal path — validated by resolvePostLoginPath
+  // via isSafeRedirectPath before it is ever navigated to.
+  const redirectParam = searchParams.get('redirect');
 
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [email, setEmail] = useState('');
@@ -17,6 +39,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
 
   /* ============================================
      CHECK EXISTING AUTH
@@ -27,12 +50,12 @@ export default function LoginPage() {
     const user = storage.getUser();
 
     if (token && user) {
-      router.replace(getRoleRedirectPath(user.role));
+      router.replace(resolvePostLoginPath(redirectParam, getRoleRedirectPath(user.role)));
       return;
     }
 
     setCheckingAuth(false);
-  }, [router]);
+  }, [router, redirectParam]);
 
   /* ============================================
      LOGIN
@@ -50,6 +73,20 @@ export default function LoginPage() {
       const result = await authAPI.login(email.trim(), password);
 
       if (!result?.success) {
+        if (result?.error === 'EMAIL_NOT_VERIFIED' || result?.code === 'EMAIL_NOT_VERIFIED' ) {
+          const verificationEmail =
+            result?.data?.email ||
+            result?.email ||
+            email.trim().toLowerCase();
+
+          setUnverifiedEmail(
+            verificationEmail.trim().toLowerCase()
+          );
+
+          setLoading(false);
+          return;
+        }
+
         setError(
           result?.error || result?.message || 'Login failed. Please check your credentials.'
         );
@@ -73,7 +110,7 @@ export default function LoginPage() {
       storage.setUser(user);
       if (organization) storage.setOrganization(organization);
 
-      router.replace(getRoleRedirectPath(user.role));
+      router.replace(resolvePostLoginPath(redirectParam, getRoleRedirectPath(user.role)));
     } catch (err) {
       setError('Unable to connect to the server. Please try again.');
 
@@ -84,6 +121,10 @@ export default function LoginPage() {
   /* ============================================
      AUTH CHECK
   ============================================ */
+
+  if (unverifiedEmail) {
+    return <VerifyEmailScreen email={unverifiedEmail} />;
+  }
 
   if (checkingAuth) {
     return (

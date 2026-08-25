@@ -63,7 +63,8 @@ export default function SubscriptionsPage() {
       if (statsResponse.success) {
         setStats(statsResponse.data);
       }
-    } catch (error) {      notify('Error loading subscriptions: ' + error.message);
+    } catch (error) {
+      notify('Error loading subscriptions: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,8 @@ export default function SubscriptionsPage() {
       if (response.success) {
         setPayments(response.data || []);
       }
-    } catch (error) {    } finally {
+    } catch (error) {
+    } finally {
       setDetailsLoading(false);
     }
   };
@@ -307,7 +309,7 @@ export default function SubscriptionsPage() {
                               onClick={() => handleToggleAutoRenew(subscription)}
                               title="Toggle auto-renew"
                             >
-                              {subscription.autoRenew ? '' : ''}
+                              <AppIcon name="renewals" />
                             </button>
                           </td>
                           <td>{formatDate(subscription.startDate)}</td>
@@ -323,13 +325,13 @@ export default function SubscriptionsPage() {
                               </button>
                               {subscription.status === 'active' && (
                                 <>
-                                  <button
+                                  {/* <button
                                     className="action-btn upgrade-btn"
                                     onClick={() => handleUpgradePlan(subscription)}
                                     title="Change Plan"
                                   >
                                     <AppIcon name="chart" />
-                                  </button>
+                                  </button> */}
                                   <button
                                     className="action-btn cancel-btn"
                                     onClick={() => handleCancelClick(subscription)}

@@ -8,10 +8,16 @@ import {
   Shield,
   CreditCard,
   Save,
+  Mail,
+  Eye,
+  EyeOff,
+  Send,
 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/alerts';
 import { storage } from '@/lib/storage';
-import { getPlatformSettings, updatePlatformSettings } from '@/lib/settings';
+import { getPlatformSettings, updatePlatformSettings, sendTestSmtpEmail } from '@/lib/settings';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DEFAULT_SETTINGS = {
   platformName: '',
@@ -21,7 +27,16 @@ const DEFAULT_SETTINGS = {
   defaultTimezone: 'UTC',
   allowNewRegistrations: true,
   maintenanceMode: false,
-  smtpHost: '',
+
+  smtp: {
+    host: '',
+    port: 587,
+    encryption: 'tls',
+    username: '',
+    password: '',
+    fromEmail: '',
+    fromName: '',
+  },
 
   paymentGateways: {
     stripe: {
@@ -64,6 +79,8 @@ export default function PlatformSettingsPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [showSmtpPassword, setShowSmtpPassword] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
 
   useEffect(() => {
@@ -79,7 +96,12 @@ export default function PlatformSettingsPage() {
       try {
         const result = await getPlatformSettings(token);
         if (result.success) {
-          setSettings({ ...DEFAULT_SETTINGS, ...result.data, paymentGateways: { ...DEFAULT_SETTINGS.paymentGateways, ...result.data.paymentGateways } });
+          setSettings({
+            ...DEFAULT_SETTINGS,
+            ...result.data,
+            paymentGateways: { ...DEFAULT_SETTINGS.paymentGateways, ...result.data.paymentGateways },
+            smtp: { ...DEFAULT_SETTINGS.smtp, ...result.data.smtp },
+          });
         }
       } catch (error) {
         notifyError(error.message || 'Failed to load platform settings.');
@@ -125,10 +147,44 @@ export default function PlatformSettingsPage() {
   };
 
   /* =========================================================
+     SMTP Settings Change
+  ========================================================= */
+
+  const handleSmtpChange = (field, value) => {
+    setSettings((prev) => ({
+      ...prev,
+      smtp: {
+        ...prev.smtp,
+        [field]: value,
+      },
+    }));
+  };
+
+  /* =========================================================
      Save Settings
   ========================================================= */
 
+  const validateSmtp = () => {
+    const { port, fromEmail } = settings.smtp;
+
+    if (port !== '' && port !== null && (Number.isNaN(Number(port)) || Number(port) < 1 || Number(port) > 65535)) {
+      return 'Mail port must be a number between 1 and 65535.';
+    }
+
+    if (fromEmail && !EMAIL_REGEX.test(fromEmail)) {
+      return 'Please enter a valid "From Email" address.';
+    }
+
+    return null;
+  };
+
   const handleSave = async () => {
+    const smtpError = validateSmtp();
+    if (smtpError) {
+      notifyError(smtpError);
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -136,7 +192,12 @@ export default function PlatformSettingsPage() {
       const result = await updatePlatformSettings(token, settings);
 
       if (result.success) {
-        setSettings({ ...DEFAULT_SETTINGS, ...result.data, paymentGateways: { ...DEFAULT_SETTINGS.paymentGateways, ...result.data.paymentGateways } });
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...result.data,
+          paymentGateways: { ...DEFAULT_SETTINGS.paymentGateways, ...result.data.paymentGateways },
+          smtp: { ...DEFAULT_SETTINGS.smtp, ...result.data.smtp },
+        });
         notifySuccess(result.message || 'Platform settings saved successfully.');
       } else {
         notifyError(result.error || 'Failed to save platform settings.');
@@ -145,6 +206,46 @@ export default function PlatformSettingsPage() {
       notifyError(error?.message || 'Failed to save platform settings.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  /* =========================================================
+     Send Test SMTP Email
+  ========================================================= */
+
+  const handleTestEmail = async () => {
+    const smtpError = validateSmtp();
+    if (smtpError) {
+      notifyError(smtpError);
+      return;
+    }
+
+    if (!settings.smtp.host || !settings.smtp.username) {
+      notifyError('Please fill in the Mail Host and Mail Username before testing.');
+      return;
+    }
+
+    const testEmail = settings.smtp.fromEmail || settings.supportEmail;
+    if (!testEmail) {
+      notifyError('Please provide a "From Email" to send the test email to.');
+      return;
+    }
+
+    setTesting(true);
+
+    try {
+      const token = storage.getToken();
+      const result = await sendTestSmtpEmail(token, testEmail);
+
+      if (result.success) {
+        notifySuccess(result.message || `Test email sent to ${testEmail}.`);
+      } else {
+        notifyError(result.error || 'Could not connect to SMTP server. Check host, port and credentials.');
+      }
+    } catch (error) {
+      notifyError(error?.message || 'Could not connect to SMTP server. Check host, port and credentials.');
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -255,18 +356,131 @@ export default function PlatformSettingsPage() {
               placeholder="+1 234 567 890"
             />
 
+          </div>
+
+        </SettingsSection>
+
+
+        {/* =====================================================
+            Email / SMTP Configuration
+        ===================================================== */}
+
+        <SettingsSection
+          title="Email / SMTP Configuration"
+          description="Configure the outgoing mail server used for verification and notification emails."
+          icon={
+            <Mail className="h-5 w-5 text-gray-400" />
+          }
+        >
+
+          <div className="mb-5 flex items-center gap-2">
+            <span
+              className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                settings.smtp.host && settings.smtp.username
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {settings.smtp.host && settings.smtp.username ? 'SMTP Configured' : 'SMTP Not Configured'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+
             <InputField
-              label="SMTP Host"
-              value={settings.smtpHost}
-              onChange={(value) =>
-                handleChange(
-                  'smtpHost',
-                  value
-                )
-              }
+              label="Mail Host"
+              value={settings.smtp.host}
+              onChange={(value) => handleSmtpChange('host', value)}
               placeholder="smtp.example.com"
             />
 
+            <InputField
+              label="Mail Port"
+              type="number"
+              value={settings.smtp.port}
+              onChange={(value) => handleSmtpChange('port', value)}
+              placeholder="587"
+            />
+
+            <InputField
+              label="Mail Username"
+              value={settings.smtp.username}
+              onChange={(value) => handleSmtpChange('username', value)}
+              placeholder="apikey or you@example.com"
+            />
+
+            <div className="min-w-0">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Mail Password
+              </label>
+
+              <div className="relative">
+                <input
+                  type={showSmtpPassword ? 'text' : 'password'}
+                  value={settings.smtp.password}
+                  onChange={(e) => handleSmtpChange('password', e.target.value)}
+                  placeholder={settings.smtp.password ? '••••••••' : 'Enter mail password'}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-11 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowSmtpPassword((v) => !v)}
+                  className="absolute top-1/2 right-3 flex h-6 w-6 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-gray-600"
+                  aria-label={showSmtpPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showSmtpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <SelectField
+              label="Encryption"
+              value={settings.smtp.encryption}
+              onChange={(value) => handleSmtpChange('encryption', value)}
+              options={[
+                ['none', 'None'],
+                ['tls', 'TLS'],
+                ['ssl', 'SSL'],
+              ]}
+            />
+
+            <InputField
+              label="From Email"
+              type="email"
+              value={settings.smtp.fromEmail}
+              onChange={(value) => handleSmtpChange('fromEmail', value)}
+              placeholder="no-reply@example.com"
+            />
+
+            <InputField
+              label="From Name"
+              value={settings.smtp.fromName}
+              onChange={(value) => handleSmtpChange('fromName', value)}
+              placeholder="CQA Booking Platform"
+            />
+
+          </div>
+
+          <div className="mt-5 flex justify-end">
+            <button
+              type="button"
+              onClick={handleTestEmail}
+              disabled={testing || !settings.smtp.host || !settings.smtp.username}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {testing ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+                  Testing connection...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Send Test Email
+                </>
+              )}
+            </button>
           </div>
 
         </SettingsSection>

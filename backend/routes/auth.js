@@ -14,4 +14,7 @@ router.get('/register/owner/payment-gateways', authController.getOwnerPaymentGat
 router.post('/register/owner/payment-intent', authController.createOwnerPaymentIntent);
 router.post('/register/owner/confirm', authController.confirmOwnerPayment);
 
+router.post('/verify-email', authController.verifyEmail);
+router.post('/resend-verification', authController.resendVerification);
+
 module.exports = router;

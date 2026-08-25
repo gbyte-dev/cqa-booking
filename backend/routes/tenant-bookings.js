@@ -1,8 +1,10 @@
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
+const requireVerifiedEmail = require('../middleware/requireVerifiedEmail');
 const bookingController = require('../controllers/tenantBookingController');
 
 const router = express.Router();
+router.use(authMiddleware, requireVerifiedEmail);
 
 router.post('/availability', authMiddleware, bookingController.checkAvailability);
 router.post('/', authMiddleware, bookingController.create);

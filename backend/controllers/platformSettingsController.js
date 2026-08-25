@@ -1,5 +1,6 @@
 const platformSettingsService = require('../services/platformSettingsService');
 const { writeAudit } = require('../utils/audit');
+const mailService = require('../services/mailService');
 
 const ALLOWED_ENVIRONMENTS = {
   stripe: ['test', 'live'],
@@ -48,5 +49,24 @@ exports.update = async (req, res) => {
   } catch (error) {
     console.error('Update platform settings error:', error.message);
     res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ===== TEST SMTP CONNECTION =====
+exports.testSmtp = async (req, res) => {
+  try {
+    const testEmail = req.body?.testEmail || req.user?.email;
+    if (!testEmail) {
+      return res.status(400).json({ success: false, error: 'A test email address is required' });
+    }
+
+    await mailService.sendTestEmail(testEmail);
+
+    await writeAudit({ req, action: 'platform_settings.smtp_tested', entityType: 'platform_setting', entityId: 'smtp', metadata: { testEmail } });
+
+    res.json({ success: true, message: `Test email sent successfully to ${testEmail}.` });
+  } catch (error) {
+    console.error('Test SMTP error:', error.message);
+    res.status(400).json({ success: false, error: error.message || 'Could not connect to SMTP server. Check host, port and credentials.' });
   }
 };

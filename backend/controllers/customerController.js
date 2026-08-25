@@ -1,4 +1,7 @@
 const customerService = require('../services/customerService');
+const avatarService = require('../services/avatarService');
+const User = require('../models/User');
+const GuestProfile = require('../models/GuestProfile');
 
 // Old frontend expects firstName/lastName separately; new schema only has full_name.
 const toApiShape = (guest) => {
@@ -24,6 +27,128 @@ const toApiShape = (guest) => {
     anniversaryDate: plain.anniversary,
     notes: plain.generalNotes
   };
+};
+
+// ============================================================
+// SELF-SERVICE (CUSTOMER): identity is ALWAYS derived from the
+// authenticated token (req.user.userId) — never from params/body/query.
+// ============================================================
+
+// ===== GET MY PROFILE =====
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.userId, {
+      attributes: ['id', 'email', 'phone', 'fullName', 'avatarUrl', 'isEmailVerified']
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Account not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
+        isEmailVerified: !!user.isEmailVerified
+      }
+    });
+  } catch (error) {
+    console.error('Get my profile error:', error);
+    res.status(500).json({ success: false, error: 'Unable to load profile' });
+  }
+};
+
+// ===== UPDATE MY PROFILE =====
+exports.updateMe = async (req, res) => {
+  try {
+    const { fullName, phone } = req.body;
+    const user = await User.findByPk(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Account not found' });
+    }
+
+    const updateData = {};
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (phone !== undefined) updateData.phone = phone;
+
+    await user.update(updateData);
+
+    // Keep the tenant-facing GuestProfile mirror in sync where one exists.
+    if (updateData.fullName !== undefined || updateData.phone !== undefined) {
+      await GuestProfile.update(updateData, { where: { userId: user.id } }).catch(() => {});
+    }
+
+    res.json({
+      success: true,
+      data: { id: user.id, email: user.email, phone: user.phone, fullName: user.fullName, avatarUrl: user.avatarUrl }
+    });
+  } catch (error) {
+    console.error('Update my profile error:', error);
+    res.status(500).json({ success: false, error: 'Unable to update profile' });
+  }
+};
+
+// ===== UPLOAD MY AVATAR =====
+exports.uploadAvatar = async (req, res) => {
+  try {
+    const { image } = req.body;
+
+    if (!image) {
+      return res.status(400).json({ success: false, error: 'No image provided' });
+    }
+
+    const user = await User.findByPk(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Account not found' });
+    }
+
+    let saved;
+    try {
+      saved = avatarService.saveAvatarFromBase64(image);
+    } catch (validationErr) {
+      return res.status(400).json({ success: false, error: validationErr.message });
+    }
+
+    const previousAvatarUrl = user.avatarUrl;
+    await user.update({ avatarUrl: saved.url });
+
+    // Clean up the old uploaded file only after the new one is committed.
+    if (previousAvatarUrl && previousAvatarUrl !== saved.url) {
+      avatarService.deleteAvatarFile(previousAvatarUrl);
+    }
+
+    res.json({ success: true, data: { avatarUrl: saved.url } });
+  } catch (error) {
+    console.error('Upload avatar error:', error);
+    res.status(500).json({ success: false, error: 'Unable to upload avatar' });
+  }
+};
+
+// ===== REMOVE MY AVATAR (revert to default) =====
+exports.removeAvatar = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Account not found' });
+    }
+
+    const previousAvatarUrl = user.avatarUrl;
+    await user.update({ avatarUrl: null });
+
+    if (previousAvatarUrl) {
+      avatarService.deleteAvatarFile(previousAvatarUrl);
+    }
+
+    res.json({ success: true, data: { avatarUrl: null } });
+  } catch (error) {
+    console.error('Remove avatar error:', error);
+    res.status(500).json({ success: false, error: 'Unable to remove avatar' });
+  }
 };
 
 // ===== GET ALL CUSTOMERS =====

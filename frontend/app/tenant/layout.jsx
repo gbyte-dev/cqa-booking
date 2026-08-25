@@ -1,11 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import TenantHeader from '@/components/TenantHeader';
 import Footer from '@/components/Footer';
 import TenantSidebar from '@/components/TenantSidebar';
+import VerifyEmailScreen from '@/components/VerifyEmailScreen';
+import { storage } from '@/lib/storage';
+import { buildLoginUrl } from '@/lib/redirect';
+
+const TENANT_ROLES = ['owner', 'manager', 'staff'];
 
 const STANDALONE_PATHS = ['/tenant/register', '/tenant/forgot-password'];
 
@@ -24,6 +29,42 @@ const titles = {
 export default function TenantLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const [authState, setAuthState] = useState('checking'); // checking | ok | unverified
+
+  const isStandalone = STANDALONE_PATHS.some(p => pathname?.startsWith(p));
+
+  // Route guard: re-checked on every mount (including back/forward navigation,
+  // since these are client components that re-run their effects) so logging
+  // out and hitting Back can't leave a protected tenant page visible.
+  useEffect(() => {
+    if (isStandalone) {
+      setAuthState('ok');
+      return;
+    }
+
+    const token = storage.getToken();
+    const user = storage.getUser();
+
+    if (!token || !user) {
+      router.replace(buildLoginUrl(pathname));
+      return;
+    }
+
+    if (!TENANT_ROLES.includes(user.role)) {
+      // Wrong role for this area (e.g. a customer or super_admin token) — not
+      // a redirect-preserving case, just bounce to the login gate.
+      router.replace('/login');
+      return;
+    }
+
+    if (user.isEmailVerified === false) {
+      setAuthState('unverified');
+      return;
+    }
+
+    setAuthState('ok');
+  }, [pathname, isStandalone, router]);
 
   // Since the sidebar/header no longer remount per page (single persistent
   // layout), the browser doesn't naturally reset scroll position between
@@ -32,12 +73,21 @@ export default function TenantLayout({ children }) {
     window.scrollTo(0, 0);
   }, [pathname]);
 
-  if (STANDALONE_PATHS.some(p => pathname?.startsWith(p))) {
+  if (isStandalone) {
     return (
       <div className="min-h-screen bg-[var(--tenant-bg)] text-[var(--tenant-text)] transition-colors duration-200">
         {children}
       </div>
     );
+  }
+
+  if (authState === 'checking') {
+    return <div className="min-h-screen bg-[var(--tenant-bg)]" />;
+  }
+
+  if (authState === 'unverified') {
+    const user = storage.getUser();
+    return <VerifyEmailScreen email={user?.email || ''} />;
   }
 
   return (

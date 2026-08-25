@@ -1,7 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
   Menu,
   Building2,
@@ -9,20 +8,14 @@ import {
   Sun,
   Moon,
   Bell,
-  User,
-  Settings,
-  CreditCard,
-  LogOut,
 } from 'lucide-react';
 import { storage } from '@/lib/storage';
+import ProfileMenu from '@/components/ProfileMenu';
 
 export default function TenantHeader({
   title = 'Tenant Dashboard',
   onMenuClick,
 }) {
-  const router = useRouter();
-  const [showProfile, setShowProfile] = useState(false);
-  const profileRef = useRef(null);
   const [theme, setTheme] = useState('light');
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
@@ -45,27 +38,11 @@ export default function TenantHeader({
     setMounted(true);
   }, []);
 
-  // Close the profile dropdown when clicking anywhere outside it.
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setShowProfile(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('tenant-theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
-  };
-
-  const handleLogout = () => {
-    storage.clear();
-    router.push('/login');
   };
 
   const iconBtnClasses =
@@ -128,95 +105,7 @@ export default function TenantHeader({
           <span className="absolute right-[7px] top-[7px] h-[7px] w-[7px] rounded-full border-2 border-[var(--tenant-header-bg)] bg-[var(--tenant-danger)]" />
         </button>
 
-        <div className="relative" ref={profileRef}>
-          <button
-            className="flex min-h-[44px] max-[768px]:min-h-[38px] items-center gap-[9px] rounded-[var(--tenant-radius-md)] border border-[var(--tenant-border)] max-[768px]:border-0 bg-[var(--tenant-surface)] max-[768px]:bg-transparent px-[9px] py-[5px] max-[768px]:p-[2px] text-[var(--tenant-text)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:border-[var(--tenant-primary)] max-[768px]:hover:border-transparent"
-            onClick={() => setShowProfile(!showProfile)}
-          >
-            <div className="flex h-[34px] w-[34px] max-[480px]:h-[31px] max-[480px]:w-[31px] max-[360px]:h-[29px] max-[360px]:w-[29px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-[13px] font-bold text-white">
-              {mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'}
-            </div>
-
-            <div className="flex min-w-[90px] max-[768px]:hidden flex-col items-start leading-[1.2]">
-              <strong className="max-w-[130px] overflow-hidden text-ellipsis whitespace-nowrap text-xs font-bold text-[var(--tenant-text)]">
-                {mounted ? (user?.firstName || 'Tenant') : 'Tenant'}
-              </strong>
-              <span className="mt-[3px] text-[10px] text-[var(--tenant-text-muted)]">
-                {mounted ? (user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Team Member') : 'Team Member'}
-              </span>
-            </div>
-          </button>
-
-          {showProfile && (
-            <div className="absolute right-0 max-[600px]:right-[-3px] top-[calc(100%+9px)] z-[300] w-[270px] max-[600px]:w-[min(270px,calc(100vw-24px))] rounded-[var(--tenant-radius-md)] border border-[var(--tenant-border)] bg-[var(--tenant-surface)] p-2 shadow-[var(--tenant-shadow-lg)] animate-[tenant-dropdown-in_0.15s_ease]">
-              <div className="flex items-center gap-[10px] p-[10px]">
-                <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--tenant-primary)] to-[#764ba2] text-[15px] font-bold text-white">
-                  {mounted ? (user?.firstName?.charAt(0)?.toUpperCase() || 'T') : 'T'}
-                </div>
-
-                <div className="flex min-w-0 flex-col">
-                  <strong className="text-[13px] font-bold text-[var(--tenant-text)]">
-                    {mounted ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim() : 'User'}
-                  </strong>
-                  <span className="mt-[3px] overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--tenant-text-muted)]">
-                    {mounted ? user?.email : 'email@example.com'}
-                  </span>
-                  <span className="mt-[3px] text-[10px] font-semibold text-[var(--tenant-primary)]">
-                    {mounted ? organization?.name : 'Organization'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="my-[6px] h-px bg-[var(--tenant-border)]" />
-
-              <button
-                className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
-                onClick={() => router.push('/tenant/profile')}
-              >
-                <span className="flex w-5 items-center justify-center">
-                  <User size={15} />
-                </span>
-                My Profile
-              </button>
-
-              {user?.role === 'owner' && (
-                <>
-                  <button
-                    className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
-                    onClick={() => router.push('/tenant/settings')}
-                  >
-                    <span className="flex w-5 items-center justify-center">
-                      <Settings size={15} />
-                    </span>
-                    Settings
-                  </button>
-
-                  <button
-                    className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-text-secondary)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-surface-hover)] hover:text-[var(--tenant-text)]"
-                    onClick={() => router.push('/tenant/billing')}
-                  >
-                    <span className="flex w-5 items-center justify-center">
-                      <CreditCard size={15} />
-                    </span>
-                    Billing
-                  </button>
-                </>
-              )}
-
-              <div className="my-[6px] h-px bg-[var(--tenant-border)]" />
-
-              <button
-                className="flex min-h-10 w-full items-center gap-[10px] rounded-[var(--tenant-radius-sm)] border-0 bg-transparent px-[11px] text-left text-xs text-[var(--tenant-danger)] cursor-pointer transition-all duration-200 hover:bg-[var(--tenant-danger-bg)] hover:text-[var(--tenant-danger)]"
-                onClick={handleLogout}
-              >
-                <span className="flex w-5 items-center justify-center">
-                  <LogOut size={15} />
-                </span>
-                Sign Out
-              </button>
-            </div>
-          )}
-        </div>
+        <ProfileMenu user={user} size={34} />
       </div>
     </header>
   );

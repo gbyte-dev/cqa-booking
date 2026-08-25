@@ -1,4 +1,5 @@
 const authService = require('../services/authService');
+const emailVerificationService = require('../services/emailVerificationService');
 
 // ===== REGISTER =====
 exports.register = async (req, res) => {
@@ -74,6 +75,15 @@ exports.login = async (req, res) => {
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
+      });
+    }
+
+    if (result.emailNotVerified) {
+      return res.status(403).json({
+        success: false,
+        error: 'EMAIL_NOT_VERIFIED',
+        message: 'Please verify your email before logging in.',
+        email: result.email,
       });
     }
 
@@ -159,18 +169,16 @@ exports.registerCustomer = async (req, res) => {
       return res.status(400).json({ success: false, error: result.error });
     }
 
-    const { user, token } = result;
+    const { user, emailWarning } = result;
 
     res.status(201).json({
       success: true,
       data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.fullName ? user.fullName.split(' ')[0] : null,
-          role: user.roleCode
-        },
-        token
+        needsVerification: true,
+        email: user.email,
+        warning: emailWarning
+          ? "Your account was created, but we couldn't send the verification email right now. Please try sending the verification email again."
+          : null
       }
     });
   } catch (error) {
@@ -230,13 +238,16 @@ exports.createOwnerPaymentIntent = async (req, res) => {
     }
 
     if (!result.requiresPayment) {
-      const { user, org, token } = result;
+      const { user, org, emailWarning } = result;
       return res.status(201).json({
         success: true,
         data: {
-          user: { id: user.id, email: user.email, firstName: user.fullName ? user.fullName.split(' ')[0] : null, role: user.roleCode },
+          needsVerification: true,
+          email: user.email,
           organization: { id: org.id, name: org.name, slug: org.slug },
-          token
+          warning: emailWarning
+            ? "Your account was created, but we couldn't send the verification email right now. Please try sending the verification email again."
+            : null
         }
       });
     }
@@ -263,27 +274,107 @@ exports.confirmOwnerPayment = async (req, res) => {
       return res.status(400).json({ success: false, error: result.error });
     }
 
-    const { user, org, token } = result;
+    const { user, org, emailWarning } = result;
 
     res.status(201).json({
       success: true,
       data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.fullName ? user.fullName.split(' ')[0] : null,
-          role: user.roleCode
-        },
+        needsVerification: true,
+        email: user.email,
         organization: {
           id: org.id,
           name: org.name,
           slug: org.slug
         },
-        token
+        warning: emailWarning
+          ? "Your account was created, but we couldn't send the verification email right now. Please try sending the verification email again."
+          : null
       }
     });
   } catch (error) {
     console.error('Confirm owner payment error:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ==========================================================
+// VERIFY EMAIL
+// POST /api/v1/auth/verify-email
+// ==========================================================
+
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: 'Verification token is required.'
+      });
+    }
+
+    const result =
+      await emailVerificationService.verifyToken(
+        token
+      );
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(
+      '[VERIFY EMAIL CONTROLLER ERROR]',
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      error:
+        'Unable to verify your email right now. Please try again later.'
+    });
+  }
+};
+
+// ==========================================================
+// RESEND VERIFICATION
+// POST /api/v1/auth/resend-verification
+// ==========================================================
+
+exports.resendVerification = async (
+  req,
+  res
+) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email address is required.'
+      });
+    }
+
+    const result =
+      await emailVerificationService
+        .resendVerification(email);
+
+    if (!result.success) {
+      return res.status(429).json(result);
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(
+      '[RESEND VERIFICATION CONTROLLER ERROR]',
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      error:
+        'Unable to resend verification email right now.'
+    });
   }
 };

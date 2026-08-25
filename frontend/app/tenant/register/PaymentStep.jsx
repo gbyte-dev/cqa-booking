@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { notifyError, notifyWarning } from '@/lib/alerts';
 
 const cardElementStyle = {
   style: {
@@ -50,7 +51,9 @@ function StripeInnerForm({ clientSecret, billingName, billingEmail, onPaid, subm
     });
 
     if (result.error) {
-      setError(result.error.message || 'Your card was declined. Please try again.');
+      const message = result.error.message || 'Your card was declined. Please try again.';
+      setError(message);
+      notifyError(message, 'Payment failed');
       setSubmitting(false);
       return;
     }
@@ -58,7 +61,9 @@ function StripeInnerForm({ clientSecret, billingName, billingEmail, onPaid, subm
     if (result.paymentIntent?.status === 'succeeded') {
       await onPaid({ paymentIntentId: result.paymentIntent.id });
     } else {
-      setError('Payment could not be completed. Please try again.');
+      const message = 'Payment could not be completed. Please try again.';
+      setError(message);
+      notifyError(message, 'Payment failed');
       setSubmitting(false);
     }
   };
@@ -135,11 +140,18 @@ function RazorpayCheckout({ session, billingName, billingEmail, onPaid, submitti
           razorpay_signature: response.razorpay_signature
         });
       },
-      modal: { ondismiss: () => setSubmitting(false) }
+      modal: {
+        ondismiss: () => {
+          setSubmitting(false);
+          notifyWarning('Payment was cancelled before it could be completed.', 'Payment cancelled');
+        }
+      }
     });
 
     rzp.on('payment.failed', (resp) => {
-      setError(resp.error?.description || 'Payment failed. Please try again.');
+      const message = resp.error?.description || 'Payment failed. Please try again.';
+      setError(message);
+      notifyError(message, 'Payment failed');
       setSubmitting(false);
     });
 
@@ -175,9 +187,13 @@ function PayPalCheckout({ session, onPaid, submitting, setSubmitting, setError }
         },
         onError: () => {
           setError('PayPal checkout failed. Please try again.');
+          notifyError('PayPal checkout failed. Please try again.', 'Payment failed');
           setSubmitting(false);
         },
-        onCancel: () => setSubmitting(false)
+        onCancel: () => {
+          setSubmitting(false);
+          notifyWarning('Payment was cancelled before it could be completed.', 'Payment cancelled');
+        }
       })
       .render(containerRef.current);
   }, [sdkReady, session.orderId, onPaid, setSubmitting, setError]);
@@ -214,7 +230,10 @@ function PaytmCheckout({ session, onPaid, submitting, setSubmitting, setError })
           }
         }
       }
-    }).catch(() => setError('Could not initialize Paytm checkout.'));
+    }).catch(() => {
+      setError('Could not initialize Paytm checkout.');
+      notifyError('Could not initialize Paytm checkout.', 'Payment failed');
+    });
   }, [scriptLoaded, session, onPaid, setSubmitting, setError]);
 
   const openCheckout = () => {

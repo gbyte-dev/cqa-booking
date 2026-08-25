@@ -1,9 +1,11 @@
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
+const requireVerifiedEmail = require('../middleware/requireVerifiedEmail');
 const reportController = require('../controllers/reportController');
 
 const router = express.Router();
 router.use(authMiddleware);
+router.use(requireVerifiedEmail);
 
 router.get('/bookings.csv', reportController.bookingsCsv);
 router.get('/customers.csv', reportController.customersCsv);

@@ -64,6 +64,68 @@ export const authAPI = {
       body: JSON.stringify(data)
     });
     return res.json();
+  },
+
+  verifyEmail: async (token) => {
+    const res = await fetch(`${API_URL}/api/v1/auth/verify-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    return res.json();
+  },
+
+  resendVerification: async (email) => {
+    const res = await fetch(`${API_URL}/api/v1/auth/resend-verification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    return res.json();
+  }
+};
+
+// ===== CUSTOMER SELF-SERVICE APIS (profile/avatar) =====
+export const customerAPI = {
+  getMe: async (token) => {
+    const res = await fetch(`${API_URL}/api/v1/customers/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return res.json();
+  },
+
+  updateMe: async (token, data) => {
+    const res = await fetch(`${API_URL}/api/v1/customers/me`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  // `image` is a data URL (e.g. from FileReader.readAsDataURL) — validated
+  // server-side by real file signature, not by this client-supplied value.
+  uploadAvatar: async (token, image) => {
+    const res = await fetch(`${API_URL}/api/v1/customers/me/avatar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ image })
+    });
+    return res.json();
+  },
+
+  removeAvatar: async (token) => {
+    const res = await fetch(`${API_URL}/api/v1/customers/me/avatar`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return res.json();
   }
 };
 

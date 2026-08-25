@@ -42,6 +42,29 @@ export function notifyError(message = 'Something went wrong. Please try again.',
   });
 }
 
+export function notifyPaymentSuccess({ amount, currency, paymentId, tenantName } = {}) {
+  const amountLine =
+    amount != null && amount !== '' ? `${currency ? `${currency} ` : ''}${Number(amount).toFixed(2)}` : null;
+
+  const rows = [
+    tenantName ? `<div><strong>Organization:</strong> ${tenantName}</div>` : '',
+    amountLine ? `<div><strong>Amount paid:</strong> ${amountLine}</div>` : '',
+    paymentId ? `<div><strong>Payment ID:</strong> ${paymentId}</div>` : '',
+  ]
+    .filter(Boolean)
+    .join('');
+
+  return themedSwal().fire({
+    icon: 'success',
+    title: 'Payment successful',
+    html: `
+      <p style="margin:0 0 12px;">Your subscription payment has been confirmed.</p>
+      ${rows ? `<div style="text-align:left;font-size:12.5px;line-height:1.7;">${rows}</div>` : ''}
+    `,
+    confirmButtonText: 'Continue',
+  });
+}
+
 export function notifyWarning(message, title = 'Please check') {
   return themedSwal().fire({
     icon: 'warning',

@@ -4,6 +4,9 @@ export const storage = {
   setUser: (user) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(user));
+      // Lets already-mounted components (e.g. the header avatar) react
+      // immediately to a profile/avatar change without a full reload.
+      window.dispatchEvent(new CustomEvent('cqa-user-updated', { detail: user }));
     }
   },
 
@@ -57,6 +60,7 @@ export const storage = {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('organization');
+      window.dispatchEvent(new CustomEvent('cqa-user-updated', { detail: null }));
     }
   }
 };

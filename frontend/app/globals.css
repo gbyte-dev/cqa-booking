@@ -1214,7 +1214,7 @@ a {
 
   min-height: 64px;
 
-  padding: 0 25px;
+  /* padding: 0 25px; */
 
   border-bottom: 1px solid var(--sa-border);
 
@@ -1754,7 +1754,7 @@ a {
   }
 
   .modal-header {
-    padding: 0 20px;
+    /* padding: 0 20px; */
 
     min-height: 58px;
   }
@@ -1901,7 +1901,7 @@ a {
   /* Modal */
 
   .modal-header {
-    padding: 0 17px;
+    /* padding: 0 17px; */
 
     min-height: 54px;
   }
@@ -3158,7 +3158,7 @@ a {
   max-width: 480px;
 
   padding: 30px;
-
+  padding-top: 0;
   box-sizing: border-box;
 
   background: var(--sa-surface);
@@ -3567,6 +3567,7 @@ a {
     max-width: 100%;
 
     padding: 24px 20px;
+    padding-top: 0px;
   }
 }
 
@@ -3636,6 +3637,7 @@ a {
 
   .modal {
     padding: 22px 17px;
+    padding-top: 0px;
   }
 
   .modal h3 {
@@ -4392,7 +4394,7 @@ a {
 .modal-header {
   min-height: 70px;
 
-  padding: 20px 25px;
+  /* padding: 20px 25px; */
 
   display: flex;
   align-items: center;
@@ -4788,7 +4790,7 @@ a {
   }
 
   .modal-header {
-    padding: 18px 20px;
+    /* padding: 18px 20px; */
   }
 
   .modal-header h2 {
@@ -4852,7 +4854,7 @@ a {
   }
 
   .modal-header {
-    padding: 16px;
+    /* padding: 16px; */
   }
 
   .modal form {
@@ -5699,7 +5701,7 @@ a {
 .modal-header {
   min-height: 70px;
 
-  padding: 18px 25px;
+  /* padding: 18px 25px; */
 
   display: flex;
   align-items: center;
@@ -6493,7 +6495,7 @@ a {
   }
 
   .modal-header {
-    padding: 18px;
+    /* padding: 18px; */
   }
 
   .modal-header h2 {
@@ -6598,7 +6600,7 @@ a {
   .modal-header {
     min-height: 62px;
 
-    padding: 15px 16px;
+    /* padding: 15px 16px; */
   }
 
   .modal-header h2 {
@@ -6773,7 +6775,7 @@ a {
   }
 
   .modal-header {
-    padding: 14px;
+    /* padding: 14px; */
   }
 
   .subscription-info,
@@ -7295,7 +7297,7 @@ a {
 
   gap: 15px;
 
-  padding: 25px;
+  /* padding: 25px; */
 
   border-bottom: 1px solid var(--sa-border);
 
@@ -7645,7 +7647,7 @@ a {
   }
 
   .users-page .modal-header {
-    padding: 18px;
+    /* padding: 18px; */
   }
 
   .users-page .modal-header h2 {
@@ -7759,7 +7761,7 @@ a {
   }
 
   .users-page .modal-header {
-    padding: 15px;
+    /* padding: 15px; */
   }
 
   .bookings-table-container {
@@ -8696,7 +8698,7 @@ a {
 .modal-header {
   min-height: 60px;
 
-  padding: 14px 20px;
+  /* padding: 14px 20px; */
 
   display: flex;
   align-items: center;
@@ -9424,8 +9426,8 @@ a {
 
 
   .modal-header {
-    padding:
-      14px 15px;
+    /* padding:
+      14px 15px; */
   }
 
 
@@ -9727,8 +9729,8 @@ a {
   .modal-header {
     min-height: 56px;
 
-    padding:
-      12px;
+    /* padding:
+      12px; */
   }
 
 
@@ -9862,8 +9864,8 @@ a {
 
 
   .modal-header {
-    padding:
-      11px;
+    /* padding:
+      11px; */
   }
 
 
@@ -10937,7 +10939,7 @@ a {
 .modal-header {
   min-height: 64px;
 
-  padding: 0 20px;
+  /* padding: 0 20px; */
 
   display: flex;
   align-items: center;
@@ -11920,7 +11922,7 @@ a {
   .modal-header {
     min-height: 58px;
 
-    padding: 0 15px;
+    /* padding: 0 15px; */
   }
 
 
@@ -12197,7 +12199,7 @@ a {
   .modal-header {
     min-height: 54px;
 
-    padding: 0 12px;
+    /* padding: 0 12px; */
   }
 
 
@@ -12369,7 +12371,7 @@ a {
   .modal-header {
     min-height: 50px;
 
-    padding: 0 10px;
+    /* padding: 0 10px; */
   }
 
 
@@ -14164,6 +14166,7 @@ html[data-theme="dark"] .booking-item:hover {
   overflow-y: auto;
 
   padding: 24px;
+  padding-top: 0px;
 
   background: var(--tenant-surface);
 
@@ -14648,6 +14651,7 @@ html[data-theme="dark"] .booking-item:hover {
     max-height: calc(100vh - 28px);
 
     padding: 20px;
+    padding-top: 0px;
 
     border-radius:
       var(--tenant-radius-md);
@@ -14784,6 +14788,7 @@ html[data-theme="dark"] .booking-item:hover {
     max-height: calc(100vh - 20px);
 
     padding: 18px;
+    padding-top: 0px;
 
     border-radius:
       var(--tenant-radius-md);
@@ -14907,6 +14912,7 @@ html[data-theme="dark"] .booking-item:hover {
 
   .modal {
     padding: 16px;
+    padding-top: 0px;
   }
 
 
@@ -14977,6 +14983,8 @@ html[data-theme="dark"] .booking-item:hover {
     max-height: calc(100vh - 14px);
 
     padding: 14px;
+    
+    padding-top: 0px;
   }
 
 
@@ -15674,8 +15682,8 @@ html[data-theme="dark"] .booking-item:hover {
 .venues-modal .modal-header {
   min-height: 62px;
 
-  padding:
-    15px 20px;
+  /* padding:
+    15px 20px; */
 
   display: flex;
   align-items: center;
@@ -16344,8 +16352,8 @@ html[data-theme="dark"] .booking-item:hover {
   .venues-modal .modal-header {
     min-height: 56px;
 
-    padding:
-      12px 14px;
+    /* padding:
+      12px 14px; */
   }
 
   .venues-modal .modal-header h2 {
@@ -16510,8 +16518,8 @@ html[data-theme="dark"] .booking-item:hover {
   }
 
   .venues-modal .modal-header {
-    padding:
-      11px 12px;
+    /* padding:
+      11px 12px; */
   }
 
   .venues-modal .modal-header h2 {
@@ -16615,8 +16623,8 @@ html[data-theme="dark"] .booking-item:hover {
   /* Modal */
 
   .venues-modal .modal-header {
-    padding:
-      10px;
+    /* padding:
+      10px; */
   }
 
   .venue-form {
@@ -16771,4 +16779,503 @@ html[data-theme="dark"] .booking-item:hover {
       auto !important;
   }
 }
+}
+/* =========================================================
+   GLOBAL MODAL FIX  —  ALL PAGES
+   Paste location: globals.css ke end me,
+   @layer components ke closing brace ke BAAD.
+
+   Kyun: sabhi page CSS ek bundle me merge hote hain,
+   isliye .modal / .modal-header / .modal-actions
+   ek doosre ko override kar rahe the.
+   Ye block unlayered hai -> hamesha jeetega.
+========================================================= */
+
+/* ---------------------------------------------------------
+   0. MODAL TOKENS
+--------------------------------------------------------- */
+
+:root {
+  --modal-surface: var(--sa-surface);
+  --modal-surface-2: var(--sa-surface-2);
+  --modal-border: var(--sa-border);
+  --modal-border-light: var(--sa-border-light);
+  --modal-text: var(--sa-text);
+  --modal-text-muted: var(--sa-text-muted);
+  --modal-shadow: var(--sa-shadow-lg);
+  --modal-radius: 14px;
+  --modal-pad-x: 22px;
+  --modal-pad-y: 22px;
+}
+
+.tenant-dashboard,
+.bookings-page,
+.customers-page,
+.staff-page,
+.venues-page {
+  --modal-surface: var(--tenant-surface);
+  --modal-surface-2: var(--tenant-surface-2);
+  --modal-border: var(--tenant-border);
+  --modal-border-light: var(--tenant-border-light);
+  --modal-text: var(--tenant-text);
+  --modal-text-muted: var(--tenant-text-muted);
+  --modal-shadow: var(--tenant-shadow-lg);
+}
+
+
+/* ---------------------------------------------------------
+   1. OVERLAY
+--------------------------------------------------------- */
+
+.modal-overlay,
+.venues-page .modal-overlay,
+.users-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(15, 23, 42, 0.58);
+
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+[data-theme="dark"] .modal-overlay,
+.dark .modal-overlay {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+
+/* ---------------------------------------------------------
+   2. MODAL SHELL
+   Scroll modal par, header/footer sticky
+--------------------------------------------------------- */
+
+.modal,
+.venues-modal,
+.users-page .modal {
+  position: relative;
+
+  display: block;
+
+  width: 100%;
+  margin: auto;
+
+  max-height: calc(100vh - 40px);
+
+  padding: 0;              /* padding ab andar ke sections denge */
+
+  background: var(--modal-surface);
+  color: var(--modal-text);
+
+  border: 1px solid var(--modal-border);
+  border-radius: var(--modal-radius);
+
+  box-shadow: var(--modal-shadow);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  text-align: left;
+}
+
+
+/* ---------------------------------------------------------
+   3. MAX WIDTHS  (base ke baad, isliye ye jeetenge)
+--------------------------------------------------------- */
+
+.modal { max-width: 600px; }
+
+.details-modal  { max-width: 700px; }
+.plan-modal     { max-width: 600px; }
+.cancel-modal   { max-width: 500px; }
+.profile-modal  { max-width: 620px; }
+.venues-modal   { max-width: 760px; }
+
+.staff-page      .modal { max-width: 500px; }
+.dashboard-page  .modal { max-width: 480px; }
+
+.customers-page  .bookings-modal { max-width: 760px; }
+.users-page      .modal          { max-width: 900px; }
+.users-page      .bookings-modal { max-width: 1000px; }
+
+
+/* ---------------------------------------------------------
+   4. MODAL HEADER  (sticky + opaque + padding wapas)
+--------------------------------------------------------- */
+
+.modal > .modal-header,
+.venues-modal > .modal-header,
+.users-page .modal > .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  min-height: 60px;
+
+  margin: 0;
+  padding: 14px var(--modal-pad-x);
+
+  box-sizing: border-box;
+
+  background: var(--modal-surface);
+
+  border-bottom: 1px solid var(--modal-border);
+}
+
+.modal > .modal-header h2 {
+  min-width: 0;
+  margin: 0;
+
+  color: var(--modal-text);
+
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal > .modal-header .close-btn {
+  flex: 0 0 auto;
+
+  width: 34px;
+  height: 34px;
+
+  margin: 0;
+}
+
+
+/* ---------------------------------------------------------
+   5. BODY SECTIONS
+   Jinke paas apna padding tha wo intact,
+   jinke paas nahi tha unhe yahan de rahe hain.
+--------------------------------------------------------- */
+
+/* Bookings / subscriptions / customers ke sections */
+.modal > .booking-details,
+.modal > .cancel-content,
+.modal > .subscription-info,
+.modal > .payment-history,
+.modal > .profile-content,
+.modal > .bookings-content,
+.modal > form {
+  padding: var(--modal-pad-y) var(--modal-pad-x);
+  box-sizing: border-box;
+}
+
+/* Change-plan cards */
+.modal > .plan-options {
+  padding: var(--modal-pad-y) var(--modal-pad-x);
+  box-sizing: border-box;
+}
+
+/* Users page modal ke andar ke blocks */
+.users-page .modal > .bookings-stats {
+  padding: 20px var(--modal-pad-x);
+  box-sizing: border-box;
+}
+
+.users-page .modal > .bookings-table-container {
+  padding: 0 var(--modal-pad-x) var(--modal-pad-y);
+  box-sizing: border-box;
+}
+
+/* Staff form */
+.modal > .staff-form {
+  padding: 20px var(--modal-pad-x) var(--modal-pad-y);
+  box-sizing: border-box;
+}
+
+/* Venue form */
+.venues-modal > .venue-form {
+  padding: 20px var(--modal-pad-x) var(--modal-pad-y);
+  box-sizing: border-box;
+}
+
+/* Dashboard confirm modal (icon + h3 + p, center aligned) */
+.dashboard-page .modal > .modal-icon,
+.dashboard-page .modal > h3,
+.dashboard-page .modal > p {
+  margin-left: auto;
+  margin-right: auto;
+
+  padding-left: var(--modal-pad-x);
+  padding-right: var(--modal-pad-x);
+
+  box-sizing: border-box;
+
+  text-align: center;
+}
+
+.dashboard-page .modal > .modal-icon {
+  margin-top: 28px;
+  margin-bottom: 16px;
+  padding: 0;
+}
+
+.dashboard-page .modal > p {
+  padding-bottom: 6px;
+}
+
+
+/* ---------------------------------------------------------
+   6. FOOTER  (sticky bottom)
+--------------------------------------------------------- */
+
+.modal > .modal-actions,
+.modal > .form-actions,
+.venues-modal > .venue-form > .form-actions,
+.modal > .staff-form > .form-actions,
+.modal > form > .form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin: 0;
+  padding: 16px var(--modal-pad-x);
+
+  box-sizing: border-box;
+
+  background: var(--modal-surface);
+
+  border-top: 1px solid var(--modal-border);
+}
+
+/* form ke andar wale footers ko edges tak stretch karo */
+.venues-modal > .venue-form > .form-actions,
+.modal > .staff-form > .form-actions,
+.modal > form > .form-actions {
+  margin: 20px calc(var(--modal-pad-x) * -1) calc(var(--modal-pad-y) * -1);
+}
+
+.modal > .modal-actions > *,
+.modal > .form-actions > * {
+  min-height: 42px;
+}
+
+
+/* ---------------------------------------------------------
+   7. SCROLLBAR
+--------------------------------------------------------- */
+
+.modal::-webkit-scrollbar,
+.venues-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal::-webkit-scrollbar-track,
+.venues-modal::-webkit-scrollbar-track {
+  background: var(--modal-surface-2);
+}
+
+.modal::-webkit-scrollbar-thumb,
+.venues-modal::-webkit-scrollbar-thumb {
+  background: var(--modal-border);
+  border-radius: 10px;
+}
+
+.modal::-webkit-scrollbar-thumb:hover,
+.venues-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--modal-text-muted);
+}
+
+
+/* ---------------------------------------------------------
+   8. TABLET  <= 900px
+--------------------------------------------------------- */
+
+@media (max-width: 900px) {
+
+  .modal,
+  .venues-modal {
+    max-width: calc(100vw - 40px);
+  }
+
+  .modal > .plan-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* ---------------------------------------------------------
+   9. MOBILE  <= 768px
+--------------------------------------------------------- */
+
+@media (max-width: 768px) {
+
+  :root {
+    --modal-pad-x: 16px;
+    --modal-pad-y: 16px;
+  }
+
+  .modal-overlay,
+  .venues-page .modal-overlay,
+  .users-page .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal,
+  .venues-modal,
+  .users-page .modal {
+    max-width: 100%;
+    max-height: calc(100vh - 24px);
+
+    border-radius: 12px;
+  }
+
+  .modal > .modal-header {
+    min-height: 56px;
+    padding: 12px var(--modal-pad-x);
+  }
+
+  .modal > .modal-header h2 {
+    font-size: 16px;
+  }
+
+  .modal > .plan-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   10. SMALL MOBILE  <= 600px
+--------------------------------------------------------- */
+
+@media (max-width: 600px) {
+
+  .modal-overlay,
+  .venues-page .modal-overlay,
+  .users-page .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal,
+  .venues-modal,
+  .users-page .modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .modal > .modal-header {
+    min-height: 52px;
+  }
+
+  .modal > .modal-header h2 {
+    font-size: 15px;
+  }
+
+  .modal > .modal-header .close-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Footer buttons full width, stacked */
+  .modal > .modal-actions,
+  .modal > .form-actions,
+  .venues-modal > .venue-form > .form-actions,
+  .modal > .staff-form > .form-actions,
+  .modal > form > .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 10px;
+    padding: 12px var(--modal-pad-x);
+  }
+
+  .modal > .modal-actions > *,
+  .modal > .form-actions > * {
+    width: 100%;
+    flex: none;
+  }
+
+  /* Detail rows stack */
+  .modal .detail-row,
+  .modal .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .modal .detail-row .label,
+  .modal .info-row .label {
+    width: auto;
+    flex: none;
+  }
+
+  .modal .detail-row .value,
+  .modal .info-row .value {
+    text-align: left;
+  }
+
+  .modal .payment-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   11. REDUCED MOTION
+--------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .modal-overlay,
+  .modal,
+  .venues-modal {
+    animation: none !important;
+  }
+}
+
+.modal,
+.venues-modal,
+.modal-overlay,
+.modal > .booking-details,
+.modal > .cancel-content,
+.modal > .subscription-info,
+.modal > .payment-history,
+.modal > .profile-content,
+.modal > .bookings-content {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / legacy Edge */
+}
+
+.modal::-webkit-scrollbar,
+.venues-modal::-webkit-scrollbar,
+.modal-overlay::-webkit-scrollbar,
+.modal > .booking-details::-webkit-scrollbar,
+.modal > .cancel-content::-webkit-scrollbar,
+.modal > .subscription-info::-webkit-scrollbar,
+.modal > .payment-history::-webkit-scrollbar,
+.modal > .profile-content::-webkit-scrollbar,
+.modal > .bookings-content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }

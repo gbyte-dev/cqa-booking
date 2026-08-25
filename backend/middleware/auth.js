@@ -15,7 +15,7 @@ const authMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
 
     const user = await User.findByPk(decoded.userId, {
-      attributes: ['id', 'tenantId', 'roleCode', 'outletId', 'isActive']
+      attributes: ['id', 'tenantId', 'roleCode', 'outletId', 'isActive', 'isEmailVerified', 'email', 'fullName', 'avatarUrl']
     });
 
     if (!user || !user.isActive) {
@@ -31,7 +31,9 @@ const authMiddleware = async (req, res, next) => {
       outletId:user.outletId,
       // Normalize 'super_admin' (new schema's role code) to 'superadmin'
       // to match the existing frontend/route checks written before the schema switch.
-      role: user.roleCode === 'super_admin' ? 'superadmin' : user.roleCode
+      role: user.roleCode === 'super_admin' ? 'superadmin' : user.roleCode,
+      isEmailVerified: !!user.isEmailVerified,
+      email: user.email
     };
     next();
   } catch (error) {

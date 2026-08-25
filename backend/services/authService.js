@@ -11,6 +11,7 @@ const Subscription = require('../models/Subscription');
 const SubscriptionPlan = require('../models/SubscriptionPlan');
 const platformSettingsService = require('./platformSettingsService');
 const { getAdapter } = require('./paymentGateways');
+const emailVerificationService = require('./emailVerificationService');
 
 const signToken = (user) => {
   return jwt.sign(
@@ -68,6 +69,12 @@ exports.login = async ({ email, password }) => {
   // by the Owner) — separate from the tenant-level suspension check below.
   if (!user.isActive) {
     return { suspended: true, reason: 'account' };
+  }
+
+  // Registration no longer issues a token until the email is confirmed, but
+  // guard here too in case a token predates verification or is reused.
+  if (!user.isEmailVerified && user.roleCode !== 'super_admin') {
+    return { emailNotVerified: true, email: user.email };
   }
 
   // Block login for tenant-side users (owner/staff/manager) whose organization
@@ -128,9 +135,16 @@ exports.registerCustomer = async ({ fullName, email, phone, password }) => {
     phone: phone || null
   });
 
-  const token = signToken(user);
+  const verification =
+    await emailVerificationService.createAndSendToken({ user });
 
-  return { user, token };
+  return {
+    user,
+    needsVerification: true,
+    emailWarning: verification.sent
+      ? null
+      : verification.error,
+  };
 };
 
 // ===== OWNER REGISTRATION: STEP VALIDATION (email + slug availability) =====
@@ -297,8 +311,8 @@ exports.createOwnerPaymentIntent = async ({ owner, business, outlet, planId, pro
 
   if (isFreePlan) {
     const { tenant, user } = await createTenantStack({ owner, business, outlet, plan, status: 'active', tenantActive: true });
-    const token = signToken(user);
-    return { requiresPayment: false, user, org: tenant, token };
+    const verification = await emailVerificationService.createAndSendToken({ user, purpose: 'registration', });
+    return { requiresPayment: false, needsVerification: true, user, org: tenant, emailWarning: verification.sent ? null : verification.error };
   }
 
   if (!provider) {
@@ -352,7 +366,7 @@ exports.confirmOwnerPayment = async ({ reference, provider, ...fields }) => {
   if (subscription.status === 'active') {
     const tenant = await Tenant.findByPk(subscription.tenantId);
     const user = await User.findOne({ where: { tenantId: subscription.tenantId, roleCode: 'owner' } });
-    return { user, org: tenant, token: signToken(user) };
+    return { user, org: tenant, needsVerification: !user.isEmailVerified };
   }
 
   const gatewayConfig = await platformSettingsService.getDecryptedGateway(provider);
@@ -377,7 +391,16 @@ exports.confirmOwnerPayment = async ({ reference, provider, ...fields }) => {
   const activation = await activateSubscription(subscription.id, { externalId: result.externalId });
   if (activation.error) return activation;
 
-  return { user: activation.user, org: activation.tenant, token: signToken(activation.user) };
+  const verification = activation.alreadyActive
+    ? { sent: true }
+    : await emailVerificationService.createAndSendToken({ user: activation.user, purpose: 'registration', });
+
+  return {
+    user: activation.user,
+    org: activation.tenant,
+    needsVerification: true,
+    emailWarning: verification.sent ? null : verification.error
+  };
 };
 
 // ===== PAYMENT WEBHOOKS: idempotent activation from the gateway's own event =====
