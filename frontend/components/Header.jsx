@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { storage } from '@/lib/storage';
 import {  getTheme,  toggleTheme,  initializeTheme,} from '@/lib/theme';
@@ -14,6 +14,7 @@ export default function Header({
   const [showProfile, setShowProfile] = useState(false);
   const [theme, setTheme] = useState('light');
   const [user, setUser] = useState(null);
+  const profileRef = useRef(null);
 
   useEffect(() => {
     // localStorage is unavailable during SSR. Reading it after hydration keeps
@@ -21,6 +22,24 @@ export default function Header({
     setUser(storage.getUser());
     initializeTheme();
     setTheme(getTheme());
+
+    // The profile page updates localStorage directly and dispatches this so
+    // the header (which never remounts between admin pages) picks up the
+    // new name immediately instead of waiting for a full page reload.
+    const onProfileUpdated = () => setUser(storage.getUser());
+    window.addEventListener('app-profile-updated', onProfileUpdated);
+    return () => window.removeEventListener('app-profile-updated', onProfileUpdated);
+  }, []);
+
+  // Close the profile dropdown when clicking anywhere outside it.
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfile(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleThemeToggle = () => {
@@ -77,7 +96,7 @@ export default function Header({
           <span className="absolute top-[7px] right-[7px] h-[7px] w-[7px] rounded-full border-2 border-[var(--sa-header-bg)] bg-[var(--sa-danger)]" />
         </button>
 
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button
             className="flex min-h-[44px] items-center gap-[9px] rounded-[var(--sa-radius-md)] border border-[var(--sa-border)] bg-[var(--sa-surface)] px-[9px] py-[5px] text-[var(--sa-text)] cursor-pointer transition-all duration-200 hover:border-[var(--sa-primary)] hover:bg-[var(--sa-surface-hover)] max-[768px]:min-h-[38px] max-[768px]:border-none max-[768px]:bg-transparent max-[768px]:p-[2px] max-[768px]:hover:border-transparent max-[768px]:hover:bg-[var(--sa-surface-hover)]"
             onClick={() => setShowProfile(!showProfile)}
@@ -107,7 +126,7 @@ export default function Header({
 
                 <div className="flex min-w-0 flex-col">
                   <strong className="text-[13px] font-bold text-[var(--sa-text)]">
-                    {user?.firstName || 'Super Admin'}
+                    {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Super Admin'}
                   </strong>
                   <span className="mt-[3px] overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[var(--sa-text-muted)]">{user?.email || 'admin@cqabooking.com'}</span>
                 </div>

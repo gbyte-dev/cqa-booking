@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import TenantHeader from '@/components/TenantHeader';
 import Footer from '@/components/Footer';
 import TenantSidebar from '@/components/TenantSidebar';
+import { storage } from '@/lib/storage';
 
 const STANDALONE_PATHS = ['/tenant/register', '/tenant/forgot-password'];
 
@@ -32,6 +33,44 @@ export default function TenantLayout({ children }) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
+  // The backend rejects every request from a session whose account/tenant
+  // is no longer valid, but a plain fetch() never surfaces that as a logout
+  // on its own. Patch fetch once, for the whole tenant app, so any of these
+  // session-invalidation responses forces an immediate sign-out instead of
+  // leaving a broken session silently half-working:
+  //  - 403 "organization has been suspended" (tenant suspended)
+  //  - 403 "User account is inactive or suspended" (user suspended, OR the
+  //    user row itself no longer exists — e.g. after a DB truncate/reset)
+  //  - 401 "Invalid token" (expired/corrupt JWT, or JWT secret rotated)
+  // Deliberately NOT matching on status code alone — 403 is also used for
+  // ordinary in-app role checks ("You are not authorized..."), which must
+  // show an error, not force a logout.
+  useEffect(() => {
+    if (window.__suspendGuardInstalled) return;
+    window.__suspendGuardInstalled = true;
+
+    const SESSION_INVALID_MESSAGES = [
+      'organization has been suspended',
+      'User account is inactive or suspended',
+      'Invalid token'
+    ];
+
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      if (response.status === 403 || response.status === 401) {
+        const clone = response.clone();
+        clone.json().then((data) => {
+          if (SESSION_INVALID_MESSAGES.some((msg) => data?.error?.includes(msg))) {
+            storage.clear();
+            window.location.href = '/login';
+          }
+        }).catch(() => {});
+      }
+      return response;
+    };
+  }, []);
 
   if (STANDALONE_PATHS.some(p => pathname?.startsWith(p))) {
     return (

@@ -75,6 +75,10 @@ export default function TenantProfilePage() {
         if (currentUser) {
           storage.setUser({ ...currentUser, firstName: data.data.firstName, lastName: data.data.lastName });
         }
+        // The header lives in the persistent tenant layout and only reads
+        // the stored user once on mount, so it never re-renders on its own
+        // when this page updates localStorage — this event tells it to.
+        window.dispatchEvent(new Event('tenant-profile-updated'));
         notify('Profile updated successfully');
       } else {
         notify(data.error || 'Failed to update profile');
@@ -114,6 +118,7 @@ export default function TenantProfilePage() {
       const data = await response.json();
       if (data.success) {
         setProfile(data.data);
+        window.dispatchEvent(new Event('tenant-profile-updated'));
         notify('Profile photo updated');
       } else {
         notify(data.error || 'Failed to upload photo');
@@ -235,7 +240,7 @@ export default function TenantProfilePage() {
             />
           </div>
 
-          {profile.venueName && (
+          {profile.role !== 'owner' && profile.venueName && (
             <div className="mb-5">
               <label className="mb-2 flex items-center gap-1 text-xs font-semibold text-[var(--tenant-text-secondary)]">
                 <Building2 size={12} /> Venue

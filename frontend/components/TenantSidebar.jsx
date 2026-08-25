@@ -32,9 +32,9 @@ const menuSections = [
       },
       {
         label: 'Venues',
-        icon: Building2,        
+        icon: Building2,
         path: '/tenant/venues',
-        allowedRoles:['owner','manager'],
+        allowedRoles:['owner'],
       },
       {
         label: 'Tables',

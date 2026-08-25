@@ -41,19 +41,28 @@ export default function TenantHeader({
 
   // ONLY: Set user/organization/theme after mount
   useEffect(() => {
-    setUser(storage.getUser());
-    setOrganization(storage.getOrganization?.());
+    const loadProfile = () => {
+      setUser(storage.getUser());
+      setOrganization(storage.getOrganization?.());
 
-    const token = storage.getToken();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    if (token) {
-      fetch(`${apiUrl}/api/v1/profile/me`, { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) setAvatarUrl(data.data.avatarUrl ? `${apiUrl}${data.data.avatarUrl}` : null);
-        })
-        .catch(() => {});
-    }
+      const token = storage.getToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      if (token) {
+        fetch(`${apiUrl}/api/v1/profile/me`, { headers: { Authorization: `Bearer ${token}` } })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) setAvatarUrl(data.data.avatarUrl ? `${apiUrl}${data.data.avatarUrl}` : null);
+          })
+          .catch(() => {});
+      }
+    };
+
+    loadProfile();
+
+    // This header lives in the persistent tenant layout, so it never
+    // remounts when navigating to/from the profile page — without this it
+    // would keep showing the stale name/photo until a full page reload.
+    window.addEventListener('tenant-profile-updated', loadProfile);
 
     const savedTheme = localStorage.getItem('tenant-theme');
     if (savedTheme === 'dark' || savedTheme === 'light') {
@@ -65,6 +74,8 @@ export default function TenantHeader({
     }
 
     setMounted(true);
+
+    return () => window.removeEventListener('tenant-profile-updated', loadProfile);
   }, []);
 
   // Live booking-activity feed for the bell — polled (no websocket infra

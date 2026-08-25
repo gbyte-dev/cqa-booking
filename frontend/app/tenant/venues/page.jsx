@@ -50,6 +50,10 @@ export default function TenantVenuesPage() {
       router.push('/login');
       return;
     }
+    if (currentUser.role !== 'owner') {
+      router.replace('/tenant/dashboard');
+      return;
+    }
     setUser(currentUser);
     loadVenues();
   }, []);
