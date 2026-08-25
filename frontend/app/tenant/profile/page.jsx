@@ -138,8 +138,8 @@ export default function TenantProfilePage() {
 
   return (
     <main className="p-[30px] max-[768px]:p-[15px]">
-      <div className="mb-6">
-        <h2 className="m-0 flex items-center gap-2 text-2xl font-bold text-[var(--tenant-text)]">
+      <div className="mx-auto mb-6 max-w-[720px] text-center">
+        <h2 className="m-0 flex items-center justify-center gap-2 text-2xl font-bold text-[var(--tenant-text)]">
           <User size={22} /> My Profile
         </h2>
         <p className="mt-1 text-[13px] text-[var(--tenant-text-secondary)]">
@@ -147,7 +147,7 @@ export default function TenantProfilePage() {
         </p>
       </div>
 
-      <div className="max-w-[720px] rounded-[var(--tenant-radius-lg)] border border-[var(--tenant-border-light)] bg-[var(--tenant-surface)] shadow-sm">
+      <div className="mx-auto max-w-[720px] rounded-[var(--tenant-radius-lg)] border border-[var(--tenant-border-light)] bg-[var(--tenant-surface)] shadow-sm">
         {/* Avatar + identity header */}
         <div className="flex items-center gap-5 border-b border-[var(--tenant-border-light)] p-6">
           <div className="group relative">

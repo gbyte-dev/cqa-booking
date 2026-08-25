@@ -18,6 +18,52 @@ export const authAPI = {
       body: JSON.stringify({ email, password })
     });
     return res.json();
+  },
+
+  registerCustomer: async (data) => {
+    const res = await fetch(`${API_URL}/api/v1/auth/register/customer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  validateOwnerStep: async (data) => {
+    const res = await fetch(`${API_URL}/api/v1/auth/register/owner/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  getSubscriptionPlans: async () => {
+    const res = await fetch(`${API_URL}/api/v1/subscription-plans`);
+    return res.json();
+  },
+
+  getOwnerPaymentGateways: async () => {
+    const res = await fetch(`${API_URL}/api/v1/auth/register/owner/payment-gateways`);
+    return res.json();
+  },
+
+  createOwnerPaymentIntent: async (data) => {
+    const res = await fetch(`${API_URL}/api/v1/auth/register/owner/payment-intent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  confirmOwnerPayment: async (data) => {
+    const res = await fetch(`${API_URL}/api/v1/auth/register/owner/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
   }
 };
 

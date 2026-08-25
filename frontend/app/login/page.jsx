@@ -60,6 +60,7 @@ export default function LoginPage() {
 
       const user = result?.data?.user;
       const token = result?.data?.token;
+      const organization = result?.data?.organization;
 
       if (!user || !token) {
         setError('Invalid server response. Token or user information is missing.');
@@ -70,6 +71,7 @@ export default function LoginPage() {
 
       storage.setToken(token);
       storage.setUser(user);
+      if (organization) storage.setOrganization(organization);
 
       router.replace(getRoleRedirectPath(user.role));
     } catch (err) {
@@ -380,7 +382,7 @@ export default function LoginPage() {
             <div className="mt-[23px] flex justify-center gap-[5px] text-[11px] text-[#69758a]">
               <span>Don&apos;t have an account?</span>
               <Link
-                href="/tenant/register"
+                href="/register"
                 className="font-[650] text-[#8b95f9] no-underline hover:underline"
               >
                 Create an account

@@ -86,7 +86,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    const { user, token } = result;
+    const { user, org, token } = result;
 
     res.json({
       success: true,
@@ -97,6 +97,7 @@ exports.login = async (req, res) => {
           firstName: user.fullName ? user.fullName.split(' ')[0] : null,
           role: user.roleCode === 'super_admin' ? 'superadmin' : user.roleCode
         },
+        organization: org ? { id: org.id, name: org.name, slug: org.slug } : null,
         token
       }
     });
@@ -133,4 +134,156 @@ exports.resetPassword = async (req, res) => {
   }
 
   res.json({ success: true, message: 'Password reset successfully' });
+};
+
+// ===== REGISTER CUSTOMER =====
+exports.registerCustomer = async (req, res) => {
+  try {
+    const { fullName, email, phone, password, confirmPassword } = req.body;
+
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 8 characters long' });
+    }
+
+    if (confirmPassword !== undefined && password !== confirmPassword) {
+      return res.status(400).json({ success: false, error: 'Passwords do not match' });
+    }
+
+    const result = await authService.registerCustomer({ fullName, email, phone, password });
+
+    if (result.error) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    const { user, token } = result;
+
+    res.status(201).json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.fullName ? user.fullName.split(' ')[0] : null,
+          role: user.roleCode
+        },
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Register customer error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ===== OWNER REGISTRATION: VALIDATE STEP =====
+exports.validateOwnerRegistration = async (req, res) => {
+  try {
+    const { email, slug } = req.body;
+    const result = await authService.validateOwnerRegistration({ email, slug });
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Validate owner registration error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ===== OWNER REGISTRATION: LIST ENABLED PAYMENT GATEWAYS =====
+exports.getOwnerPaymentGateways = async (req, res) => {
+  try {
+    const gateways = await authService.getOwnerPaymentGateways();
+    res.json({ success: true, data: gateways });
+  } catch (error) {
+    console.error('List owner payment gateways error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ===== OWNER REGISTRATION: START CHECKOUT =====
+exports.createOwnerPaymentIntent = async (req, res) => {
+  try {
+    const { owner, business, outlet, planId, provider } = req.body;
+
+    if (!owner?.fullName || !owner?.email || !owner?.password) {
+      return res.status(400).json({ success: false, error: 'Owner details are incomplete' });
+    }
+    if (owner.password.length < 8) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 8 characters long' });
+    }
+    if (!business?.name || !business?.slug) {
+      return res.status(400).json({ success: false, error: 'Business details are incomplete' });
+    }
+    if (!outlet?.name) {
+      return res.status(400).json({ success: false, error: 'Outlet details are incomplete' });
+    }
+    if (!planId) {
+      return res.status(400).json({ success: false, error: 'A subscription plan is required' });
+    }
+
+    const result = await authService.createOwnerPaymentIntent({ owner, business, outlet, planId, provider });
+
+    if (result.error) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    if (!result.requiresPayment) {
+      const { user, org, token } = result;
+      return res.status(201).json({
+        success: true,
+        data: {
+          user: { id: user.id, email: user.email, firstName: user.fullName ? user.fullName.split(' ')[0] : null, role: user.roleCode },
+          organization: { id: org.id, name: org.name, slug: org.slug },
+          token
+        }
+      });
+    }
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Create owner payment intent error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// ===== OWNER REGISTRATION: CONFIRM PAYMENT =====
+exports.confirmOwnerPayment = async (req, res) => {
+  try {
+    const { reference, provider, ...fields } = req.body;
+
+    if (!reference || !provider) {
+      return res.status(400).json({ success: false, error: 'reference and provider are required' });
+    }
+
+    const result = await authService.confirmOwnerPayment({ reference, provider, ...fields });
+
+    if (result.error) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    const { user, org, token } = result;
+
+    res.status(201).json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.fullName ? user.fullName.split(' ')[0] : null,
+          role: user.roleCode
+        },
+        organization: {
+          id: org.id,
+          name: org.name,
+          slug: org.slug
+        },
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Confirm owner payment error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 };

@@ -26,6 +26,8 @@ const promotionsRoutes = require('./routes/promotions');
 const notificationsRoutes = require('./routes/notifications');
 const reportsRoutes = require('./routes/reports');
 const publicBookingRoutes = require('./routes/public-bookings');
+const subscriptionPlansRoutes = require('./routes/subscription-plans');
+const paymentWebhookRoutes = require('./routes/payment-webhooks');
 
 const app = express();
 
@@ -44,14 +46,21 @@ app.use(helmet());
 app.use(morgan('combined'));
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 300,
+  limit: 10000000,
   standardHeaders: 'draft-8',
   legacyHeaders: false
 }));
 // app.options('*', cors(corsOptions));
+
+// Mounted before express.json() — payment gateway signature verification
+// needs the exact raw request body, not a re-serialized parsed copy.
+app.use('/api/v1/payments/webhooks', paymentWebhookRoutes);
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
+app.use('/uploads', express.static(require('path').join(__dirname, 'uploads'), {
+  setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+}));
 
 // ===== DATABASE CONNECTION =====
 const startServer = async () => {
@@ -112,6 +121,7 @@ app.use('/api/v1/promotions', promotionsRoutes);
 app.use('/api/v1/notifications', notificationsRoutes);
 app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/public', publicBookingRoutes);
+app.use('/api/v1/subscription-plans', subscriptionPlansRoutes);
 
 // SUPERADMIN ROUTES
 app.use('/api/v1/superadmin/bookings', superadminBookingRoutes);

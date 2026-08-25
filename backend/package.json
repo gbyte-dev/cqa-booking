@@ -24,6 +24,8 @@
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "mysql2": "^3.23.3",
+    "paytmchecksum": "^1.5.1",
+    "razorpay": "^2.9.8",
     "sequelize": "^6.37.8",
     "stripe": "^22.5.0",
     "uuid": "^14.0.1"
